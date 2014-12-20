@@ -1,0 +1,16 @@
+{
+  "name": "peekmo-php-atom-autocomplete",
+  "main": "./lib/peekmo-php-atom-autocomplete",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "activationCommands": {
+    "atom-workspace": "peekmo-php-atom-autocomplete:toggle"
+  },
+  "repository": "https://github.com/atom/peekmo-php-atom-autocomplete",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+  }
+}
