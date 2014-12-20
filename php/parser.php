@@ -27,7 +27,10 @@
                  require_php_files($path);
              } else {
                  if (false !== strpos($file, '.php')) {
-                     @require_once $path;
+                     system('php ' . $path . ' 1>0 2>&1', $status);
+                     if ($status != 255) {
+                         @require_once $path;
+                     }
                  }
              }
          }
@@ -39,14 +42,9 @@
   * @return array
   **/
  function generate_mapping() {
-     $functions = get_defined_functions();
-     die(var_dump($functions));
+     $functions = get_declared_classes();
+     die(print_r($functions));
  }
-
- set_error_handler(function($errno, $errstr, $errfile, $errline) {
-     echo 'Error : ' . $errfile . PHP_EOL;
-     return true;
- });
 
  if (count($argv) != 2) {
      die('Usage : php parser.php <dirname>');
