@@ -1,4 +1,4 @@
-PhpProvider = require './PhpProvider.coffee'
+PhpClassProvider = require "./php-class-provider.coffee"
 
 module.exports =
   configDefaults:
@@ -8,9 +8,10 @@ module.exports =
   providers: []
 
   activate: ->
-    atome.packages.activatePackage("autocomplete-plus").then(pkg) =>
-      @autocomplete = pkg.mainModule
-      @registerProviders()
+    atom.packages.activatePackage("autocomplete-plus")
+      .then (pkg) =>
+        @autocomplete = pkg.mainModule
+        @registerProviders()
 
   deactivate: ->
     @editorSubscription?.off()
@@ -24,6 +25,6 @@ module.exports =
   registerProviders: ->
     @editorSubscription = atom.workspaceView.eachEditorView (editorView) =>
       if editorView.attached and not editorView.mini
-        provider = new ExampleProvider editorView.editor
+        provider = new PhpClassProvider editorView.editor
         @autocomplete.registerProviderForEditorView provider, editorView.editor
         @providers.push provider
