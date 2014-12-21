@@ -1,13 +1,29 @@
-PeekmoPhpAtomAutocompleteView = require './peekmo-php-atom-autocomplete-view'
+PhpProvider = require './PhpProvider.coffee'
 
 module.exports =
-  peekmoPhpAtomAutocompleteView: null
+  configDefaults:
+    fileWhitelist: "*.php"
+  editorSubscription: null
+  autocomplete: null
+  providers: []
 
-  activate: (state) ->
-    @peekmoPhpAtomAutocompleteView = new PeekmoPhpAtomAutocompleteView(state.peekmoPhpAtomAutocompleteViewState)
+  activate: ->
+    atome.packages.activatePackage("autocomplete-plus").then(pkg) =>
+      @autocomplete = pkg.mainModule
+      @registerProviders()
 
   deactivate: ->
-    @peekmoPhpAtomAutocompleteView.destroy()
+    @editorSubscription?.off()
+    @editorSubscription = null
 
-  serialize: ->
-    peekmoPhpAtomAutocompleteViewState: @peekmoPhpAtomAutocompleteView.serialize()
+    @providers.forEach (provider) =>
+      @autocomplete.unregisterProvider provider
+
+    @providers = []
+
+  registerProviders: ->
+    @editorSubscription = atom.workspaceView.eachEditorView (editorView) =>
+      if editorView.attached and not editorView.mini
+        provider = new ExampleProvider editorView.editor
+        @autocomplete.registerProviderForEditorView provider, editorView.editor
+        @providers.push provider

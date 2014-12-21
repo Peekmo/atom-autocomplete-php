@@ -1,7 +1,0 @@
-PHP Warning:  Module 'mongo' already loaded in Unknown on line 0
-PHP Warning:  require(/var/www/Silex-Nosween/vendor/silex/silex/tests/../vendor/autoload.php): failed to open stream: No such file or directory in /var/www/Silex-Nosween/vendor/silex/silex/tests/bootstrap.php on line 3
-PHP Stack trace:
-PHP   1. {main}() /var/www/Silex-Nosween/vendor/silex/silex/tests/bootstrap.php:0
-PHP Fatal error:  require(): Failed opening required '/var/www/Silex-Nosween/vendor/silex/silex/tests/../vendor/autoload.php' (include_path='.:/usr/share/php:/usr/share/pear') in /var/www/Silex-Nosween/vendor/silex/silex/tests/bootstrap.php on line 3
-PHP Stack trace:
-PHP   1. {main}() /var/www/Silex-Nosween/vendor/silex/silex/tests/bootstrap.php:0

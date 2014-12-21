@@ -25,6 +25,4 @@ describe "PeekmoPhpAtomAutocomplete", ->
         activationPromise
 
       runs ->
-        expect(atom.workspaceView.find('.peekmo-php-atom-autocomplete')).toExist()
-        atom.commands.dispatch atom.workspaceView.element, 'peekmo-php-atom-autocomplete:toggle'
-        expect(atom.workspaceView.find('.peekmo-php-atom-autocomplete')).not.toExist()
+        

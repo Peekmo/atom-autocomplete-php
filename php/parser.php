@@ -6,16 +6,21 @@
  * This script returns all functions, classes & methods in the given directory.
  * Internals and user's one
  **/
+ require_once(__DIR__ . '/classes_parser.php');
 
  /**
-  * Require all PHP files who are in the given $dir
+  * Get functions and classes declared in the given directory
   * @param string $dir Root directory for the script
   **/
- function require_php_files($dir) {
+ function get_functions_and_classes($dir) {
      if (!is_dir($dir)) {
          die(sprintf('Fatal error : %s is not a directory', $dir));
      }
 
+     $mapping = array(
+         'classes'   => array(),
+         'functions' => array()
+     );
      $current = explode('/', $dir);
      $files = scandir($dir);
 
@@ -24,34 +29,33 @@
          if ('.' !== $file && '..' !== $file) {
              $path = $dir . '/' . $file;
              if (is_dir($path)) {
-                 require_php_files($path);
+                 $mapping = array_merge_recursive($mapping, get_functions_and_classes($path));
              } else {
-                 if (false !== strpos($file, '.php')) {
-                     system('php ' . $path . ' 1>0 2>&1', $status);
-                     if ($status != 255) {
-                         @require_once $path;
-                     }
+                 if (in_array(pathinfo($path, PATHINFO_EXTENSION), array('php', 'inc', 'hh'))) {
+                     $mapping = array_merge_recursive($mapping, parse_php_file($path));
                  }
              }
          }
      }
- }
 
- /**
-  * Generates the mapping from all files required before
-  * @return array
-  **/
- function generate_mapping() {
-     $functions = get_declared_classes();
-     die(print_r($functions));
+     return $mapping;
  }
 
  if (count($argv) != 2) {
      die('Usage : php parser.php <dirname>');
  }
 
- require_php_files($argv[1]);
- $mapping = generate_mapping();
+ $mapping = get_functions_and_classes($argv[1]);
+
+ // Adding PHP internal functions and classes
+ $defined_functions = get_defined_functions();
+
+ $internals = array(
+     'classes' => get_declared_classes(),
+     'functions' => $defined_functions['internal']
+ );
+
+ $mapping = array_merge_recursive($mapping, $internals);
 
  // Returns json for the JS
  echo json_encode($mapping);
