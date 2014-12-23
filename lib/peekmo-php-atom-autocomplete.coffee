@@ -25,6 +25,6 @@ module.exports =
   registerProviders: ->
     @editorSubscription = atom.workspaceView.eachEditorView (editorView) =>
       if editorView.attached and not editorView.mini
-        provider = new PhpClassProvider editorView.editor
-        @autocomplete.registerProviderForEditorView provider, editorView.editor
+        provider = new PhpClassProvider editorView
+        @autocomplete.registerProviderForEditorView provider, editorView
         @providers.push provider
