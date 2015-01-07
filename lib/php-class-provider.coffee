@@ -3,6 +3,7 @@ fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 sys = require "sys"
 exec = require "child_process"
+fs = require "fs"
 
 module.exports =
 # Autocompletion for class names
@@ -39,8 +40,9 @@ class PhpClassProvider extends Provider
   getClasses: (error, stdout, stderr) =>
     console.log error
     console.log stderr
+    console.log JSON.parse(stdout)
     console.log stdout
 
   generateClasses: ->
-    console.log 'ok';
-    exec.exec("ls", @getClasses)
+    for directory in atom.project.getDirectories()
+      exec.exec("php " + __dirname + "/../php/parser.php " + directory.path, @getClasses)

@@ -41,6 +41,16 @@
      return $mapping;
  }
 
+ function getMethodsAndAttributes($className) {
+    $reflection = new \ReflectionClass();
+
+    return array(
+        'methods'    => $reflection->getMethods(),
+        'attributes' => $reflection->getAttributes(),
+        'constants'  => $reflection->getConstants(),
+    );
+ }
+
  if (count($argv) != 2) {
      die('Usage : php parser.php <dirname>');
  }
