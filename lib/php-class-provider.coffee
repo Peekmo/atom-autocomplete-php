@@ -11,8 +11,8 @@ class PhpClassProvider extends Provider
   # "new" keyword or word starting with capital letter
   wordRegex: /\b(^new \w*[a-zA-Z_]\w*)|(^[A-Z]([a-zA-Z])*)\b/g
 
-  possibleWords: ["async", "attributes", "author", "beta", "borrows", "bubbles", "Master"]
-
+  possibleWords: []
+  
   buildSuggestions: ->
     selection = @editor.getSelection()
     prefix = @prefixOfSelection selection
@@ -40,8 +40,12 @@ class PhpClassProvider extends Provider
   getClasses: (error, stdout, stderr) =>
     console.log error
     console.log stderr
-    console.log JSON.parse(stdout)
     console.log stdout
+
+    res = JSON.parse(stdout)
+    console.log res
+
+    @possibleWords = res.classes
 
   generateClasses: ->
     for directory in atom.project.getDirectories()
