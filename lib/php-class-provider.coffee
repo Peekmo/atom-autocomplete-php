@@ -26,13 +26,24 @@ class PhpClassProvider extends Provider
 
   findSuggestionsForPrefix: (prefix) ->
     # Get rid of the leading "new" keyword
-    prefix = prefix.replace /^new /, ''
+    instanciation = false
+    if prefix.indexOf("new ") != -1
+      instanciation = true
+      prefix = prefix.replace /^new /, ''
 
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @classes.names, prefix
 
     # Builds suggestions for the words
-    suggestions = for word in words when word isnt prefix
-      params = @classes.methods[word].constructor.args.join(',')
-      new Suggestion this, word: word, prefix: prefix, label: "(#{params})"
+    suggestions = []
+    for word in words when word isnt prefix
+      # Just print classes with constructors with "new"
+      if instanciation and @classes.methods[word].constructor.has
+        params = @classes.methods[word].constructor.args.join(',')
+        suggestions.push new Suggestion this, word: word, prefix: prefix, label: "(#{params})"
+
+      # Not instanciation => not printing constructor params
+      else if not instanciation
+        suggestions.push new Suggestion this, word: word, prefix: prefix
+
     return suggestions
