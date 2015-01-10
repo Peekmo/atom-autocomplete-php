@@ -1,9 +1,9 @@
 {Provider, Suggestion} = require "autocomplete-plus"
 fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
-sys = require "sys"
 exec = require "child_process"
-fs = require "fs"
+
+internals = require "./php-internals.coffee"
 
 module.exports =
 # Autocompletion for class names
@@ -11,14 +11,14 @@ class PhpClassProvider extends Provider
   # "new" keyword or word starting with capital letter
   wordRegex: /\b(^new \w*[a-zA-Z_]\w*)|(^[A-Z]([a-zA-Z])*)\b/g
 
-  possibleWords: []
-  
+  classes: []
+
   buildSuggestions: ->
     selection = @editor.getSelection()
     prefix = @prefixOfSelection selection
     return unless prefix.length
 
-    words = @generateClasses()
+    @classes = internals.classes()
 
     suggestions = @findSuggestionsForPrefix prefix
     return unless suggestions.length
@@ -29,24 +29,10 @@ class PhpClassProvider extends Provider
     prefix = prefix.replace /^new /, ''
 
     # Filter the words using fuzzaldrin
-    words = fuzzaldrin.filter @possibleWords, prefix
+    words = fuzzaldrin.filter @classes, prefix
 
     # Builds suggestions for the words
     suggestions = for word in words when word isnt prefix
       new Suggestion this, word: word, prefix: prefix, label: "@#{word}"
 
     return suggestions
-
-  getClasses: (error, stdout, stderr) =>
-    console.log error
-    console.log stderr
-    console.log stdout
-
-    res = JSON.parse(stdout)
-    console.log res
-
-    @possibleWords = res.classes
-
-  generateClasses: ->
-    for directory in atom.project.getDirectories()
-      exec.exec("php " + __dirname + "/../php/parser.php " + directory.path, @getClasses)
