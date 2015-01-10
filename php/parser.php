@@ -60,8 +60,30 @@
  // Adding PHP internal functions and classes
  $defined_functions = get_defined_functions();
 
+ $classes = array('names' => array(), 'functions' => array());
+ foreach (get_declared_classes() as $class) {
+     $reflection = new ReflectionClass($class);
+     $ctor = $reflection->getConstructor();
+
+     $args = array();
+     if (!is_null($ctor)) {
+         $args = $ctor->getParameters();
+         array_walk($args, function(&$value, $key) {
+             $value = $value->getName();
+         });
+     }
+
+     $classes['names'][] = $class;
+     $classes['methods'][$class] = array(
+         'constructor' => array(
+             'has'  => !is_null($ctor),
+             'args' => $args
+         )
+     );
+ }
+
  $internals = array(
-     'classes' => get_declared_classes(),
+     'classes'   => $classes,
      'functions' => $defined_functions['internal']
  );
 

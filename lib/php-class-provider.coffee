@@ -29,10 +29,10 @@ class PhpClassProvider extends Provider
     prefix = prefix.replace /^new /, ''
 
     # Filter the words using fuzzaldrin
-    words = fuzzaldrin.filter @classes, prefix
+    words = fuzzaldrin.filter @classes.names, prefix
 
     # Builds suggestions for the words
     suggestions = for word in words when word isnt prefix
-      new Suggestion this, word: word, prefix: prefix, label: "@#{word}"
-
+      params = @classes.methods[word].constructor.args.join(',')
+      new Suggestion this, word: word, prefix: prefix, label: "(#{params})"
     return suggestions
