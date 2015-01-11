@@ -32,7 +32,11 @@
                  $mapping = array_merge_recursive($mapping, get_functions_and_classes($path));
              } else {
                  if (in_array(pathinfo($path, PATHINFO_EXTENSION), array('php', 'inc', 'hh'))) {
-                     $mapping = array_merge_recursive($mapping, parse_php_file($path));
+                     if (strpos($path, 'vendor/autoload.php') !== false) {
+                         require_once($path);
+                     } else {
+                         $mapping = array_merge_recursive($mapping, parse_php_file($path));
+                     }
                  }
              }
          }
@@ -60,9 +64,15 @@
  // Adding PHP internal functions and classes
  $defined_functions = get_defined_functions();
 
+ $classNames = array_merge(get_declared_classes(), $mapping['classes']);
  $classes = array('names' => array(), 'functions' => array());
- foreach (get_declared_classes() as $class) {
-     $reflection = new ReflectionClass($class);
+ foreach ($classNames as $class) {
+     try {
+         $reflection = new ReflectionClass($class);
+     } catch (Exception $e) {
+         continue;
+     }
+
      $ctor = $reflection->getConstructor();
 
      $args = array();
@@ -80,6 +90,7 @@
              'args' => $args
          )
      );
+
  }
 
  $internals = array(
