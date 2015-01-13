@@ -9,6 +9,17 @@
  require_once(__DIR__ . '/classes_parser.php');
 
  /**
+  * Function called when a fatal occured
+  */
+ function fatal_handler() {
+     $error = error_get_last();
+
+     if ($error !== NULL) {
+         echo json_encode(array('error' => $error));
+     }
+ }
+
+ /**
   * Get functions and classes declared in the given directory
   * @param string $dir Root directory for the script
   **/
@@ -58,6 +69,8 @@
  if (count($argv) != 2) {
      die('Usage : php parser.php <dirname>');
  }
+
+ register_shutdown_function('fatal_handler');
 
  $mapping = get_functions_and_classes($argv[1]);
 
