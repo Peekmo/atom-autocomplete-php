@@ -26,18 +26,28 @@ class PhpClassProvider extends Provider
     return suggestions
 
   confirm: (suggestion) ->
+    snippetModule = atom.packages.getActivePackage('snippets').mainModule
+
+    body = "("
+    for arg, index in suggestion.data.args
+      body += "," if body != "("
+      body += "${" + (index+1) + ":" + arg + "}"
+    body += ")$0"
+
+    snippetName = suggestion.word + suggestion.label
+    snippet =
+      ".source.php":
+        snippetName:
+          prefix: suggestion.prefix
+          body: suggestion.word + body
+    snippetModule.add('current', snippet)
+
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     buffer = @editor.getBuffer()
 
-    # Replace the prefix with the body
-    cursorPosition = @editor.getCursorBufferPosition()
-    buffer.delete Range.fromPointWithDelta(cursorPosition, 0, -suggestion.prefix.length)
-    @editor.insertText suggestion.data.body
-
-    # Move the cursor behind the body
-    # suffixLength = suggestion.data.body.length - suggestion.prefix.length
-    # @editor.setSelectedBufferRange [startPosition, [startPosition.row, startPosition.column + suffixLength]]
+    # Emit the snippet
+    snippetModule.expandSnippetsUnderCursors(@editor)
 
     return false # Don't fall back to the default behavior
 
@@ -62,7 +72,7 @@ class PhpClassProvider extends Provider
           prefix: prefix,
           label: "(#{params})",
           data:
-            body: word + "(#{params})"
+            args: @classes.methods[word].constructor.args
 
       # Not instanciation => not printing constructor params
       else if not instanciation

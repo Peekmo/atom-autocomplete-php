@@ -92,7 +92,7 @@
      if (!is_null($ctor)) {
          $args = $ctor->getParameters();
          array_walk($args, function(&$value, $key) {
-             $value = $value->getName();
+             $value = '$' . $value->getName();
          });
      }
 
