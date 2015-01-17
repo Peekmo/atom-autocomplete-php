@@ -26,28 +26,38 @@ class PhpClassProvider extends Provider
     return suggestions
 
   confirm: (suggestion) ->
-    snippetModule = atom.packages.getActivePackage('snippets').mainModule
-
-    body = "("
-    for arg, index in suggestion.data.args
-      body += "," if body != "("
-      body += "${" + (index+1) + ":" + arg + "}"
-    body += ")$0"
-
-    snippetName = suggestion.word + suggestion.label
-    snippet =
-      ".source.php":
-        snippetName:
-          prefix: suggestion.prefix
-          body: suggestion.word + body
-    snippetModule.add('current', snippet)
-
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     buffer = @editor.getBuffer()
 
-    # Emit the snippet
-    snippetModule.expandSnippetsUnderCursors(@editor)
+    # if some args (even empty) => instanciation
+    if suggestion.data?.args?
+      snippetModule = atom.packages.getActivePackage('snippets').mainModule
+
+      body = "("
+      for arg, index in suggestion.data.args
+        body += "," if body != "("
+        body += "${" + (index+1) + ":" + arg + "}"
+      body += ")$0"
+
+      snippetName = suggestion.word + suggestion.label
+      snippet =
+        ".source.php":
+          snippetName:
+            prefix: suggestion.prefix
+            body: suggestion.word + body
+      snippetModule.add('current', snippet)
+
+      # Emit the snippet
+      snippetModule.expandSnippetsUnderCursors(@editor)
+      snippetModule.deactivate()
+      snippetModule.activate()
+
+    # Static methods on classes
+    else
+      cursorPosition = @editor.getCursorBufferPosition()
+      buffer.delete Range.fromPointWithDelta(cursorPosition, 0, -suggestion.prefix.length)
+      @editor.insertText suggestion.word + "::"
 
     return false # Don't fall back to the default behavior
 
