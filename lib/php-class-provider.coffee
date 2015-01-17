@@ -4,13 +4,14 @@ minimatch = require 'minimatch'
 exec = require "child_process"
 
 internals = require "./php-internals.coffee"
+PhpAbstractProvider = require "./php-abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
 module.exports =
 # Autocompletion for class names
-class PhpClassProvider extends Provider
+class PhpClassProvider extends PhpAbstractProvider
   # "new" keyword or word starting with capital letter
-  wordRegex: /\b(^new \w*[a-zA-Z_]\w*)|(^[A-Z]([a-zA-Z])*)\b/g
+  wordRegex: /\b(new \w*[a-zA-Z_]\w*)|([A-Z]([a-zA-Z])*)\b/g
 
   classes: []
 
@@ -32,26 +33,7 @@ class PhpClassProvider extends Provider
 
     # if some args (even empty) => instanciation
     if suggestion.data?.args?
-      snippetModule = atom.packages.getActivePackage('snippets').mainModule
-
-      body = "("
-      for arg, index in suggestion.data.args
-        body += "," if body != "("
-        body += "${" + (index+1) + ":" + arg + "}"
-      body += ")$0"
-
-      snippetName = suggestion.word + suggestion.label
-      snippet =
-        ".source.php":
-          snippetName:
-            prefix: suggestion.prefix
-            body: suggestion.word + body
-      snippetModule.add('current', snippet)
-
-      # Emit the snippet
-      snippetModule.expandSnippetsUnderCursors(@editor)
-      snippetModule.deactivate()
-      snippetModule.activate()
+      @showSnippet(suggestion)
 
     # Static methods on classes
     else

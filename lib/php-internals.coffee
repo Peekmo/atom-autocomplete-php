@@ -1,13 +1,16 @@
 exec = require "child_process"
 
-res = {}
+data = {}
 
-parseData = (error, stdout, stderr) ->
+# ----------------------------------------------------- CLASSES ----------------------------------------
+# Parse --classes response
+parseClasses = (error, stdout, stderr) ->
   console.log stdout
   res = JSON.parse(stdout)
   console.log(res)
 
   if res.error?
+    data.error = true
     message = res.error.message
 
     if res.error.file? and res.error.line?
@@ -15,19 +18,16 @@ parseData = (error, stdout, stderr) ->
 
     window.alert message
 
-fetch = () ->
+  data.classes = res
+
+# Fetch --classes
+fetchClasses = () ->
   for directory in atom.project.getDirectories()
-    exec.exec("php " + __dirname + "/../php/parser.php " + directory.path, parseData)
-
-get = () ->
-  if not res.classes? and not res.error?
-    fetch()
-
-  return res
+    exec.exec("php " + __dirname + "/../php/parser.php --classes " + directory.path, parseClasses)
 
 module.exports =
   classes: () ->
-    return get().classes
+    if not data.classes? and not data.error?
+      fetchClasses()
 
-  functions: () ->
-    return get().functions
+    return data.classes

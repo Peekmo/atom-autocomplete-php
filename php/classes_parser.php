@@ -23,10 +23,7 @@ function parse_php_file($path) {
 
     // return early if there is no chance of matching anything in this file
     if (!preg_match('{\b(?:class|interface'.$traits.')\s}i', $contents)) {
-        return array(
-            'classes'   => array(),
-            'functions' => array()
-        );
+        return array();
     }
 
     // strip heredocs/nowdocs
@@ -68,8 +65,5 @@ function parse_php_file($path) {
             }
         }
 
-    return array(
-        'classes'   => $classes,
-        'functions' => array()
-    );
+    return $classes;
 }
