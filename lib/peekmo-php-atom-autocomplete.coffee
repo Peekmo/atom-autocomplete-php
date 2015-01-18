@@ -1,4 +1,5 @@
 PhpClassProvider = require "./php-class-provider.coffee"
+PhpStaticsProvider = require "./php-statics-provider.coffee"
 
 module.exports =
   configDefaults:
@@ -25,6 +26,10 @@ module.exports =
   registerProviders: ->
     @editorSubscription = atom.workspaceView.eachEditorView (editorView) =>
       if editorView.attached and not editorView.mini
-        provider = new PhpClassProvider editorView
-        @autocomplete.registerProviderForEditorView provider, editorView
-        @providers.push provider
+        classesProvider = new PhpClassProvider editorView
+        @autocomplete.registerProviderForEditorView classesProvider, editorView
+        @providers.push classesProvider
+
+        staticsProvider = new PhpStaticsProvider editorView
+        @autocomplete.registerProviderForEditorView staticsProvider, editorView
+        @providers.push staticsProvider

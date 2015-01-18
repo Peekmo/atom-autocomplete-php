@@ -11,7 +11,7 @@ module.exports =
 # Autocompletion for class names
 class PhpClassProvider extends PhpAbstractProvider
   # "new" keyword or word starting with capital letter
-  wordRegex: /\b(new \w*[a-zA-Z_]\w*)|([A-Z]([a-zA-Z])*)\b/g
+  wordRegex: /\b(new \w*[a-zA-Z_]\w*)|([A-Z]([a-zA-Z_])*)\b/g
 
   classes: []
 

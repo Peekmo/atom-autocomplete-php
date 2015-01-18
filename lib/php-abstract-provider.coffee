@@ -3,8 +3,6 @@
 module.exports =
 # Tooling for all providers
 class PhpAbstractProvider extends Provider
-  classes: []
-
   # Build the snippet from the suggestion
   showSnippet: (suggestion) ->
     snippetModule = atom.packages.getActivePackage('snippets').mainModule
