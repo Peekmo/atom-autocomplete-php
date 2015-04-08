@@ -16,5 +16,5 @@ module.exports =
 
     #staticsProvider = phpStaticsProvider
     #@providers.push staticsProvider
-  provide: ->
+  getProvider: ->
     @providers
