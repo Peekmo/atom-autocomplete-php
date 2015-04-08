@@ -11,6 +11,13 @@
   "engines": {
     "atom": ">0.50.0"
   },
+  "providedServices": {
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "getProvider"
+      }
+    }
+  },
   "dependencies": {
     "autocomplete-plus": "git+https://github.com/saschagehlich/autocomplete-plus.git",
     "fuzzaldrin": "~1.0.0",
