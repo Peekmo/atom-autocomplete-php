@@ -1,15 +1,13 @@
-{Provider, Suggestion} = require "autocomplete-plus"
 fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 exec = require "child_process"
 
 internals = require "./php-internals.coffee"
-PhpAbstractProvider = require "./php-abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
 module.exports =
 # Autocompletion for class names
-  selector: '.php'
+  selector: '.source.php'
 
   inclusionPriority: 1
   excludeLowerPriority: true
