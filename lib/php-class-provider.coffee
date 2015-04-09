@@ -3,17 +3,16 @@ minimatch = require 'minimatch'
 exec = require "child_process"
 
 internals = require "./php-internals.coffee"
-snippet = require "./php-snippets-builder"
+AbstractProvider = require "./php-abstract-provider"
 {$, $$, Range} = require 'atom'
 
 module.exports =
 # Autocompletion for class names
-  selector: '.source.php'
-
-  inclusionPriority: 1
-  excludeLowerPriority: true
-
+class ClassProvider extends AbstractProvider
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    # "new" keyword or word starting with capital letter
+    @regex = /\b(new \w*[a-zA-Z_\\]\w*)|([A-Z]([a-zA-Z_])*)\b/g
+
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
@@ -23,28 +22,6 @@ module.exports =
     suggestions = @findSuggestionsForPrefix prefix
     return unless suggestions.length
     return suggestions
-
-  getPrefix: (editor, bufferPosition) ->
-    # "new" keyword or word starting with capital letter
-    regex = /\b(new \w*[a-zA-Z_\\]\w*)|([A-Z]([a-zA-Z_])*)\b/g
-
-    # Get the text for the line up to the triggered buffer position
-    line = editor.getTextInRange([[bufferPosition.row, 0], bufferPosition])
-
-    # Match the regex to the line, and return the match
-    matches = line.match(regex)
-
-    # Looking for the correct match
-    if matches?
-      for match in matches
-        start = bufferPosition.column - match.length
-
-        if start >= 0
-          word = editor.getTextInBufferRange([[bufferPosition.row, bufferPosition.column - match.length], bufferPosition])
-          if word == match
-            return match
-
-    return ''
 
   confirm: (suggestion) ->
     selection = @editor.getSelection()
@@ -84,7 +61,7 @@ module.exports =
         params = @classes.methods[word].constructor.args.join(',')
         suggestions.push
           text: word,
-          snippet: snippet.getFunctionSnippet(word, @classes.methods[word].constructor.args),
+          snippet: @getFunctionSnippet(word, @classes.methods[word].constructor.args),
 #          rightLabel: "(#{params})"
 
       # Not instanciation => not printing constructor params
