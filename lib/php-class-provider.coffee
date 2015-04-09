@@ -30,10 +30,21 @@ module.exports =
 
     # Get the text for the line up to the triggered buffer position
     line = editor.getTextInRange([[bufferPosition.row, 0], bufferPosition])
-    console.log(line)
 
     # Match the regex to the line, and return the match
-    line.match(regex)?[0] or ''
+    matches = line.match(regex)
+
+    # Looking for the correct match
+    if matches?
+      for match in matches
+        start = bufferPosition.column - match.length
+
+        if start >= 0
+          word = editor.getTextInBufferRange([[bufferPosition.row, bufferPosition.column - match.length], bufferPosition])
+          if word == match
+            return match
+
+    return ''
 
   confirm: (suggestion) ->
     selection = @editor.getSelection()
