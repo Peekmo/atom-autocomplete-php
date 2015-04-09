@@ -15,28 +15,7 @@ require_once(__DIR__ . '/command_statics.php');
  * @param string $dir Root directory for the script
  **/
  function require_composer_autoloader($dir) {
-     if (!is_dir($dir)) {
-         die(sprintf('Fatal error : %s is not a directory', $dir));
-     }
-
-     $current = explode('/', $dir);
-     $files = scandir($dir);
-
-     foreach ($files as $file) {
-         // OSX & linux users
-         if ('.' !== $file && '..' !== $file) {
-             $path = $dir . '/' . $file;
-             if (is_dir($path)) {
-                 require_composer_autoloader($path);
-             } else {
-                 if (in_array(pathinfo($path, PATHINFO_EXTENSION), array('php'))) {
-                     if (strpos($path, 'vendor/autoload.php') !== false) {
-                         require_once($path);
-                     }
-                 }
-             }
-         }
-     }
+     require_once($dir . '/vendor/autoload.php');
  }
 
  /**

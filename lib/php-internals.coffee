@@ -4,8 +4,6 @@ data =
   statics: []
 
 printError = (error) ->
-  console.log error
-
   data.error = true
   message = error.message
 
@@ -27,7 +25,14 @@ parseClasses = (error, stdout, stderr) ->
 # Fetch --classes
 fetchClasses = () ->
   for directory in atom.project.getDirectories()
-    exec.exec("php " + __dirname + "/../php/parser.php " + directory.path + " --classes", parseClasses)
+    stdout = exec.execSync("php " + __dirname + "/../php/parser.php " + directory.path + " --classes")
+
+    res = JSON.parse(stdout)
+
+    if res.error?
+      printError(res.error)
+
+    data.classes = res
 
 # -------------------------------------- STATICS ----------------------------------------
 parseStatics = (error, stdout, stderr) ->

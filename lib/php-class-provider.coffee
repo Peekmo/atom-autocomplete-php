@@ -3,6 +3,7 @@ minimatch = require 'minimatch'
 exec = require "child_process"
 
 internals = require "./php-internals.coffee"
+snippet = require "./php-snippets-builder"
 {$, $$, Range} = require 'atom'
 
 module.exports =
@@ -23,15 +24,13 @@ module.exports =
     return unless suggestions.length
     return suggestions
 
-
-  # "new" keyword or word starting with capital letter
-  wordRegex: /\b(new \w*[a-zA-Z_]\w*)|([A-Z]([a-zA-Z_])*)\b/g
-
   getPrefix: (editor, bufferPosition) ->
-    regex = /\b(new \w*[a-zA-Z_]\w*)|([A-Z]([a-zA-Z_])*)\b/g
+    # "new" keyword or word starting with capital letter
+    regex = /\b(new \w*[a-zA-Z_\\]\w*)|([A-Z]([a-zA-Z_])*)\b/g
 
     # Get the text for the line up to the triggered buffer position
     line = editor.getTextInRange([[bufferPosition.row, 0], bufferPosition])
+    console.log(line)
 
     # Match the regex to the line, and return the match
     line.match(regex)?[0] or ''
@@ -56,7 +55,10 @@ module.exports =
   findSuggestionsForPrefix: (prefix) ->
     # Get rid of the leading "new" keyword
     instanciation = false
-    if prefix.indexOf("new ") != -1
+    if prefix.indexOf("new \\") != -1
+      instanciation = true
+      prefix = prefix.replace /^new \\/, ''
+    else if prefix.indexOf("new ") != -1
       instanciation = true
       prefix = prefix.replace /^new /, ''
 
@@ -71,9 +73,8 @@ module.exports =
         params = @classes.methods[word].constructor.args.join(',')
         suggestions.push
           text: word,
-          label: "(#{params})",
-          data:
-            args: @classes.methods[word].constructor.args
+          snippet: snippet.getFunctionSnippet(word, @classes.methods[word].constructor.args),
+#          rightLabel: "(#{params})"
 
       # Not instanciation => not printing constructor params
       else if not instanciation
