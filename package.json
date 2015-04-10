@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "autocomplete-plus": "git+https://github.com/saschagehlich/autocomplete-plus.git",
-    "fuzzaldrin": "~1.0.0",
-    "minimatch": "^0.3.0"
+    "fuzzaldrin": "^2.1.0",
+    "minimatch": "^2.0.1"
   }
 }
