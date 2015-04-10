@@ -1,26 +1,24 @@
-{Provider, Suggestion} = require "autocomplete-plus"
 fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 
 internals = require "./php-internals.coffee"
-PhpAbstractProvider = require "./php-abstract-provider.coffee"
+AbstractProvider = require "./php-abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
 module.exports =
 # Autocompletion for class names
-class PhpStaticsProvider extends PhpAbstractProvider
-  # "self" keyword will be handled later
-  # wordRegex: /\b((self::[a-zA-Z_]*$)|([A-Z][a-zA-Z_]*::[a-zA-Z_]*$))\b/g
-  wordRegex: /\b([A-Z][a-zA-Z_]*::[a-zA-Z_]*)\b/g
-
+class StaticProvider extends AbstractProvider
   statics: []
 
-  buildSuggestions: ->
-    selection = @editor.getSelection()
-    prefix = @prefixOfSelection selection
+  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    # "new" keyword or word starting with capital letter
+    @regex = /(\b[A-Z][a-zA-Z_]+::[a-zA-Z_]*)/g
+
+    selection = editor.getSelection()
+    prefix = @getPrefix(editor, bufferPosition)
+    console.log prefix
     return unless prefix.length
 
-    # ClassName::method
     parts = prefix.split("::")
     @statics = internals.statics(parts[0])
 
@@ -28,24 +26,8 @@ class PhpStaticsProvider extends PhpAbstractProvider
     return unless suggestions.length
     return suggestions
 
-  confirm: (suggestion) ->
-    selection = @editor.getSelection()
-    startPosition = selection.getBufferRange().start
-    buffer = @editor.getBuffer()
-
-    # if some args => methods
-    if suggestion.data?.args?
-      @showSnippet(suggestion)
-
-    # Static properties or constants
-    else
-      cursorPosition = @editor.getCursorBufferPosition()
-      buffer.delete Range.fromPointWithDelta(cursorPosition, 0, -suggestion.prefix.length)
-      @editor.insertText suggestion.word
-
-    return false # Don't fall back to the default behavior
-
   findSuggestionsForPrefix: (prefix) ->
+    console.log prefix
     # Filter the words using fuzzaldrin
     if prefix != ""
       words = fuzzaldrin.filter @statics.names, prefix
@@ -60,15 +42,18 @@ class PhpStaticsProvider extends PhpAbstractProvider
           # Methods
           if element.isMethod
             params = element.args.join(',')
-            suggestions.push new Suggestion this,
-              word: word,
-              prefix: prefix,
-              label: "(#{params})",
+            suggestions.push
+              text: word,
+              snippet: @getFunctionSnippet(word, element.args),
               data:
+                prefix: prefix,
                 args: element.args
 
           # Constants and public properties
           else
-            suggestions.push new Suggestion this, word: word, prefix: prefix
+            suggestions.push
+              text: word,
+              data:
+                prefix: prefix
 
     return suggestions

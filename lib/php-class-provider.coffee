@@ -11,7 +11,7 @@ module.exports =
 class ClassProvider extends AbstractProvider
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /\b(new \w*[a-zA-Z_\\]\w*)|([A-Z]([a-zA-Z_])*)\b/g
+    @regex = /(new \b[a-zA-Z_\\]*)|(\b[A-Z]([a-zA-Z_])*)/g
 
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)

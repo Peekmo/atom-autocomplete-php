@@ -13,16 +13,6 @@ printError = (error) ->
   window.alert message
 
 # -------------------------------------- CLASSES ----------------------------------------
-# Parse --classes response
-parseClasses = (error, stdout, stderr) ->
-  res = JSON.parse(stdout)
-
-  if res.error?
-    printError(res.error)
-
-  data.classes = res
-
-# Fetch --classes
 fetchClasses = () ->
   for directory in atom.project.getDirectories()
     stdout = exec.execSync("php " + __dirname + "/../php/parser.php " + directory.path + " --classes")
@@ -35,17 +25,15 @@ fetchClasses = () ->
     data.classes = res
 
 # -------------------------------------- STATICS ----------------------------------------
-parseStatics = (error, stdout, stderr) ->
-  res = JSON.parse(stdout)
-
-  if res.error?
-    printError(res.error)
-
-  data.statics[res.class] = res
-
 fetchStatics = (className) ->
   for directory in atom.project.getDirectories()
-    exec.exec("php " + __dirname + "/../php/parser.php " + directory.path + " --statics " + className, parseStatics)
+    stdout = exec.execSync("php " + __dirname + "/../php/parser.php " + directory.path + " --statics " + className)
+    res = JSON.parse(stdout)
+
+    if res.error?
+      printError(res.error)
+
+    data.statics[res.class] = res
 
 module.exports =
   classes: () ->

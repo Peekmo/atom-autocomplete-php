@@ -1,5 +1,5 @@
 ClassProvider = require "./php-class-provider.coffee"
-#phpStaticProvider = require "./php-statics-provider.coffee"
+StaticProvider = require "./php-statics-provider.coffee"
 
 module.exports =
   providers: []
@@ -12,6 +12,7 @@ module.exports =
 
   registerProviders: ->
     @providers.push new ClassProvider()
+    @providers.push new StaticProvider()
 
     #staticsProvider = phpStaticsProvider
     #@providers.push staticsProvider
