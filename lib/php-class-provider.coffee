@@ -23,20 +23,12 @@ class ClassProvider extends AbstractProvider
     return unless suggestions.length
     return suggestions
 
-  confirm: (suggestion) ->
-    selection = @editor.getSelection()
-    startPosition = selection.getBufferRange().start
-    buffer = @editor.getBuffer()
-
-    # if some args (even empty) => instanciation
-    if suggestion.data?.args?
-      @showSnippet(suggestion)
+  onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
+    buffer = editor.getBuffer()
 
     # Static methods on classes
-    else
-      cursorPosition = @editor.getCursorBufferPosition()
-      buffer.delete Range.fromPointWithDelta(cursorPosition, 0, -suggestion.prefix.length)
-      @editor.insertText suggestion.word + "::"
+    if suggestion.data.kind == 'static'
+      editor.insertText "::"
 
     return false # Don't fall back to the default behavior
 
@@ -62,10 +54,18 @@ class ClassProvider extends AbstractProvider
         suggestions.push
           text: word,
           snippet: @getFunctionSnippet(word, @classes.methods[word].constructor.args),
+          data:
+            kind: 'instanciation',
+            prefix: prefix
+
 #          rightLabel: "(#{params})"
 
       # Not instanciation => not printing constructor params
       else if not instanciation
-        suggestions.push {word: word, prefix: prefix}
+        suggestions.push 
+          text: word, 
+          data:
+            kind: 'static',
+            prefix: prefix
 
     return suggestions
