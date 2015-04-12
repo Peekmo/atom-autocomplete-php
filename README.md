@@ -3,6 +3,15 @@
 WORK IN PROGRESS
 -----------
 
+Nothing is stable, please, post an issue if you found a problem. And feel free to help :)
+
+What's needed to make it works ?
+- autocomplete-plus plugin
+- Window opened in a php project directory, with vendor/autoload.php setted
+- Command "php" available. 
+
+/!\ Nothing has been test on windows
+
 ![AutocompletePHP](http://i.imgur.com/UTaw1BO.gif)
 
 Autocomplete for PHP language on ATOM editor
