@@ -15,7 +15,7 @@ printError = (error) ->
 # -------------------------------------- CLASSES ----------------------------------------
 fetchClasses = () ->
   for directory in atom.project.getDirectories()
-    stdout = exec.execSync("php " + __dirname + "/../php/parser.php " + directory.path + " --classes")
+    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --classes")
 
     res = JSON.parse(stdout)
 
@@ -27,7 +27,7 @@ fetchClasses = () ->
 # -------------------------------------- STATICS ----------------------------------------
 fetchStatics = (className) ->
   for directory in atom.project.getDirectories()
-    stdout = exec.execSync("php " + __dirname + "/../php/parser.php " + directory.path + " --statics " + className)
+    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --statics " + className)
     res = JSON.parse(stdout)
 
     if res.error?

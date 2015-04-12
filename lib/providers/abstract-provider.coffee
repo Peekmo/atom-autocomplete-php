@@ -35,4 +35,3 @@ class AbstractProvider
             return match
 
     return ''
-

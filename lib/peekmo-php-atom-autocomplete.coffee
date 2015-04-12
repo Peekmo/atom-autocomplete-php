@@ -1,5 +1,5 @@
-ClassProvider = require "./php-class-provider.coffee"
-StaticProvider = require "./php-statics-provider.coffee"
+ClassProvider = require "./providers/class-provider.coffee"
+StaticProvider = require "./providers/static-provider.coffee"
 
 module.exports =
   providers: []

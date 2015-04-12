@@ -1,8 +1,8 @@
 fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 
-internals = require "./php-internals.coffee"
-AbstractProvider = require "./php-abstract-provider.coffee"
+internals = require "../services/php-internals.coffee"
+AbstractProvider = require "./abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
 module.exports =
@@ -11,12 +11,10 @@ class StaticProvider extends AbstractProvider
   statics: []
 
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    # "new" keyword or word starting with capital letter
-    @regex = /(\b[A-Z][a-zA-Z_]+::[a-zA-Z_]*)/g
+    @regex = /(\b[A-Z][a-zA-Z_]+::([a-zA-Z_]*))/g
 
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
-    console.log prefix
     return unless prefix.length
 
     parts = prefix.split("::")
@@ -27,12 +25,8 @@ class StaticProvider extends AbstractProvider
     return suggestions
 
   findSuggestionsForPrefix: (prefix) ->
-    console.log prefix
     # Filter the words using fuzzaldrin
-    if prefix != ""
-      words = fuzzaldrin.filter @statics.names, prefix
-    else
-      words = @statics.names
+    words = fuzzaldrin.filter @statics.names, prefix
 
     # Builds suggestions for the words
     suggestions = []
@@ -41,7 +35,6 @@ class StaticProvider extends AbstractProvider
         if element.isPublic
           # Methods
           if element.isMethod
-            params = element.args.join(',')
             suggestions.push
               text: word,
               snippet: @getFunctionSnippet(word, element.args),

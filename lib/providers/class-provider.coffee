@@ -2,8 +2,8 @@ fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 exec = require "child_process"
 
-internals = require "./php-internals.coffee"
-AbstractProvider = require "./php-abstract-provider"
+internals = require "../services/php-internals.coffee"
+AbstractProvider = require "./abstract-provider"
 {$, $$, Range} = require 'atom'
 
 module.exports =
@@ -62,8 +62,8 @@ class ClassProvider extends AbstractProvider
 
       # Not instanciation => not printing constructor params
       else if not instanciation
-        suggestions.push 
-          text: word, 
+        suggestions.push
+          text: word,
           data:
             kind: 'static',
             prefix: prefix
