@@ -23,6 +23,7 @@ class AbstractProvider
 
     # Match the regex to the line, and return the match
     matches = line.match(@regex)
+    console.log matches
 
     # Looking for the correct match
     if matches?

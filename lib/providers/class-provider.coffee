@@ -11,7 +11,7 @@ module.exports =
 class ClassProvider extends AbstractProvider
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /(new \b[a-zA-Z_\\]*)|(\b[A-Z]([a-zA-Z_])*)/g
+    @regex = /((?:new )?\\?(?:[A-Z][a-zA-Z_]*)+)/g
 
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
@@ -35,12 +35,16 @@ class ClassProvider extends AbstractProvider
   findSuggestionsForPrefix: (prefix) ->
     # Get rid of the leading "new" keyword
     instanciation = false
+    console.log prefix
     if prefix.indexOf("new \\") != -1
       instanciation = true
       prefix = prefix.replace /^new \\/, ''
     else if prefix.indexOf("new ") != -1
       instanciation = true
       prefix = prefix.replace /^new /, ''
+
+    if prefix.indexOf("\\") == 0
+      prefix = prefix.substring(1, prefix.length)
 
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @classes.names, prefix
