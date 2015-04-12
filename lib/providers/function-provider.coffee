@@ -1,0 +1,39 @@
+fuzzaldrin = require 'fuzzaldrin'
+minimatch = require 'minimatch'
+
+internals = require "../services/php-internals.coffee"
+AbstractProvider = require "./abstract-provider"
+
+module.exports =
+# Autocompletion for class names
+class FunctionProvider extends AbstractProvider
+  functions: []
+
+  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    # "new" keyword or word starting with capital letter
+    @regex = /(\b[a-z_]*)/g
+
+    selection = editor.getSelection()
+    prefix = @getPrefix(editor, bufferPosition)
+    return unless prefix.length
+
+    @functions = internals.functions()
+
+    suggestions = @findSuggestionsForPrefix(prefix)
+    return unless suggestions.length
+    return suggestions
+
+  findSuggestionsForPrefix: (prefix) ->
+    # Filter the words using fuzzaldrin
+    words = fuzzaldrin.filter @functions.names, prefix
+
+    # Builds suggestions for the words
+    suggestions = []
+    for word in words
+      for element in @functions.values[word]
+        suggestions.push
+          text: word,
+          type: 'function',
+          snippet: @getFunctionSnippet(word, element.args),
+
+    return suggestions

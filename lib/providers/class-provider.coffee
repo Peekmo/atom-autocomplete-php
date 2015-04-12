@@ -37,7 +37,6 @@ class ClassProvider extends AbstractProvider
   findSuggestionsForPrefix: (prefix) ->
     # Get rid of the leading "new" keyword
     instanciation = false
-    console.log prefix
     if prefix.indexOf("new \\") != -1
       instanciation = true
       prefix = prefix.replace /^new \\/, ''

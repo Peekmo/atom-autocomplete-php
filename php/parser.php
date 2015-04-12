@@ -12,11 +12,13 @@ require_once(__DIR__ . '/ProviderInterface.php');
 require_once(__DIR__ . '/StaticsProvider.php');
 require_once(__DIR__ . '/MethodsProvider.php');
 require_once(__DIR__ . '/ClassesProvider.php');
+require_once(__DIR__ . '/FunctionsProvider.php');
 
 $commands = array(
-    '--classes' => 'ClassesProvider',
-    '--statics' => 'StaticsProvider',
-    '--methods' => 'MethodsProvider'
+    '--classes'   => 'ClassesProvider',
+    '--statics'   => 'StaticsProvider',
+    '--methods'   => 'MethodsProvider',
+    '--functions' => 'FunctionsProvider'
 );
 
 /**

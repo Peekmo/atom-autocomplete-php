@@ -25,6 +25,18 @@ fetchClasses = () ->
 
     data.classes = res
 
+# -------------------------------------- FUNCTIONS ----------------------------------------
+fetchFunctions = () ->
+  for directory in atom.project.getDirectories()
+    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --functions")
+
+    res = JSON.parse(stdout)
+
+    if res.error?
+      printError(res.error)
+
+    data.functions = res
+
 # -------------------------------------- STATICS ----------------------------------------
 fetchStatics = (className) ->
   for directory in atom.project.getDirectories()
@@ -55,6 +67,12 @@ module.exports =
       fetchClasses()
 
     return data.classes
+
+  functions: () ->
+    if not data.functions? and not data.error?
+      fetchFunctions()
+
+    return data.functions
 
   statics: (className) ->
     if not data.statics[className]? and not data.error?
