@@ -47,11 +47,27 @@ abstract class Tools
     protected function getMethodArguments($method)
     {
         $args = $method->getParameters();
-        array_walk($args, function(&$value, $key) {
-            $value = '$' . $value->getName();
-        });
+        $optionals = array();
+        $parameters = array();
 
-        return $args;
+        foreach ($args as $argument) {
+            $value = '$' . $argument->getName();
+
+            if ($argument->isPassedByReference()) {
+                $value = '&' . $value;
+            }
+
+            if ($argument->isOptional()) {
+                $optionals[] = $value;
+            } else {
+                $parameters[] = $value;
+            }
+        }
+
+        return array(
+            'parameters' => $parameters,
+            'optionals' => $optionals
+        );
     }
 }
 

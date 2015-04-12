@@ -55,7 +55,6 @@ class ClassProvider extends AbstractProvider
     for word in words when word isnt prefix
       # Just print classes with constructors with "new"
       if instanciation and @classes.methods[word].constructor.has
-        params = @classes.methods[word].constructor.args.join(',')
         suggestions.push
           text: word,
           snippet: @getFunctionSnippet(word, @classes.methods[word].constructor.args),

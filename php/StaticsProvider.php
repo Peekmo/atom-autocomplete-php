@@ -10,7 +10,7 @@ class StaticsProvider extends Tools implements ProviderInterface
     public function execute($args = array())
     {
         $class = $args[0];
-        
+
         $statics = array(
             'class'  => $class,
             'names'  => array(),
@@ -31,10 +31,7 @@ class StaticsProvider extends Tools implements ProviderInterface
         foreach ($methods as $method) {
             $statics['names'][] = $method->getName();
 
-            $args = $method->getParameters();
-            array_walk($args, function(&$value, $key) {
-                $value = '$' . $value->getName();
-            });
+            $args = $this->getMethodArguments($method); 
 
             $statics['values'][$method->getName()] = array(
                 array(

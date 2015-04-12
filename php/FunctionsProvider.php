@@ -25,10 +25,7 @@ class FunctionsProvider extends Tools implements ProviderInterface
 
             $functions['names'][] = $function->getName();
 
-            $args = $function->getParameters();
-            array_walk($args, function(&$value, $key) {
-                $value = '$' . $value->getName();
-            });
+            $args = $this->getMethodArguments($function); 
 
             $functions['values'][$function->getName()] = array(
                 array(

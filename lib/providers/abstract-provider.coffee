@@ -9,9 +9,26 @@ class AbstractProvider
   # Build the snippet from the suggestion
   getFunctionSnippet: (word, elements) ->
     body = word + "("
-    for arg, index in elements
-      body += "," if body != word + "("
+    lastIndex = 0
+
+    # Non optional elements
+    for arg, index in elements.parameters
+      body += ", " if index != 0
       body += "${" + (index+1) + ":" + arg + "}"
+      lastIndex = index+1
+
+    # Optional elements. One big same snippet
+    if elements.optionals.length > 0
+      body += "${" + (lastIndex + 1) + ":["
+      body += "," if lastIndex != 0
+
+      lastIndex += 1
+
+      for arg, index in elements.optionals
+        body += ", " if index != 0
+        body += arg
+      body += "]}"
+
     body += ")$0"
 
     return body
