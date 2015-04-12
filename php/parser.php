@@ -4,6 +4,8 @@ require_once(__DIR__ . '/command_classes.php');
 require_once(__DIR__ . '/command_statics.php');
 require_once(__DIR__ . '/command_methods.php');
 
+$allClasses = get_declared_classes();
+
 /**
  * @author Axel Anceau <Peekmo>
  *
@@ -16,6 +18,15 @@ require_once(__DIR__ . '/command_methods.php');
  * @param string $dir Root directory for the script
  **/
  function require_composer_autoloader($dir) {
+     global $allClasses;
+
+     $classmap = $dir . '/vendor/composer/autoload_classmap.php';
+     if (!file_exists($classmap)) {
+         exec('composer dump-autoload --optimize');
+     }
+
+     $allClasses = array_merge(array_keys(require_once($classmap)), $allClasses);
+
      require_once($dir . '/vendor/autoload.php');
  }
 
@@ -49,7 +60,7 @@ require_once(__DIR__ . '/command_methods.php');
 
  switch($command) {
     case '--classes':
-        $data = getClasses();
+        $data = getClasses($allClasses);
         break;
     case '--statics':
         $data = getStatics($argv[3]);

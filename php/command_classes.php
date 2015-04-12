@@ -6,8 +6,7 @@ require_once(__DIR__ . '/classes_parser.php');
  * Get classes from composer & internals
  * @return array
  */
-function getClasses() {
-    $classNames = get_declared_classes();
+function getClasses($classNames) {
     $classes = array('names' => array(), 'functions' => array());
     foreach ($classNames as $class) {
         try {
