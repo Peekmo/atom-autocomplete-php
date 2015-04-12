@@ -1,79 +1,64 @@
 <?php
 
-require_once(__DIR__ . '/command_classes.php');
-require_once(__DIR__ . '/command_statics.php');
-require_once(__DIR__ . '/command_methods.php');
-
-$allClasses = get_declared_classes();
-
 /**
  * @author Axel Anceau <Peekmo>
  *
  * This script returns all functions, classes & methods in the given directory.
  * Internals and user's one
  **/
+require_once(__DIR__ . '/Config.php');
+require_once(__DIR__ . '/Tools.php');
+require_once(__DIR__ . '/ProviderInterface.php');
+require_once(__DIR__ . '/StaticsProvider.php');
+require_once(__DIR__ . '/MethodsProvider.php');
+require_once(__DIR__ . '/ClassesProvider.php');
 
- /**
- * Get functions and classes declared in the given directory
- * @param string $dir Root directory for the script
- **/
- function require_composer_autoloader($dir) {
-     global $allClasses;
+$commands = array(
+    '--classes' => 'ClassesProvider',
+    '--statics' => 'StaticsProvider',
+    '--methods' => 'MethodsProvider'
+);
 
-     $classmap = $dir . '/vendor/composer/autoload_classmap.php';
-     if (!file_exists($classmap)) {
-         exec('composer dump-autoload --optimize');
-     }
+/**
+* Function called when a fatal occured
+*/
+function fatal_handler() {
+    $error = error_get_last();
 
-     $allClasses = array_merge(array_keys(require_once($classmap)), $allClasses);
+    if ($error !== NULL) {
+        die(json_encode(array('error' => $error)));
+    }
+}
 
-     require_once($dir . '/vendor/autoload.php');
- }
+/**
+* Print an error
+* @param string $message
+*/
+function show_error($message) {
+    die(json_encode(array('error' => array('message' => $message))));
+}
 
- /**
-  * Function called when a fatal occured
-  */
- function fatal_handler() {
-     $error = error_get_last();
+if (count($argv) < 3) {
+    die('Usage : php parser.php <dirname> <command> <args>');
+}
 
-     if ($error !== NULL) {
-         die(json_encode(array('error' => $error)));
-     }
- }
+register_shutdown_function('fatal_handler');
 
- /**
-  * Print an error
-  * @param string $message
-  */
- function show_error($message) {
-     die(json_encode(array('error' => array('message' => $message))));
- }
+$project = $argv[1];
+$command = $argv[2];
 
- if (count($argv) < 3) {
-     die('Usage : php parser.php <dirname> <command> <args>');
- }
+if (!isset($commands[$command])) {
+    show_error(sprintf('Command %s not found', $command));
+}
 
- register_shutdown_function('fatal_handler');
+require_once($project . '/vendor/autoload.php');
+Config::set('classmap_file', $project . '/vendor/composer/autoload_classmap.php');
 
- require_composer_autoloader($argv[1]);
- $command = $argv[2];
+$new = new $commands[$command]();
+$data = $new->execute(array_slice($argv, 3));
 
- switch($command) {
-    case '--classes':
-        $data = getClasses($allClasses);
-        break;
-    case '--statics':
-        $data = getStatics($argv[3]);
-        break;
-    case '--methods':
-        $data = getMethods($argv[3]);
-        break;
-    default:
-        show_error(sprintf('Unknown command %s', $command));
- }
-
- if (false === $encoded = json_encode($data)) {
-     echo json_encode(array());
- } else {
+if (false === $encoded = json_encode($data)) {
+    echo json_encode(array());
+} else {
     echo $encoded;
- }
+}
