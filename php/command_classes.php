@@ -36,7 +36,7 @@ function getClasses() {
 
     }
 
-    echo json_encode($classes);
+    return $classes;
 }
 
 ?>

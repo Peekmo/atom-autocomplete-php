@@ -5,21 +5,21 @@
 * @return array
 */
 function getStatics($class) {
-    try {
-        $reflection = new ReflectionClass($class);
-    } catch (Exception $e) {
-        return;
-    }
-
-    $methods    = $reflection->getMethods(ReflectionMethod::IS_STATIC);
-    $constants  = $reflection->getConstants();
-    $attributes = $reflection->getProperties(ReflectionProperty::IS_STATIC);
-
     $statics = array(
         'class'  => $class,
         'names'  => array(),
         'values' => array()
     );
+
+    try {
+        $reflection = new ReflectionClass($class);
+    } catch (Exception $e) {
+        return $statics;
+    }
+
+    $methods    = $reflection->getMethods(ReflectionMethod::IS_STATIC);
+    $constants  = $reflection->getConstants();
+    $attributes = $reflection->getProperties(ReflectionProperty::IS_STATIC);
 
     // Methods
     foreach ($methods as $method) {
@@ -65,7 +65,7 @@ function getStatics($class) {
         );
     }
 
-    echo json_encode($statics);
+    return $statics;
 }
 
 ?>

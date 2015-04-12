@@ -9,6 +9,8 @@ AbstractProvider = require "./abstract-provider"
 module.exports =
 # Autocompletion for class names
 class ClassProvider extends AbstractProvider
+  classes = []
+
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
     @regex = /((?:new )?\\?(?:[A-Z][a-zA-Z_]*)+)/g

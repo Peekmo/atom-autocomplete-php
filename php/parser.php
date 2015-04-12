@@ -2,6 +2,7 @@
 
 require_once(__DIR__ . '/command_classes.php');
 require_once(__DIR__ . '/command_statics.php');
+require_once(__DIR__ . '/command_methods.php');
 
 /**
  * @author Axel Anceau <Peekmo>
@@ -48,11 +49,20 @@ require_once(__DIR__ . '/command_statics.php');
 
  switch($command) {
     case '--classes':
-        getClasses();
+        $data = getClasses();
         break;
     case '--statics':
-        getStatics($argv[3]);
+        $data = getStatics($argv[3]);
+        break;
+    case '--methods':
+        $data = getMethods($argv[3]);
         break;
     default:
         show_error(sprintf('Unknown command %s', $command));
+ }
+
+ if (false === $encoded = json_encode($data)) {
+     echo json_encode(array());
+ } else {
+    echo $encoded;
  }
