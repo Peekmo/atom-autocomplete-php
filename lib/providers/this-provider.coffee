@@ -7,10 +7,8 @@ parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
 module.exports =
-###*
- * Autocomplete for methods in the current class
- * (keyword $this->)
-###
+# Autocomplete for methods in the current class
+# (keyword $this->)
 class ThisProvider extends AbstractProvider
   methods: []
   functionOnly: true

@@ -6,9 +6,7 @@ parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
 module.exports =
-###*
- * Autocomplete for internal PHP functions
-###
+# Autocomplete for internal PHP functions
 class FunctionProvider extends AbstractProvider
   functions: []
   functionOnly: true

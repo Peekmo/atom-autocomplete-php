@@ -7,9 +7,7 @@ AbstractProvider = require "./abstract-provider"
 {$, $$, Range} = require 'atom'
 
 module.exports =
-###*
- *  Autocompletion for class names
-###
+# Autocompletion for class names
 class ClassProvider extends AbstractProvider
   classes = []
 

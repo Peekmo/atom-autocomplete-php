@@ -7,9 +7,7 @@ AbstractProvider = require "./abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
 module.exports =
-###*
- * Autocomplete for static methods and constants
-###
+# Autocomplete for static methods and constants
 class StaticProvider extends AbstractProvider
   statics: []
   functionOnly: true

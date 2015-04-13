@@ -65,7 +65,6 @@ module.exports =
     # Reinitialize current cache
     @cache = []
 
-    console.log 'ok'
     row = bufferPosition.row
     rows = text.split('\n')
 
