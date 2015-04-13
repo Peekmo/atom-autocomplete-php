@@ -7,13 +7,19 @@ parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
 module.exports =
-# Autocompletion for class names
+###*
+ * Autocomplete for methods in the current class
+ * (keyword $this->)
+###
 class ThisProvider extends AbstractProvider
   methods: []
+  functionOnly: true
 
-  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    return if not parser.isInFunction(editor, bufferPosition)
-    
+  ###*
+   * Get suggestions from the provider (@see provider-api)
+   * @return array
+  ###
+  fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
     @regex = /((?:\$this->)[a-zA-Z_]*)/g
 
@@ -28,6 +34,11 @@ class ThisProvider extends AbstractProvider
     return unless suggestions.length
     return suggestions
 
+  ###*
+   * Returns suggestions available matching the given prefix
+   * @param {string} prefix Prefix to match
+   * @return array
+  ###
   findSuggestionsForPrefix: (prefix) ->
     method = prefix.substring("$this->".length, prefix.length)
 

@@ -6,13 +6,18 @@ parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
 module.exports =
-# Autocompletion for class names
+###*
+ * Autocomplete for internal PHP functions
+###
 class FunctionProvider extends AbstractProvider
   functions: []
+  functionOnly: true
 
-  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    return if not parser.isInFunction(editor, bufferPosition)
-
+  ###*
+   * Get suggestions from the provider (@see provider-api)
+   * @return array
+  ###
+  fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
     @regex = /(\b[a-z_]*)/g
 
@@ -26,6 +31,11 @@ class FunctionProvider extends AbstractProvider
     return unless suggestions.length
     return suggestions
 
+  ###*
+   * Returns suggestions available matching the given prefix
+   * @param {string} prefix Prefix to match
+   * @return array
+  ###
   findSuggestionsForPrefix: (prefix) ->
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @functions.names, prefix

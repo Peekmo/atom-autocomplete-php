@@ -7,13 +7,18 @@ AbstractProvider = require "./abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
 module.exports =
-# Autocompletion for class names
+###*
+ * Autocomplete for static methods and constants
+###
 class StaticProvider extends AbstractProvider
   statics: []
+  functionOnly: true
 
-  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    return if not parser.isInFunction(editor, bufferPosition)
-    
+  ###*
+   * Get suggestions from the provider (@see provider-api)
+   * @return array
+  ###
+  fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     @regex = /(\b[A-Z][a-zA-Z_]+::([a-zA-Z_]*))/g
 
     selection = editor.getSelection()
@@ -27,6 +32,11 @@ class StaticProvider extends AbstractProvider
     return unless suggestions.length
     return suggestions
 
+  ###*
+   * Returns suggestions available matching the given prefix
+   * @param {string} prefix Prefix to match
+   * @return array
+  ###
   findSuggestionsForPrefix: (prefix) ->
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @statics.names, prefix

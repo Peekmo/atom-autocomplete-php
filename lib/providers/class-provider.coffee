@@ -7,11 +7,17 @@ AbstractProvider = require "./abstract-provider"
 {$, $$, Range} = require 'atom'
 
 module.exports =
-# Autocompletion for class names
+###*
+ *  Autocompletion for class names
+###
 class ClassProvider extends AbstractProvider
   classes = []
 
-  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+  ###*
+   * Get suggestions from the provider (@see provider-api)
+   * @return array
+  ###
+  fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
     @regex = /((?:new )?\\?(?:[A-Z][a-zA-Z_]*)+)/g
 
@@ -25,15 +31,11 @@ class ClassProvider extends AbstractProvider
     return unless suggestions.length
     return suggestions
 
-  onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
-    buffer = editor.getBuffer()
-
-    # Static methods on classes
-    if suggestion.data.kind == 'static'
-      editor.insertText "::"
-
-    return false # Don't fall back to the default behavior
-
+  ###*
+   * Returns suggestions available matching the given prefix
+   * @param {string} prefix Prefix to match
+   * @return array
+  ###
   findSuggestionsForPrefix: (prefix) ->
     # Get rid of the leading "new" keyword
     instanciation = false
@@ -61,8 +63,6 @@ class ClassProvider extends AbstractProvider
           data:
             kind: 'instanciation',
             prefix: prefix
-
-#          rightLabel: "(#{params})"
 
       # Not instanciation => not printing constructor params
       else if not instanciation

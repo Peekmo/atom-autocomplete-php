@@ -1,3 +1,5 @@
+parser = require "../services/php-file-parser.coffee"
+
 module.exports =
 class AbstractProvider
   regex: ''
@@ -8,7 +10,25 @@ class AbstractProvider
 
   disableForSelector: '.source.php .comment, .source.php .string'
 
-  # Build the snippet from the suggestion
+  # Only in function scope
+  functionOnly: false
+
+  ###*
+   * Entry point of all request from autocomplete-plus
+   * Calls @fetchSuggestion in the provider if allowed
+   * @return array Suggestions
+  ###
+  getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    return if @functionOnly == true and not parser.isInFunction(editor, bufferPosition)
+
+    return @fetchSuggestions({editor, bufferPosition, scopeDescriptor, prefix})
+
+  ###*
+   * Builds a snipper for a PHP function
+   * @param {string} word     Function name
+   * @param {array}  elements All arguments for the snippet (parameters, optionals)
+   * @return string The snipper
+  ###
   getFunctionSnippet: (word, elements) ->
     body = word + "("
     lastIndex = 0
@@ -35,7 +55,10 @@ class AbstractProvider
 
     return body
 
-  # Return the prefix to delete if press enter
+  ###*
+   * Get prefix from bufferPosition and @regex
+   * @return string
+  ###
   getPrefix: (editor, bufferPosition) ->
     # Get the text for the line up to the triggered buffer position
     line = editor.getTextInRange([[bufferPosition.row, 0], bufferPosition])
