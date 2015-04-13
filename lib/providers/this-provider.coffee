@@ -12,6 +12,8 @@ class ThisProvider extends AbstractProvider
   methods: []
 
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    return if not parser.isInFunction(editor, bufferPosition)
+    
     # "new" keyword or word starting with capital letter
     @regex = /((?:\$this->)[a-zA-Z_]*)/g
 

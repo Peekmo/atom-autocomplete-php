@@ -2,6 +2,7 @@ fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 
 internals = require "../services/php-internals.coffee"
+parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
 module.exports =
@@ -10,6 +11,8 @@ class FunctionProvider extends AbstractProvider
   functions: []
 
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    return if not parser.isInFunction(editor, bufferPosition)
+
     # "new" keyword or word starting with capital letter
     @regex = /(\b[a-z_]*)/g
 

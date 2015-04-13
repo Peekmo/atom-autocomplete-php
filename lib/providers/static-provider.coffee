@@ -2,6 +2,7 @@ fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 
 internals = require "../services/php-internals.coffee"
+parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
 
@@ -11,6 +12,8 @@ class StaticProvider extends AbstractProvider
   statics: []
 
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    return if not parser.isInFunction(editor, bufferPosition)
+    
     @regex = /(\b[A-Z][a-zA-Z_]+::([a-zA-Z_]*))/g
 
     selection = editor.getSelection()

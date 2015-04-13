@@ -52,9 +52,7 @@ fetchStatics = (className) ->
 fetchMethods = (className) ->
   for directory in atom.project.getDirectories()
     stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --methods '" + className + "'")
-    console.log stdout
     res = JSON.parse(stdout)
-    console.log res
 
     if res.error?
       printError(res.error)

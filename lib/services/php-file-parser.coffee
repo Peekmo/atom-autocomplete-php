@@ -8,12 +8,12 @@ classDeclarations = [
 namespaceDeclaration = 'namespace '
 
 module.exports =
-  # Returns the current class from the buffer
-  #
-  # @param editor Atom editor
-  # @param position Buffer position
-  #
-  # @return string Class name
+  ###*
+   * Returns the current class from the buffer
+   * @param {TextEditor} editor
+   * @param {Range}      position
+   * @return string className
+  ###
   getCurrentClass: (editor, position) ->
     # Get text before the current position
     text = editor.getTextInBufferRange([[0, 0], position])
@@ -46,3 +46,27 @@ module.exports =
       row--
 
     return ''
+
+  ###*
+   * Checks if the current buffer is in a functon or not
+   * @param {TextEditor} editor         Atom text editor
+   * @param {Range}      bufferPosition Position of the current buffer
+   * @return bool
+  ###
+  isInFunction: (editor, bufferPosition) ->
+    text = editor.getTextInBufferRange([[0, 0], bufferPosition])
+
+    row = bufferPosition.row
+    rows = text.split('\n')
+
+    # for each row
+    while row != -1
+      line = rows[row].trim()
+
+      # Looking for a line with function scope
+      if editor.scopeDescriptorForBufferPosition([row, 0]).getScopeChain().indexOf("function.php") != -1
+        return true
+
+      row--
+
+    return false
