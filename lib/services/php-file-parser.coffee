@@ -6,8 +6,10 @@ classDeclarations = [
 ]
 
 namespaceDeclaration = 'namespace '
-
 module.exports =
+  # Simple cache to avoid duplicate computation for each providers
+  cache: []
+
   ###*
    * Returns the current class from the buffer
    * @param {TextEditor} editor
@@ -56,17 +58,44 @@ module.exports =
   isInFunction: (editor, bufferPosition) ->
     text = editor.getTextInBufferRange([[0, 0], bufferPosition])
 
+    # If last request was the same
+    if @cache[text]?
+      return @cache[text]
+
+    # Reinitialize current cache
+    @cache = []
+
+    console.log 'ok'
     row = bufferPosition.row
     rows = text.split('\n')
 
+    openedBlocks = 0
+    closedBlocks = 0
+
+    result = false
+
     # for each row
     while row != -1
-      line = rows[row].trim()
+      line = rows[row]
 
-      # Looking for a line with function scope
-      if editor.scopeDescriptorForBufferPosition([row, 0]).getScopeChain().indexOf("function.php") != -1
-        return true
+      # Get chain of all scopes
+      chain = editor.scopeDescriptorForBufferPosition([row, line.length]).getScopeChain()
+
+      # }
+      if chain.indexOf("scope.end") != -1
+        closedBlocks++
+      # {
+      else if chain.indexOf("scope.begin") != -1
+        openedBlocks++
+      # function
+      else if chain.indexOf("function") != -1
+        # If more openedblocks than closedblocks, we are in a function
+        if openedBlocks > closedBlocks
+          result = true
+
+        break
 
       row--
 
-    return false
+    @cache[text] = result
+    return result
