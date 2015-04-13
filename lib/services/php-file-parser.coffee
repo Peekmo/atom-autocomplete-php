@@ -47,7 +47,7 @@ module.exports =
 
       row--
 
-    return ''
+    return name 
 
   ###*
    * Checks if the current buffer is in a functon or not
