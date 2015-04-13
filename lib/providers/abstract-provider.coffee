@@ -6,6 +6,8 @@ class AbstractProvider
   inclusionPriority: 1
   excludeLowerPriority: true
 
+  disableForSelector: '.source.php .comment, .source.php .string'
+
   # Build the snippet from the suggestion
   getFunctionSnippet: (word, elements) ->
     body = word + "("
