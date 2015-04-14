@@ -6,7 +6,6 @@ class AbstractProvider
   selector: '.source.php'
 
   inclusionPriority: 1
-  excludeLowerPriority: true
 
   disableForSelector: '.source.php .comment, .source.php .string'
 

@@ -47,7 +47,24 @@ module.exports =
 
       row--
 
-    return name 
+    return name
+
+  ###*
+   * Get all variables declared in the current function
+   * @param {TextEdutir} editor         Atom text editor
+   * @param {Range}      bufferPosition Position of the current buffer
+  ###
+  getAllVariablesInFunction: (editor, bufferPosition) ->
+    return if not @isInFunction(editor, bufferPosition)
+
+    text = editor.getTextInBufferRange([@cache["functionPosition"], [bufferPosition.row, bufferPosition.column-1]])
+    regex = /(\$[a-zA-Z_]+)/g
+
+    matches = text.match(regex)
+    return if not matches?
+
+    matches.push "$this"
+    return matches
 
   ###*
    * Checks if the current buffer is in a functon or not
@@ -91,6 +108,7 @@ module.exports =
         # If more openedblocks than closedblocks, we are in a function
         if openedBlocks > closedBlocks
           result = true
+          @cache["functionPosition"] = [row, 0]
 
         break
 
