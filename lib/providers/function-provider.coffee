@@ -17,7 +17,7 @@ class FunctionProvider extends AbstractProvider
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /(\b[a-z_]*)/g
+    @regex = /(?:[^\w\$_])(\w+)(?![\w\$_])/g
 
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
