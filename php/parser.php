@@ -7,12 +7,13 @@
  * Internals and user's one
  **/
 require_once(__DIR__ . '/Config.php');
-require_once(__DIR__ . '/Tools.php');
-require_once(__DIR__ . '/ProviderInterface.php');
-require_once(__DIR__ . '/StaticsProvider.php');
-require_once(__DIR__ . '/MethodsProvider.php');
-require_once(__DIR__ . '/ClassesProvider.php');
-require_once(__DIR__ . '/FunctionsProvider.php');
+require_once(__DIR__ . '/services/Tools.php');
+require_once(__DIR__ . '/services/DocParser.php');
+require_once(__DIR__ . '/providers/ProviderInterface.php');
+require_once(__DIR__ . '/providers/StaticsProvider.php');
+require_once(__DIR__ . '/providers/MethodsProvider.php');
+require_once(__DIR__ . '/providers/ClassesProvider.php');
+require_once(__DIR__ . '/providers/FunctionsProvider.php');
 
 $commands = array(
     '--classes'   => 'ClassesProvider',
