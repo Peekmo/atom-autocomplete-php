@@ -26,7 +26,7 @@ class StaticProvider extends AbstractProvider
     parts = prefix.split("::")
     @statics = internals.statics(parts[0])
 
-    suggestions = @findSuggestionsForPrefix parts[1]
+    suggestions = @findSuggestionsForPrefix parts[1].trim()
     return unless suggestions.length
     return suggestions
 

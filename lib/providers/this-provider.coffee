@@ -28,7 +28,7 @@ class ThisProvider extends AbstractProvider
     className = parser.getCurrentClass(editor, bufferPosition)
     @methods = internals.methods(className)
 
-    suggestions = @findSuggestionsForPrefix(prefix)
+    suggestions = @findSuggestionsForPrefix(prefix.trim())
     return unless suggestions.length
     return suggestions
 

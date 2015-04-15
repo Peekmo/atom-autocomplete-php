@@ -17,7 +17,7 @@ class ClassProvider extends AbstractProvider
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /((?:new )?\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
+    @regex = /(?:[^\$\>])((?:new )?\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
 
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
@@ -25,7 +25,7 @@ class ClassProvider extends AbstractProvider
 
     @classes = internals.classes()
 
-    suggestions = @findSuggestionsForPrefix prefix
+    suggestions = @findSuggestionsForPrefix prefix.trim()
     return unless suggestions.length
     return suggestions
 
@@ -39,13 +39,15 @@ class ClassProvider extends AbstractProvider
     instanciation = false
     if prefix.indexOf("new \\") != -1
       instanciation = true
-      prefix = prefix.replace /^new \\/, ''
+      prefix = prefix.replace /new \\/, ''
     else if prefix.indexOf("new ") != -1
       instanciation = true
-      prefix = prefix.replace /^new /, ''
+      prefix = prefix.replace /new /, ''
 
     if prefix.indexOf("\\") == 0
       prefix = prefix.substring(1, prefix.length)
+
+    console.log prefix
 
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @classes.names, prefix
