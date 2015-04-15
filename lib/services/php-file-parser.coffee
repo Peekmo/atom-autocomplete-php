@@ -67,6 +67,39 @@ module.exports =
     return matches
 
   ###*
+   * Search the use for the given class name
+   * @param {TextEditor} editor    Atom text editor
+   * @param {string}     className Name of the class searched
+   * @return string
+  ###
+  findUseForClass: (editor, className) ->
+    text = editor.getText()
+
+    lines = text.split('\n')
+    for line in lines
+      line = line.trim()
+
+      # If we found class keyword, we are not in namespace space, so return
+      if line.indexOf('class ') != -1
+        return
+
+      # Use keyword
+      if line.indexOf('use') == 0
+        useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
+
+        matches = line.match(useRegex)
+
+        # just one use
+        if matches.length == 1
+          splits = matches[0].split('\\')
+          if splits[splits.length-1] == className
+            return matches[0]
+
+        # use aliases
+        else if matches.length == 2 and matches[1] == className
+          return matches[0]
+
+  ###*
    * Checks if the current buffer is in a functon or not
    * @param {TextEditor} editor         Atom text editor
    * @param {Range}      bufferPosition Position of the current buffer
