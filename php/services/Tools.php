@@ -18,7 +18,7 @@ abstract class Tools
     {
         if (empty($classMap) || $force) {
             if (!file_exists(Config::get('classmap_file')) || $force) {
-                exec('composer dump-autoload --optimize');
+                exec(Config::get('composer') . ' dump-autoload --optimize');
             }
 
             $this->classMap = require(Config::get('classmap_file'));

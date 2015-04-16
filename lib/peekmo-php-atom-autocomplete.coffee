@@ -4,6 +4,8 @@ ThisProvider = require "./providers/this-provider.coffee"
 FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 
+config = require './config.coffee'
+
 module.exports =
   config:
     binComposer:
@@ -22,18 +24,19 @@ module.exports =
       default: 'php'
       order: 2
 
-    autoloadPath:
-      title: 'Composer autoloader path'
-      description: 'Relative path to your autoload.php from composer. You can specify multiple
+    autoloadPaths:
+      title: 'Composer autoloader directories'
+      description: 'Relative path to the directory of autoload.php from composer. You can specify multiple
        paths (comma separated) if you have different paths for some projects.'
       type: 'array'
-      default: ['vendor/autoload.php']
+      default: ['vendor']
       order: 3
-      
+
   providers: []
 
   activate: ->
     @registerProviders()
+    config.writeConfig()
 
   deactivate: ->
     @providers = []

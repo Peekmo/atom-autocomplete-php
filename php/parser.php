@@ -6,6 +6,7 @@
  * This script returns all functions, classes & methods in the given directory.
  * Internals and user's one
  **/
+require_once(__DIR__ . '/tmp.php');
 require_once(__DIR__ . '/Config.php');
 require_once(__DIR__ . '/services/Tools.php');
 require_once(__DIR__ . '/services/DocParser.php');
@@ -54,8 +55,16 @@ if (!isset($commands[$command])) {
     show_error(sprintf('Command %s not found', $command));
 }
 
-require_once($project . '/vendor/autoload.php');
-Config::set('classmap_file', $project . '/vendor/composer/autoload_classmap.php');
+// Config
+Config::set('composer', $config['composer']);
+foreach ($config['autoload'] as $config) {
+    $path = sprintf('%s/%s/', $project, trim($config, '/'));
+    if (file_exists($path . 'autoload.php')) {
+        require_once($path . 'autoload.php');
+        Config::set('classmap_file', $path . 'composer/autoload_classmap.php');
+        break;
+    }
+}
 
 $new = new $commands[$command]();
 $data = $new->execute(array_slice($argv, 3));
