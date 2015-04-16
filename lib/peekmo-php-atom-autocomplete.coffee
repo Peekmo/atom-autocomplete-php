@@ -36,7 +36,7 @@ module.exports =
 
   activate: ->
     @registerProviders()
-    config.writeConfig()
+    config.init()
 
   deactivate: ->
     @providers = []

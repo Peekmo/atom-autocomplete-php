@@ -1,4 +1,5 @@
 exec = require "child_process"
+config = require "../config.coffee"
 
 data =
   statics: [],
@@ -16,7 +17,7 @@ printError = (error) ->
 # -------------------------------------- CLASSES ----------------------------------------
 fetchClasses = () ->
   for directory in atom.project.getDirectories()
-    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --classes")
+    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --classes")
 
     res = JSON.parse(stdout)
 
@@ -28,7 +29,7 @@ fetchClasses = () ->
 # -------------------------------------- FUNCTIONS ----------------------------------------
 fetchFunctions = () ->
   for directory in atom.project.getDirectories()
-    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --functions")
+    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --functions")
 
     res = JSON.parse(stdout)
 
@@ -40,7 +41,7 @@ fetchFunctions = () ->
 # -------------------------------------- STATICS ----------------------------------------
 fetchStatics = (className) ->
   for directory in atom.project.getDirectories()
-    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --statics '" + className + "'")
+    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --statics '" + className + "'")
     res = JSON.parse(stdout)
 
     if res.error?
@@ -51,7 +52,7 @@ fetchStatics = (className) ->
 # ---------------------------------- METHODS / ATTRS -------------------------------------
 fetchMethods = (className) ->
   for directory in atom.project.getDirectories()
-    stdout = exec.execSync("php " + __dirname + "/../../php/parser.php " + directory.path + " --methods '" + className + "'")
+    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --methods '" + className + "'")
     res = JSON.parse(stdout)
 
     if res.error?

@@ -18,7 +18,6 @@ module.exports =
   writeConfig: () ->
     @getConfig()
 
-
     files = ""
     for file in @config.autoload
       files += "'#{file}',"
@@ -33,3 +32,16 @@ module.exports =
     fs.writeFile(@config.packagePath + '/php/tmp.php', text)
 
     console.log @config
+
+  ###*
+   * Init function called on package activation
+   * Register config events and write the first config
+  ###
+  init: () ->
+    @writeConfig()
+
+    atom.config.onDidChange 'atom-autocomplete-php.binComposer', () =>
+      @writeConfig()
+
+    atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
+      @writeConfig()
