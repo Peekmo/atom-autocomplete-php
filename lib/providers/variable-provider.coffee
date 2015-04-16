@@ -43,5 +43,6 @@ class VariableProvider extends AbstractProvider
       suggestions.push
         text: word,
         type: 'variable',
+        replacementPrefix: prefix
 
     return suggestions

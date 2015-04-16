@@ -52,12 +52,12 @@ class ThisProvider extends AbstractProvider
           suggestions.push
             text: word,
             type: 'function',
-            snippet: @getFunctionSnippet(word, element.args),
+            snippet: @getFunctionSnippet(word, element.args)
 
         # Constants and public properties
         else
           suggestions.push
             text: word,
-            type: 'property',
+            type: 'property'
 
     return suggestions
