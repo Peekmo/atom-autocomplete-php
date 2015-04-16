@@ -5,6 +5,31 @@ FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 
 module.exports =
+  config:
+    binComposer:
+      title: 'Command to use composer'
+      description: 'This plugin depends on composer in order to work. Specify the path
+       to your composer bin (e.g : bin/composer, composer.phar, composer)'
+      type: 'string'
+      default: 'composer'
+      order: 1
+
+    binPhp:
+      title: 'Command php'
+      description: 'This plugin use php CLI in order to work. Please specify your php
+       command ("php" on UNIX systems)'
+      type: 'string'
+      default: 'php'
+      order: 2
+
+    autoloadPath:
+      title: 'Composer autoloader path'
+      description: 'Relative path to your autoload.php from composer. You can specify multiple
+       paths (comma separated) if you have different paths for some projects.'
+      type: 'array'
+      default: ['vendor/autoload.php']
+      order: 3
+      
   providers: []
 
   activate: ->
@@ -20,7 +45,5 @@ module.exports =
     @providers.push new VariableProvider()
     @providers.push new FunctionProvider()
 
-    #staticsProvider = phpStaticsProvider
-    #@providers.push staticsProvider
   getProvider: ->
     @providers
