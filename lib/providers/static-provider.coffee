@@ -51,6 +51,7 @@ class StaticProvider extends AbstractProvider
               text: word,
               type: 'method',
               snippet: @getFunctionSnippet(word, element.args),
+              replacementPrefix: prefix,
               data:
                 prefix: prefix,
                 args: element.args
@@ -60,6 +61,7 @@ class StaticProvider extends AbstractProvider
             suggestions.push
               text: word,
               type: 'constant',
+              replacementPrefix: prefix,
               data:
                 prefix: prefix
 
