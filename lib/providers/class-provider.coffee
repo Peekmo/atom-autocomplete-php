@@ -62,7 +62,8 @@ class ClassProvider extends AbstractProvider
           snippet: @getFunctionSnippet(word, @classes.methods[word].constructor.args),
           data:
             kind: 'instanciation',
-            prefix: prefix
+            prefix: prefix,
+            replacementPrefix: prefix
 
       # Not instanciation => not printing constructor params
       else if not instanciation
@@ -70,6 +71,7 @@ class ClassProvider extends AbstractProvider
           text: word,
           data:
             kind: 'static',
-            prefix: prefix
+            prefix: prefix,
+            replacementPrefix: prefix
 
     return suggestions

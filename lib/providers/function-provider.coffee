@@ -46,5 +46,6 @@ class FunctionProvider extends AbstractProvider
           text: word,
           type: 'function',
           snippet: @getFunctionSnippet(word, element.args),
+          replacementPrefix: prefix
 
     return suggestions

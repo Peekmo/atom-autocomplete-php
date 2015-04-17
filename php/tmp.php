@@ -1,1 +1,0 @@
-<?php $config = array( 'composer' => 'composer', 'autoload' => array('test','vendor',) );
