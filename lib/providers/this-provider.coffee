@@ -2,7 +2,7 @@ fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 exec = require "child_process"
 
-internals = require "../services/php-internals.coffee"
+proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
@@ -26,7 +26,7 @@ class ThisProvider extends AbstractProvider
     return unless prefix.length
 
     className = parser.getCurrentClass(editor, bufferPosition)
-    @methods = internals.methods(className)
+    @methods = proxy.methods(className)
     return unless @methods.names?
 
     suggestions = @findSuggestionsForPrefix(prefix.trim())

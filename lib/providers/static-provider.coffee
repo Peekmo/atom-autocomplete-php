@@ -1,7 +1,7 @@
 fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 
-internals = require "../services/php-internals.coffee"
+proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider.coffee"
 {$, $$, Range} = require 'atom'
@@ -24,7 +24,7 @@ class StaticProvider extends AbstractProvider
     return unless prefix.length
 
     parts = prefix.split("::")
-    @statics = internals.statics(parts[0])
+    @statics = proxy.statics(parts[0])
     return unless @statics.names?
 
     suggestions = @findSuggestionsForPrefix parts[1].trim()

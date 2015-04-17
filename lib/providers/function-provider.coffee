@@ -1,7 +1,7 @@
 fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 
-internals = require "../services/php-internals.coffee"
+proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
@@ -23,7 +23,7 @@ class FunctionProvider extends AbstractProvider
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 
-    @functions = internals.functions()
+    @functions = proxy.functions()
     return unless @functions.names?
 
     suggestions = @findSuggestionsForPrefix(prefix.trim())

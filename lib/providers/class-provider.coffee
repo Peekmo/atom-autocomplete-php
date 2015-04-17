@@ -2,7 +2,7 @@ fuzzaldrin = require 'fuzzaldrin'
 minimatch = require 'minimatch'
 exec = require "child_process"
 
-internals = require "../services/php-internals.coffee"
+proxy = require "../services/php-proxy.coffee"
 AbstractProvider = require "./abstract-provider"
 {$, $$, Range} = require 'atom'
 
@@ -23,7 +23,7 @@ class ClassProvider extends AbstractProvider
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 
-    @classes = internals.classes()
+    @classes = proxy.classes()
     return unless @classes.names?
 
     suggestions = @findSuggestionsForPrefix prefix.trim()
