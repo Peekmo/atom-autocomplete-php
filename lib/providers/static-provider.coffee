@@ -25,6 +25,7 @@ class StaticProvider extends AbstractProvider
 
     parts = prefix.split("::")
     @statics = internals.statics(parts[0])
+    return unless @statics.names?
 
     suggestions = @findSuggestionsForPrefix parts[1].trim()
     return unless suggestions.length
@@ -48,7 +49,7 @@ class StaticProvider extends AbstractProvider
           if element.isMethod
             suggestions.push
               text: word,
-              type: 'function',
+              type: 'method',
               snippet: @getFunctionSnippet(word, element.args),
               data:
                 prefix: prefix,

@@ -27,6 +27,7 @@ class ThisProvider extends AbstractProvider
 
     className = parser.getCurrentClass(editor, bufferPosition)
     @methods = internals.methods(className)
+    return unless @methods.names?
 
     suggestions = @findSuggestionsForPrefix(prefix.trim())
     return unless suggestions.length
@@ -51,7 +52,7 @@ class ThisProvider extends AbstractProvider
         if element.isMethod
           suggestions.push
             text: word,
-            type: 'function',
+            type: 'method',
             snippet: @getFunctionSnippet(word, element.args)
 
         # Constants and public properties

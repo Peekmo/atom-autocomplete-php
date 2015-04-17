@@ -23,6 +23,7 @@ class VariableProvider extends AbstractProvider
     return unless prefix.length
 
     @variables = parser.getAllVariablesInFunction(editor, bufferPosition)
+    return unless @variables.length
 
     suggestions = @findSuggestionsForPrefix(prefix.trim())
     return unless suggestions.length

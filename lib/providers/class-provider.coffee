@@ -17,13 +17,14 @@ class ClassProvider extends AbstractProvider
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /(?:[^\$\>])((?:new )?\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
+    @regex = /(?:[^\$\>\w])((?:new )?\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
 
     selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 
     @classes = internals.classes()
+    return unless @classes.names?
 
     suggestions = @findSuggestionsForPrefix prefix.trim()
     return unless suggestions.length
@@ -59,6 +60,7 @@ class ClassProvider extends AbstractProvider
       if instanciation and @classes.methods[word].constructor.has
         suggestions.push
           text: word,
+          type: 'class',
           snippet: @getFunctionSnippet(word, @classes.methods[word].constructor.args),
           data:
             kind: 'instanciation',
@@ -68,6 +70,7 @@ class ClassProvider extends AbstractProvider
       else if not instanciation
         suggestions.push
           text: word,
+          type: 'class',
           data:
             kind: 'static',
             prefix: prefix

@@ -5,6 +5,23 @@ data =
   statics: [],
   methods: []
 
+execute = (command, async) ->
+  return [] if data.error?
+
+  for directory in atom.project.getDirectories()
+    if not async
+      try
+        stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command)
+        res = JSON.parse(stdout)
+      catch err
+        res =
+          error: err
+
+      if res.error?
+        printError(res.error)
+
+      return res
+
 printError = (error) ->
   data.error = true
   message = error.message
@@ -12,75 +29,33 @@ printError = (error) ->
   if error.file? and error.line?
     message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']';
 
-  window.alert message
-
-# -------------------------------------- CLASSES ----------------------------------------
-fetchClasses = () ->
-  for directory in atom.project.getDirectories()
-    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --classes")
-
-    res = JSON.parse(stdout)
-
-    if res.error?
-      printError(res.error)
-
-    data.classes = res
-
-# -------------------------------------- FUNCTIONS ----------------------------------------
-fetchFunctions = () ->
-  for directory in atom.project.getDirectories()
-    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --functions")
-
-    res = JSON.parse(stdout)
-
-    if res.error?
-      printError(res.error)
-
-    data.functions = res
-
-# -------------------------------------- STATICS ----------------------------------------
-fetchStatics = (className) ->
-  for directory in atom.project.getDirectories()
-    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --statics '" + className + "'")
-    res = JSON.parse(stdout)
-
-    if res.error?
-      printError(res.error)
-
-    data.statics[res.class] = res
-
-# ---------------------------------- METHODS / ATTRS -------------------------------------
-fetchMethods = (className) ->
-  for directory in atom.project.getDirectories()
-    stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " --methods '" + className + "'")
-    res = JSON.parse(stdout)
-
-    if res.error?
-      printError(res.error)
-
-    data.methods[res.class] = res
+  throw new Error(message)
 
 module.exports =
   classes: () ->
-    if not data.classes? and not data.error?
-      fetchClasses()
+    if not data.classes?
+      res = execute("--classes", false)
+      data.classes = res
 
     return data.classes
 
   functions: () ->
-    if not data.functions? and not data.error?
-      fetchFunctions()
+    if not data.functions?
+      res = execute("--functions", false)
+      data.functions = res
 
     return data.functions
 
   statics: (className) ->
-    if not data.statics[className]? and not data.error?
-      fetchStatics(className)
+    if not data.statics[className]?
+      res = execute("--statics '" + className + "'")
+      data.statics[className] = res
 
     return data.statics[className]
 
   methods: (className) ->
-    if not data.methods[className]? and not data.error?
-      fetchMethods(className)
+    if not data.methods[className]?
+      res = execute("--methods '" + className + "'")
+      data.methods[className] = res
 
     return data.methods[className]

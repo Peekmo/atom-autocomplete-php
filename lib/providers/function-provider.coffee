@@ -24,6 +24,7 @@ class FunctionProvider extends AbstractProvider
     return unless prefix.length
 
     @functions = internals.functions()
+    return unless @functions.names?
 
     suggestions = @findSuggestionsForPrefix(prefix.trim())
     return unless suggestions.length
