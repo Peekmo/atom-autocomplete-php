@@ -1,4 +1,4 @@
-require 'fs'
+fs = require 'fs'
 
 module.exports =
   config: {}
@@ -25,13 +25,12 @@ module.exports =
     text = "<?php
       $config = array(
         'composer' => '#{@config.composer}',
+        'php' => '#{@config.php}',
         'autoload' => array(#{files})
       );
     "
 
     fs.writeFile(@config.packagePath + '/php/tmp.php', text)
-
-    console.log @config
 
   ###*
    * Init function called on package activation
@@ -39,6 +38,9 @@ module.exports =
   ###
   init: () ->
     @writeConfig()
+
+    atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>
+      @writeConfig()
 
     atom.config.onDidChange 'atom-autocomplete-php.binComposer', () =>
       @writeConfig()

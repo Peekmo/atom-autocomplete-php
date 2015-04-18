@@ -61,7 +61,7 @@ module.exports =
     regex = /(\$[a-zA-Z_]+)/g
 
     matches = text.match(regex)
-    return if not matches?
+    return [] if not matches?
 
     matches.push "$this"
     return matches

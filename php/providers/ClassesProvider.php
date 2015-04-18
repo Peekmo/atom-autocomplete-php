@@ -15,26 +15,19 @@ class ClassesProvider extends Tools implements ProviderInterface
         );
 
         foreach ($this->getClassNames() as $class) {
-            try {
-                $reflection = new ReflectionClass($class);
-            } catch (Exception $e) {
+            $ret = exec(sprintf('%s %s/../parser.php %s --class %s',
+                Config::get('php'),
+                __DIR__,
+                Config::get('projectPath'),
+                str_replace('\\', '\\\\', $class)
+            ));
+
+            if (false === $value = json_decode($ret, true)) {
                 continue;
             }
 
-            $ctor = $reflection->getConstructor();
-
-            $args = array();
-            if (!is_null($ctor)) {
-                $args = $this->getMethodArguments($ctor);
-            }
-
             $classes['names'][] = $class;
-            $classes['methods'][$class] = array(
-                'constructor' => array(
-                    'has'  => !is_null($ctor),
-                    'args' => $args
-                )
-            );
+            $classes['methods'][$class] = $value;
         }
 
         return $classes;

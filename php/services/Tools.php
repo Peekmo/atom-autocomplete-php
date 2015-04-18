@@ -16,12 +16,14 @@ abstract class Tools
      */
     protected function getClassMap($force = false)
     {
-        if (empty($classMap) || $force) {
-            if (!file_exists(Config::get('classmap_file')) || $force) {
-                exec(Config::get('composer') . ' dump-autoload --optimize');
+        if (empty($this->classMap) || $force) {
+            if (Config::get('classmap_file') && !file_exists(Config::get('classmap_file')) || $force) {
+                exec(Config::get('composer') . ' -d=' . Config::get('projectPath') .' dump-autoload --optimize');
             }
 
-            $this->classMap = require(Config::get('classmap_file'));
+            if (Config::get('classmap_file')) {
+                $this->classMap = require(Config::get('classmap_file'));
+            }
         }
 
         return $this->classMap;
@@ -36,7 +38,7 @@ abstract class Tools
     {
         $map = $this->getClassMap($force);
 
-        return array_merge(array_keys($map), get_declared_classes());
+        return array_merge(get_declared_classes(), array_keys($map));
     }
 
     /**

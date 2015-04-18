@@ -5,6 +5,7 @@ FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 
 config = require './config.coffee'
+proxy = require './services/php-proxy.coffee'
 
 module.exports =
   config:
@@ -37,6 +38,7 @@ module.exports =
   activate: ->
     @registerProviders()
     config.init()
+    proxy.init()
 
   deactivate: ->
     @providers = []

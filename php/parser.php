@@ -14,13 +14,17 @@ require_once(__DIR__ . '/providers/ProviderInterface.php');
 require_once(__DIR__ . '/providers/StaticsProvider.php');
 require_once(__DIR__ . '/providers/MethodsProvider.php');
 require_once(__DIR__ . '/providers/ClassesProvider.php');
+require_once(__DIR__ . '/providers/ClassProvider.php');
 require_once(__DIR__ . '/providers/FunctionsProvider.php');
+require_once(__DIR__ . '/providers/ClassMapRefresh.php');
 
 $commands = array(
     '--classes'   => 'ClassesProvider',
+    '--class'     => 'ClassProvider',
     '--statics'   => 'StaticsProvider',
     '--methods'   => 'MethodsProvider',
-    '--functions' => 'FunctionsProvider'
+    '--functions' => 'FunctionsProvider',
+    '--refresh'   => 'ClassMapRefresh'
 );
 
 /**
@@ -57,6 +61,9 @@ if (!isset($commands[$command])) {
 
 // Config
 Config::set('composer', $config['composer']);
+Config::set('php', $config['php']);
+Config::set('projectPath', $project);
+
 foreach ($config['autoload'] as $config) {
     $path = sprintf('%s/%s/', $project, trim($config, '/'));
     if (file_exists($path . 'autoload.php')) {
