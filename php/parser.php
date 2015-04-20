@@ -63,6 +63,7 @@ if (!isset($commands[$command])) {
 Config::set('composer', $config['composer']);
 Config::set('php', $config['php']);
 Config::set('projectPath', $project);
+Config::set('indexClasses', __DIR__ . '/' . md5($project) . '/index.classes.json');
 
 foreach ($config['autoload'] as $config) {
     $path = sprintf('%s/%s/', $project, trim($config, '/'));

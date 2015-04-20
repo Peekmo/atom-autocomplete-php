@@ -11,10 +11,11 @@ class ClassesProvider extends Tools implements ProviderInterface
     {
         $classes = array(
             'names'     => array(),
-            'functions' => array()
+            'methods'   => array()
         );
 
-        foreach ($this->getClassNames() as $class) {
+        $mapping = array();
+        foreach ($this->getClassMap(true) as $class => $filePath) {
             $ret = exec(sprintf('%s %s/../parser.php %s --class %s',
                 Config::get('php'),
                 __DIR__,
@@ -25,6 +26,11 @@ class ClassesProvider extends Tools implements ProviderInterface
             if (false === $value = json_decode($ret, true)) {
                 continue;
             }
+
+            $mapping[$class] = array(
+                'file'     => $filePath,
+                'methods'  => $value
+            );
 
             $classes['names'][] = $class;
             $classes['methods'][$class] = $value;
