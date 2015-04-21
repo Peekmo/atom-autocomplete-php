@@ -18,7 +18,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
             if (file_exists(Config::get('indexClasses'))) {
                 $fileExists = true;
 
-                $index = json_decode(file_get_contents(Config::get('indexClasses')));
+                $index = json_decode(file_get_contents(Config::get('indexClasses')), true);
                 if (false !== $class = array_search($file, $classMap)) {
                     if (isset($index['mapping'][$class])) {
                         unset($index['mapping'][$class]);

@@ -53,7 +53,7 @@ module.exports =
       statics: [],
       methods: []
 
-    execute("--refresh", true)
+    #execute("--refresh", true)
 
   classes: () ->
     if not data.classes?
