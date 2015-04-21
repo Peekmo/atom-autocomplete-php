@@ -63,7 +63,15 @@ if (!isset($commands[$command])) {
 Config::set('composer', $config['composer']);
 Config::set('php', $config['php']);
 Config::set('projectPath', $project);
-Config::set('indexClasses', __DIR__ . '/' . md5($project) . '/index.classes.json');
+
+$indexDir =  __DIR__ . '/indexes/' . md5($project);
+if (!is_dir($indexDir)) {
+    if (false === mkdir($indexDir, 0777, true)) {
+        show_error('Unable to create directory ' . $indexDir);
+    }
+}
+
+Config::set('indexClasses', $indexDir . '/index.classes.json');
 
 foreach ($config['autoload'] as $config) {
     $path = sprintf('%s/%s/', $project, trim($config, '/'));

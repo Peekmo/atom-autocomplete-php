@@ -30,18 +30,6 @@ abstract class Tools
     }
 
     /**
-     * Returns names from all classes registered
-     * @param bool $force Force fetching from composer command
-     * @return array
-     */
-    protected function getClassNames($force = false)
-    {
-        $map = $this->getClassMap($force);
-
-        return array_merge(get_declared_classes(), array_keys($map));
-    }
-
-    /**
      * Format parameters for the autocomplete plugin
      * @param ReflectionMethod $method Method to get arguments from
      * @return array
