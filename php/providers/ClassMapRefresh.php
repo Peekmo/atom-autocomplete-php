@@ -14,7 +14,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
         $fileExists = false;
 
         // If we specified a file
-        if ($file = $args[0]) {
+        if (count($args) > 0 && $file = $args[0]) {
             if (file_exists(Config::get('indexClasses'))) {
                 $fileExists = true;
 
@@ -50,7 +50,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
                 $provider = new ClassProvider();
 
                 if ($value = $provider->execute(array($class))) {
-                    $index['mapping'][$class] = $value;
+                    $index['mapping'][$class] = array('methods' => $value);
                     $index['autocomplete'][] = $class;
                 }
             }
@@ -75,7 +75,6 @@ class ClassMapRefresh extends Tools implements ProviderInterface
         }
 
         return array(
-            'file'     => $filePath,
             'methods'  => $value
         );
     }

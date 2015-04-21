@@ -21,7 +21,6 @@ execute = (command, async) ->
       if res.error?
         printError(res.error)
 
-      excludeFiles()
       return res
     else
       exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command, (error, stdout, stderr) ->

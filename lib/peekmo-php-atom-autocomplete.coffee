@@ -44,7 +44,7 @@ module.exports =
     @providers = []
 
   registerProviders: ->
-    @providers.push new ClassProvider()
+    #@providers.push new ClassProvider()
     @providers.push new StaticProvider()
     @providers.push new ThisProvider()
     @providers.push new VariableProvider()
