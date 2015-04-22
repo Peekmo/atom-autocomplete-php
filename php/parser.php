@@ -64,7 +64,7 @@ Config::set('composer', $config['composer']);
 Config::set('php', $config['php']);
 Config::set('projectPath', $project);
 
-$indexDir =  __DIR__ . '/indexes/' . md5($project);
+$indexDir =  __DIR__ . '/../indexes/' . md5($project);
 if (!is_dir($indexDir)) {
     if (false === mkdir($indexDir, 0777, true)) {
         show_error('Unable to create directory ' . $indexDir);
