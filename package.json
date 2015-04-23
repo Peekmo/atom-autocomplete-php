@@ -1,5 +1,5 @@
 {
-  "name": "peekmo-php-atom-autocomplete",
+  "name": "atom-autocomplete-php",
   "main": "./lib/peekmo-php-atom-autocomplete",
   "version": "0.0.1",
   "description": "Atom autocompletion plugin for PHP language",
