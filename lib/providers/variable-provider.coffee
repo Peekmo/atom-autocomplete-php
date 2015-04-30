@@ -18,7 +18,6 @@ class VariableProvider extends AbstractProvider
     # "new" keyword or word starting with capital letter
     @regex = /(\$[a-zA-Z_]*)/g
 
-    selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 

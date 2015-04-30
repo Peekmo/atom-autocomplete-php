@@ -19,7 +19,6 @@ class FunctionProvider extends AbstractProvider
     # "new" keyword or word starting with capital letter
     @regex = /(?:[^\w\$_\>])([a-z_]+)(?![\w\$_\>])/g
 
-    selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 

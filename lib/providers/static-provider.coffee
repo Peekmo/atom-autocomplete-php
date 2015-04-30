@@ -4,7 +4,6 @@ minimatch = require 'minimatch'
 proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider.coffee"
-{$, $$, Range} = require 'atom'
 
 module.exports =
 # Autocomplete for static methods and constants
@@ -19,7 +18,6 @@ class StaticProvider extends AbstractProvider
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     @regex = /(\b[A-Z][a-zA-Z_]+::([a-zA-Z_]*))/g
 
-    selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 

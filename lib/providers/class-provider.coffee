@@ -4,7 +4,6 @@ exec = require "child_process"
 
 proxy = require "../services/php-proxy.coffee"
 AbstractProvider = require "./abstract-provider"
-{$, $$, Range} = require 'atom'
 
 module.exports =
 # Autocompletion for class names
@@ -19,7 +18,6 @@ class ClassProvider extends AbstractProvider
     # "new" keyword or word starting with capital letter
     @regex = /(?:[^\$\>\w])((?:new )?\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
 
-    selection = editor.getSelection()
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 

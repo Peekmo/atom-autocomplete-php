@@ -32,18 +32,7 @@ execute = (command, async) ->
       return res
     else
       exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command, (error, stdout, stderr) ->
-        try
-          res = JSON.parse(stdout)
-        catch err
-          console.log err
-          res =
-            error:
-              message: err
-
-        if res.error?
-          printError(res.error)
-
-        return res
+        return []
       )
 
 ###*
@@ -116,7 +105,7 @@ module.exports =
   ###
   statics: (className) ->
     if not data.statics[className]?
-      res = execute("--statics '" + className + "'")
+      res = execute("--statics '" + className + "'", false)
       data.statics[className] = res
 
     return data.statics[className]
@@ -128,7 +117,7 @@ module.exports =
   ###
   methods: (className) ->
     if not data.methods[className]?
-      res = execute("--methods '" + className + "'")
+      res = execute("--methods '" + className + "'", false)
       data.methods[className] = res
 
     return data.methods[className]
@@ -137,6 +126,7 @@ module.exports =
    * Method called on plugin activation
   ###
   init: () ->
+    execute('--refresh', true)
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
         @clearCache()
