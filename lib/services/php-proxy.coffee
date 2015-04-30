@@ -96,11 +96,7 @@ module.exports =
    * @return {array}
   ###
   classes: () ->
-    if not data.classes?
-      res = execute("--classes", false)
-      data.classes = res
-
-    return data.classes
+    return readIndex('classes')
 
   ###*
    * Autocomplete for internal PHP functions

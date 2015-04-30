@@ -24,7 +24,7 @@ class ClassProvider extends AbstractProvider
     return unless prefix.length
 
     @classes = proxy.classes()
-    return unless @classes.names?
+    return unless @classes.autocomplete?
 
     suggestions = @findSuggestionsForPrefix prefix.trim()
     return unless suggestions.length
@@ -51,17 +51,17 @@ class ClassProvider extends AbstractProvider
     console.log prefix
 
     # Filter the words using fuzzaldrin
-    words = fuzzaldrin.filter @classes.names, prefix
-
+    words = fuzzaldrin.filter @classes.autocomplete, prefix
+    console.log @classes.mapping
     # Builds suggestions for the words
     suggestions = []
     for word in words when word isnt prefix
       # Just print classes with constructors with "new"
-      if instanciation and @classes.methods[word].constructor.has
+      if instanciation and @classes.mapping[word].methods.constructor.has
         suggestions.push
           text: word,
           type: 'class',
-          snippet: @getFunctionSnippet(word, @classes.methods[word].constructor.args),
+          snippet: @getFunctionSnippet(word, @classes.mapping[word].methods.constructor.args),
           data:
             kind: 'instanciation',
             prefix: prefix,

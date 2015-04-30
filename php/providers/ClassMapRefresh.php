@@ -29,7 +29,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
                     }
 
                     if ($value = $this->buildIndexClass($class)) {
-                        $index['mapping'][$class] = $value;
+                        $index['mapping'][$class] = array('methods' => $value);
                         $index['autocomplete'][] = $class;
                     }
                 }
@@ -40,7 +40,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
             // Autoload classes
             foreach ($this->getClassMap(true) as $class => $filePath) {
                 if ($value = $this->buildIndexClass($class)) {
-                    $index['mapping'][$class] = $value;
+                    $index['mapping'][$class] = array('methods' => $value);
                     $index['autocomplete'][] = $class;
                 }
             }
