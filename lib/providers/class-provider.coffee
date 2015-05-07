@@ -50,7 +50,7 @@ class ClassProvider extends AbstractProvider
 
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @classes.autocomplete, prefix
-    console.log @classes.mapping
+    
     # Builds suggestions for the words
     suggestions = []
     for word in words when word isnt prefix

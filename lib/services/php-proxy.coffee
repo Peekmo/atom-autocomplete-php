@@ -78,8 +78,6 @@ module.exports =
       statics: [],
       methods: []
 
-    #execute("--refresh", true)
-
   ###*
    * Autocomplete for classes name
    * @return {array}

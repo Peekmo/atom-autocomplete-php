@@ -30,7 +30,7 @@ module.exports =
       );
     "
 
-    fs.writeFile(@config.packagePath + '/php/tmp.php', text)
+    fs.writeFileSync(@config.packagePath + '/php/tmp.php', text)
 
   ###*
    * Init function called on package activation
