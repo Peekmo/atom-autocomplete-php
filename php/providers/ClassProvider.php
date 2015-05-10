@@ -25,9 +25,11 @@ class ClassProvider extends Tools implements ProviderInterface
         }
 
         return array(
-            'constructor' => array(
-                'has'  => !is_null($ctor),
+            'methods' => array(
+                'constructor' => array(
+                    'has'  => !is_null($ctor),
                 'args' => $args
+                )
             )
         );
     }

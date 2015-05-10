@@ -46,8 +46,6 @@ class ClassProvider extends AbstractProvider
     if prefix.indexOf("\\") == 0
       prefix = prefix.substring(1, prefix.length)
 
-    console.log prefix
-
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @classes.autocomplete, prefix
 

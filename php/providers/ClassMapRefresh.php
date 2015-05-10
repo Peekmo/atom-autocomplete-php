@@ -38,9 +38,9 @@ class ClassMapRefresh extends Tools implements ProviderInterface
         // Otherwise, full index
         else if (!$fileExists) {
             // Autoload classes
-            foreach ($this->getClassMap(true) as $class => $filePath) {
+            foreach ($classMap as $class => $filePath) {
                 if ($value = $this->buildIndexClass($class)) {
-                    $index['mapping'][$class] = array('methods' => $value);
+                    $index['mapping'][$class] = $value;
                     $index['autocomplete'][] = $class;
                 }
             }
@@ -50,7 +50,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
                 $provider = new ClassProvider();
 
                 if ($value = $provider->execute(array($class))) {
-                    $index['mapping'][$class] = array('methods' => $value);
+                    $index['mapping'][$class] = $value;
                     $index['autocomplete'][] = $class;
                 }
             }
@@ -74,8 +74,10 @@ class ClassMapRefresh extends Tools implements ProviderInterface
             return null;
         }
 
-        return array(
-            'methods'  => $value
-        );
+        if (isset($value['error'])) {
+            return null;
+        }
+
+        return $value;
     }
 }
