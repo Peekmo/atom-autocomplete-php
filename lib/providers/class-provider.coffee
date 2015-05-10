@@ -50,7 +50,7 @@ class ClassProvider extends AbstractProvider
 
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @classes.autocomplete, prefix
-    
+
     # Builds suggestions for the words
     suggestions = []
     for word in words when word isnt prefix
@@ -76,3 +76,5 @@ class ClassProvider extends AbstractProvider
             replacementPrefix: prefix
 
     return suggestions
+
+  onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->

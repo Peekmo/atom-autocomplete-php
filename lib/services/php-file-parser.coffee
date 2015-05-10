@@ -100,6 +100,41 @@ module.exports =
           return matches[0]
 
   ###*
+   * Add the use for the given class if not already added
+   * @param {TextEditor} editor    Atom text editor
+   * @param {string}     className Name of the class to add
+  ###
+  addUseClass: (editor, className) ->
+    text = editor.getText()
+    lastUse = 0
+    index = 0
+
+    lines = text.split('\n')
+    for line in lines
+      line = line.trim()
+
+      # If we found class keyword, we are not in namespace space, so return
+      if line.indexOf('class ') != -1
+        return
+
+      if line.indexOf('namespace ') == 0
+        lastUse = index
+
+      # Use keyword
+      if line.indexOf('use') == 0
+        useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
+        matches = line.match(useRegex)
+
+        # just one use
+        if matches.length >= 1
+          if matches[0] == className
+            return
+          else
+            lastUse = index
+
+      index += 1
+
+  ###*
    * Checks if the current buffer is in a functon or not
    * @param {TextEditor} editor         Atom text editor
    * @param {Range}      bufferPosition Position of the current buffer
