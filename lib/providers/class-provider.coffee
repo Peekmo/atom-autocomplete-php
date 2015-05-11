@@ -3,6 +3,7 @@ minimatch = require 'minimatch'
 exec = require "child_process"
 
 proxy = require "../services/php-proxy.coffee"
+parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
 module.exports =
@@ -75,4 +76,12 @@ class ClassProvider extends AbstractProvider
 
     return suggestions
 
+  ###*
+   * Adds the missing use if needed
+   * @param {TextEditor} editor
+   * @param {Position}   triggerPosition
+   * @param {object}     suggestion
+  ###
   onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
+    if suggestion.data.kind == 'instanciation'
+      parser.addUseClass(editor, suggestion.text)

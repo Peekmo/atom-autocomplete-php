@@ -115,7 +115,7 @@ module.exports =
 
       # If we found class keyword, we are not in namespace space, so return
       if line.indexOf('class ') != -1
-        return
+        editor.setTextInBufferRange([[lastUse+1,0], [lastUse+1, 0]], "use #{className};\n")
 
       if line.indexOf('namespace ') == 0
         lastUse = index
