@@ -14,8 +14,6 @@ data =
  * @return {array}           Json of the response
 ###
 execute = (command, async) ->
-  return [] if data.error?
-
   for directory in atom.project.getDirectories()
     if not async
       try

@@ -87,17 +87,17 @@ module.exports =
       if line.indexOf('use') == 0
         useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
 
-        matches = line.match(useRegex)
+        matches = useRegex.exec(line)
 
         # just one use
-        if matches.length == 1
-          splits = matches[0].split('\\')
+        if matches[1]? and not matches[2]?
+          splits = matches[1].split('\\')
           if splits[splits.length-1] == className
-            return matches[0]
+            return matches[1]
 
         # use aliases
-        else if matches.length == 2 and matches[1] == className
-          return matches[0]
+        else if matches[1]? and matches[2]? and matches[2] == className
+          return matches[1]
 
   ###*
    * Add the use for the given class if not already added
@@ -123,11 +123,11 @@ module.exports =
       # Use keyword
       if line.indexOf('use') == 0
         useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
-        matches = line.match(useRegex)
+        matches = useRegex.exec(line)
 
         # just one use
-        if matches.length >= 1
-          if matches[0] == className
+        if matches[1]?
+          if matches[1] == className
             return
           else
             lastUse = index
