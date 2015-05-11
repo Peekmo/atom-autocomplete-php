@@ -109,6 +109,10 @@ module.exports =
     lastUse = 0
     index = 0
 
+    splits = className.split('\\')
+    if splits.length == 1
+        return false
+
     lines = text.split('\n')
     for line in lines
       line = line.trim()
@@ -116,6 +120,7 @@ module.exports =
       # If we found class keyword, we are not in namespace space, so return
       if line.indexOf('class ') != -1
         editor.setTextInBufferRange([[lastUse+1,0], [lastUse+1, 0]], "use #{className};\n")
+        return true
 
       if line.indexOf('namespace ') == 0
         lastUse = index
@@ -128,11 +133,13 @@ module.exports =
         # just one use
         if matches[1]?
           if matches[1] == className
-            return
+            return true
           else
             lastUse = index
 
       index += 1
+
+    return false
 
   ###*
    * Checks if the current buffer is in a functon or not
