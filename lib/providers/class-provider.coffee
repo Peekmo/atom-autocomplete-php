@@ -87,11 +87,15 @@ class ClassProvider extends AbstractProvider
       added = parser.addUseClass(editor, suggestion.text)
 
       # Removes namespace from classname
-      if added == true
+      if added?
         name = suggestion.text
         splits = name.split('\\')
 
         nameLength = splits[splits.length-1].length
         wordStart = triggerPosition.column - suggestion.data.prefix.length
+        lineStart = if added == "added" then triggerPosition.row + 1 else triggerPosition.row
 
-        #editor.setTextInBufferRange([[triggerPosition.row, wordStart], [triggerPosition.row, wordStart + name.length - nameLength]], "")
+        editor.setTextInBufferRange([
+            [lineStart, wordStart],
+            [lineStart, wordStart + name.length - nameLength - splits.length + 1] # Because when selected there's not \ (why?)
+        ], "")

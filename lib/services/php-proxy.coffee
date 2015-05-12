@@ -20,7 +20,6 @@ execute = (command, async) ->
         stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command)
         res = JSON.parse(stdout)
       catch err
-        console.log err
         res =
           error: err
 
