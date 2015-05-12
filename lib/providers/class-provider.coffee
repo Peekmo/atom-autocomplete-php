@@ -10,6 +10,7 @@ module.exports =
 # Autocompletion for class names
 class ClassProvider extends AbstractProvider
   classes = []
+  disableForSelector: '.source.php .string'
 
   ###*
    * Get suggestions from the provider (@see provider-api)
@@ -17,7 +18,7 @@ class ClassProvider extends AbstractProvider
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /(?:[^\$\>\w])((?:new )?\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
+    @regex = /((?:new|use)?(?:[^a-z0-9_])\\?(?:[A-Z][a-zA-Z_\\]*)+)/g
 
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
@@ -35,14 +36,19 @@ class ClassProvider extends AbstractProvider
    * @return array
   ###
   findSuggestionsForPrefix: (prefix) ->
-    # Get rid of the leading "new" keyword
+    # Get rid of the leading "new" or "use" keyword
     instanciation = false
+    use = false
+
     if prefix.indexOf("new \\") != -1
       instanciation = true
       prefix = prefix.replace /new \\/, ''
     else if prefix.indexOf("new ") != -1
       instanciation = true
       prefix = prefix.replace /new /, ''
+    else if prefix.indexOf("use ") != -1
+      use = true
+      prefix = prefix.replace /use /, ''
 
     if prefix.indexOf("\\") == 0
       prefix = prefix.substring(1, prefix.length)
@@ -65,12 +71,12 @@ class ClassProvider extends AbstractProvider
             replacementPrefix: prefix
 
       # Not instanciation => not printing constructor params
-      else if not instanciation
+      else
         suggestions.push
           text: word,
           type: 'class',
           data:
-            kind: 'static',
+            kind: if use then 'use' else 'static',
             prefix: prefix,
             replacementPrefix: prefix
 
@@ -83,7 +89,7 @@ class ClassProvider extends AbstractProvider
    * @param {object}     suggestion
   ###
   onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
-    if suggestion.data.kind == 'instanciation'
+    if suggestion.data.kind == 'instanciation' or suggestion.data.kind == 'static'
       added = parser.addUseClass(editor, suggestion.text)
 
       # Removes namespace from classname
@@ -95,7 +101,12 @@ class ClassProvider extends AbstractProvider
         wordStart = triggerPosition.column - suggestion.data.prefix.length
         lineStart = if added == "added" then triggerPosition.row + 1 else triggerPosition.row
 
+        if suggestion.data.kind == 'instanciation'
+          lineEnd = wordStart + name.length - nameLength - splits.length + 1
+        else
+          lineEnd = wordStart + name.length - nameLength
+
         editor.setTextInBufferRange([
             [lineStart, wordStart],
-            [lineStart, wordStart + name.length - nameLength - splits.length + 1] # Because when selected there's not \ (why?)
+            [lineStart, lineEnd] # Because when selected there's not \ (why?)
         ], "")

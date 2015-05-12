@@ -131,7 +131,7 @@ module.exports =
         matches = useRegex.exec(line)
 
         # just one use
-        if matches[1]?
+        if matches? and matches[1]?
           if matches[1] == className
             return 'exists'
           else
