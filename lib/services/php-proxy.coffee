@@ -100,7 +100,7 @@ module.exports =
   ###
   statics: (className) ->
     if not data.statics[className]?
-      res = execute("--statics '" + className + "'", false)
+      res = execute("--statics #{className}", false)
       data.statics[className] = res
 
     return data.statics[className]
@@ -112,16 +112,26 @@ module.exports =
   ###
   methods: (className) ->
     if not data.methods[className]?
-      res = execute("--methods '" + className + "'", false)
+      res = execute("--methods #{className}", false)
       data.methods[className] = res
 
     return data.methods[className]
 
   ###*
+   * Refresh the full index or only for the given className
+   * @param  {string} className Full path (with namespace) of the class to refresh
+  ###
+  refresh: (className) ->
+    if not className?
+      execute("--refresh", true)
+    else
+      execute("--refresh #{className}")
+
+  ###*
    * Method called on plugin activation
   ###
   init: () ->
-    execute('--refresh', true)
+    @refresh()
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
         @clearCache()
