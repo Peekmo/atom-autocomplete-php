@@ -42,7 +42,7 @@ class ThisProvider extends AbstractProvider
 
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @methods.names, method
-
+    console.log words
     # Builds suggestions for the words
     suggestions = []
     for word in words

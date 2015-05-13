@@ -14,6 +14,7 @@ data =
  * @return {array}           Json of the response
 ###
 execute = (command, async) ->
+  command = command.replace(/\\/g, '\\\\')
   for directory in atom.project.getDirectories()
     if not async
       try

@@ -29,7 +29,7 @@ class MethodsProvider extends Tools implements ProviderInterface
         foreach ($methods as $method) {
             $data['names'][] = $method->getName();
 
-            $args = $this->getMethodArguments($method); 
+            $args = $this->getMethodArguments($method);
 
             $data['values'][$method->getName()] = array(
                 array(
