@@ -26,6 +26,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
 
                     if (false !== $key = array_search($class, $index['autocomplete'])) {
                         unset($index['autocomplete'][$key]);
+                        $index['autocomplete'] = array_values($index['autocomplete']);
                     }
 
                     if ($value = $this->buildIndexClass($class)) {

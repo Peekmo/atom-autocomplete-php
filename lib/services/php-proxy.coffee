@@ -120,14 +120,14 @@ module.exports =
     return data.methods[className]
 
   ###*
-   * Refresh the full index or only for the given className
-   * @param  {string} className Full path (with namespace) of the class to refresh
+   * Refresh the full index or only for the given classPath
+   * @param  {string} classPath Full path (dir) of the class to refresh
   ###
-  refresh: (className) ->
-    if not className?
+  refresh: (classPath) ->
+    if not classPath?
       execute("--refresh", true)
     else
-      execute("--refresh #{className}")
+      execute("--refresh #{classPath}", true)
 
   ###*
    * Method called on plugin activation
@@ -135,8 +135,10 @@ module.exports =
   init: () ->
     @refresh()
     atom.workspace.observeTextEditors (editor) =>
-      editor.onDidSave =>
+      editor.onDidSave((event) =>
         @clearCache()
+        @refresh(event.path)
+      )
 
     atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>
       @clearCache()
