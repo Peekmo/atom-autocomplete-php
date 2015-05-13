@@ -28,7 +28,9 @@ execute = (command, async) ->
 
       return res
     else
+      console.log 'Building index'
       exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command, (error, stdout, stderr) ->
+        console.log 'Build done'
         return []
       )
 
