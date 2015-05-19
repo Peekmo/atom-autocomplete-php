@@ -50,6 +50,7 @@ class StaticProvider extends AbstractProvider
               type: 'method',
               snippet: @getFunctionSnippet(word, element.args),
               replacementPrefix: prefix,
+              leftLabel: element.args.return,
               data:
                 prefix: prefix,
                 args: element.args

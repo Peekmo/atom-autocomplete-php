@@ -10,28 +10,41 @@ class DocParser
     const VAR_TYPE = '@var';
 
     /**
-     * Comment from the method
-     * @var string
+     * Get data for the given class
+     * @param  string $className Full class namespace
+     * @param  string $type      Type searched (method, property)
+     * @param  string $name      Name of the method or property
+     * @param  array  $filters   Fields to get
+     * @return array
      */
-    private $comment;
-
-    /**
-     * Constructor
-     * @param string $comment Comment to search in
-     */
-    public function __construct($comment)
+    public function get($className, $type, $name, $filters)
     {
-        $this->comment = $comment;
+        switch($type) {
+            case 'method':
+                $reflection = new ReflectionMethod($className, $name);
+                break;
+
+            case 'property':
+                $reflection = new ReflectionProperty($className, $name);
+                break;
+
+            default:
+                throw new \Exception(sprintf('Unknown type %s', $type));
+        }
+
+        $comment = $reflection->getDocComment();
+        return $this->parse($comment, $filters);
     }
 
     /**
      * Parse the comment string to get its elements
+     * @param  string $comment Comment to parse
      * @param  array  $filters Elements to search (@see consts)
      * @return array
      */
-    public function parse($filters)
+    public function parse($comment, $filters)
     {
-        $comment = str_replace(array('*', '/'), '', $this->comment);
+        $comment = str_replace(array('*', '/'), '', $comment);
         $comment = str_replace(array('\n', '\r\n', PHP_EOL), ' ', $comment);
 
         $result = array();
@@ -63,7 +76,6 @@ class DocParser
             }
         }
 
-        die(var_dump($result));
         return $result;
     }
 

@@ -31,7 +31,7 @@ class StaticsProvider extends Tools implements ProviderInterface
         foreach ($methods as $method) {
             $statics['names'][] = $method->getName();
 
-            $args = $this->getMethodArguments($method); 
+            $args = $this->getMethodArguments($method, $class); 
 
             $statics['values'][$method->getName()] = array(
                 array(

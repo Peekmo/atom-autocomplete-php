@@ -31,10 +31,11 @@ abstract class Tools
 
     /**
      * Format parameters for the autocomplete plugin
-     * @param ReflectionMethod $method Method to get arguments from
+     * @param ReflectionMethod $method    Method to get arguments from
+     * @param string           $className Class name to use (optional for the moment)
      * @return array
      */
-    protected function getMethodArguments($method)
+    protected function getMethodArguments($method, $className = null)
     {
         $args = $method->getParameters();
         $optionals = array();
@@ -54,10 +55,72 @@ abstract class Tools
             }
         }
 
+        if ($className) {
+            $parser = new DocParser();
+            $return = $parser->get($className, 'method', $method->getName(), array(DocParser::RETURN_VALUE));
+        }
+
         return array(
             'parameters' => $parameters,
-            'optionals' => $optionals
+            'optionals' => $optionals,
+            'return'    => ($className && !empty($return)) ? $return['return'] : ''
         );
+    }
+
+    /**
+     * Returns methods and properties of the given className
+     * @param string $className Full namespace of the parsed class
+     */
+    protected function getClassMetadata($className)
+    {
+        $data = array(
+            'class'  => $className,
+            'names'  => array(),
+            'values' => array()
+        );
+
+        try {
+            $reflection = new ReflectionClass($className);
+        } catch (Exception $e) {
+            return $data;
+        }
+
+        $methods    = $reflection->getMethods();
+        $attributes = $reflection->getProperties();
+
+        // Methods
+        foreach ($methods as $method) {
+            $data['names'][] = $method->getName();
+
+            $args = $this->getMethodArguments($method, $className);
+
+            $data['values'][$method->getName()] = array(
+                array(
+                    'isMethod' => true,
+                    'isPublic' => $method->isPublic(),
+                    'args'     => $args
+                )
+            );
+        }
+
+        // Properties
+        foreach ($attributes as $attribute) {
+            if (!in_array($attribute->getName(), $data['names'])) {
+                $data['names'][] = $attribute->getName();
+                $data['values'][$attribute->getName()] = array();
+            }
+
+            $parser = new DocParser();
+            $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
+
+            $data['values'][$attribute->getName()][] = array(
+                'isMethod' => false,
+                'isPublic' => $attribute->isPublic(),
+                'args'     => array('return' => !empty($return) ? $return['var'] : '')
+            );
+        }
+
+        return $data;
     }
 }
 
