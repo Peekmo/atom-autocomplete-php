@@ -10,8 +10,10 @@ require_once(__DIR__ . '/tmp.php');
 require_once(__DIR__ . '/Config.php');
 require_once(__DIR__ . '/services/Tools.php');
 require_once(__DIR__ . '/services/DocParser.php');
+require_once(__DIR__ . '/services/FileParser.php');
 require_once(__DIR__ . '/providers/ProviderInterface.php');
 require_once(__DIR__ . '/providers/StaticsProvider.php');
+require_once(__DIR__ . '/providers/AutocompleteProvider.php');
 require_once(__DIR__ . '/providers/MethodsProvider.php');
 require_once(__DIR__ . '/providers/ClassesProvider.php');
 require_once(__DIR__ . '/providers/ClassProvider.php');
@@ -19,12 +21,13 @@ require_once(__DIR__ . '/providers/FunctionsProvider.php');
 require_once(__DIR__ . '/providers/ClassMapRefresh.php');
 
 $commands = array(
-    '--classes'   => 'ClassesProvider',
-    '--class'     => 'ClassProvider',
-    '--statics'   => 'StaticsProvider',
-    '--methods'   => 'MethodsProvider',
-    '--functions' => 'FunctionsProvider',
-    '--refresh'   => 'ClassMapRefresh'
+    '--classes'      => 'ClassesProvider',
+    '--class'        => 'ClassProvider',
+    '--statics'      => 'StaticsProvider',
+    '--methods'      => 'MethodsProvider',
+    '--functions'    => 'FunctionsProvider',
+    '--refresh'      => 'ClassMapRefresh',
+    '--autocomplete' => 'AutocompleteProvider'
 );
 
 /**
