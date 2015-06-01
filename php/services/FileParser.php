@@ -2,7 +2,8 @@
 
 class FileParser
 {
-    const USE_PATTERN = '/(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g';
+    const USE_PATTERN = '/(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/';
+    const NAMESPACE_PATTERN = '/(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/';
 
     /**
      * @var string Content of the file
@@ -29,7 +30,15 @@ class FileParser
      */
     public function getCompleteNamespace($className)
     {
-        $lines = explode('\n', $this->content);
+        $lines = explode(PHP_EOL, $this->content);
+
+        $matches = array();
+        preg_match(self::NAMESPACE_PATTERN, $this->content, $matches);
+
+        $fullClass = $className;
+        if (!empty($matches)) {
+            $fullClass = $matches[1] . '\\' . $className;
+        }
 
         foreach ($lines as $line) {
             $matches = array();
@@ -44,12 +53,11 @@ class FileParser
             }
 
             // Stop if declaration of a class
-            if (strpos($line, 'class') === 0) {
-                return $className;
+            if (strpos(trim($line), 'class') === 0) {
+                return $fullClass;
             }
         }
-
-        return $className;
+        return $fullClass;
     }
 }
 
