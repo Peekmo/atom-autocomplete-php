@@ -50,6 +50,17 @@ module.exports =
     return name
 
   ###*
+   * Returns the class type of the last one in a ->xxx->xxxx stack
+   * @param  {TextEditor} editor
+   * @param  {Rang}       position
+   * @return string className
+  ###
+  getLastStackClass: (editor, position) ->
+    text = editor.getTextInBufferRange([[0, 0], position])
+    
+    return null
+
+  ###*
    * Get all variables declared in the current function
    * @param {TextEdutir} editor         Atom text editor
    * @param {Range}      bufferPosition Position of the current buffer

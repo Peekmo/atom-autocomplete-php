@@ -114,9 +114,11 @@ abstract class Tools
             $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
 
             $data['values'][$attribute->getName()] = array(
-                'isMethod' => false,
-                'isPublic' => $attribute->isPublic(),
-                'args'     => array('return' => !empty($return) ? $return['var'] : '')
+                array(
+                    'isMethod' => false,
+                    'isPublic' => $attribute->isPublic(),
+                    'args'     => array('return' => !empty($return) ? $return['var'] : '')
+                )
             );
         }
 
