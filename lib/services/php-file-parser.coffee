@@ -73,6 +73,12 @@ module.exports =
     return [] if not word
 
     elements = word.split("->")
+
+    # Remove parenthesis
+    for key, element of elements
+      if element.indexOf("(") != -1
+        elements[key] = element.substr(0, element.indexOf("("))
+
     return elements
 
   ###*
@@ -166,6 +172,14 @@ module.exports =
       index += 1
 
     return null
+
+  ###*
+   * Checks if the given name is a class or not
+   * @param  {string}  name Name to check
+   * @return {Boolean}
+  ###
+  isClass: (name) ->
+    return name.substr(0,1).toUpperCase() + name.substr(1) == name
 
   ###*
    * Checks if the current buffer is in a functon or not

@@ -16,7 +16,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         $data = $this->getClassMetadata($class);
         if (!isset($data['values'][$name]) || !isset($classMap[$class])) {
             return array(
-                'class'  => $className,
+                'class'  => null,
                 'names'  => array(),
                 'values' => array()
             );

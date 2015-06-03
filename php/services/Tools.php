@@ -95,11 +95,9 @@ abstract class Tools
             $args = $this->getMethodArguments($method, $className);
 
             $data['values'][$method->getName()] = array(
-                array(
-                    'isMethod' => true,
-                    'isPublic' => $method->isPublic(),
-                    'args'     => $args
-                )
+                'isMethod' => true,
+                'isPublic' => $method->isPublic(),
+                'args'     => $args
             );
         }
 
@@ -114,11 +112,9 @@ abstract class Tools
             $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
 
             $data['values'][$attribute->getName()] = array(
-                array(
-                    'isMethod' => false,
-                    'isPublic' => $attribute->isPublic(),
-                    'args'     => array('return' => !empty($return) ? $return['var'] : '')
-                )
+                'isMethod' => false,
+                'isPublic' => $attribute->isPublic(),
+                'args'     => array('return' => !empty($return) ? $return['var'] : '')
             );
         }
 

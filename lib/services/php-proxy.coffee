@@ -5,7 +5,8 @@ fs = require 'fs'
 
 data =
   statics: [],
-  methods: []
+  methods: [],
+  autocomplete: []
 
 ###*
  * Executes a command to PHP proxy
@@ -63,10 +64,10 @@ printError = (error) ->
   data.error = true
   message = error.message
 
-  if error.file? and error.line?
-    message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']'
+  #if error.file? and error.line?
+    #message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']'
 
-  throw new Error(message)
+  #throw new Error(message)
 
 module.exports =
   ###*
@@ -119,6 +120,16 @@ module.exports =
       data.methods[className] = res
 
     return data.methods[className]
+
+  ###*
+   * Autocomplete for methods & properties of a class
+   * @param  {string} className Class complete name (with namespace)
+   * @return {array}
+  ###
+  autocomplete: (className, name) ->
+    res = execute("--autocomplete #{className} #{name}", false)
+    return res
+
 
   ###*
    * Refresh the full index or only for the given classPath
