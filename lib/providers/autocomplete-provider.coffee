@@ -22,7 +22,6 @@ class AutocompleteProvider extends AbstractProvider
     @regex = /(?:[\$]?)(?![this])([a-zA-Z0-9_]+)(?:\(\))?(?:->)?/g
 
     prefix = @getPrefix(editor, bufferPosition)
-    return unless prefix.length
 
     elements = parser.getStackClasses(editor, bufferPosition)
     return unless elements?
