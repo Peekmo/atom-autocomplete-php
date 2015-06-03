@@ -43,12 +43,9 @@ class AutocompleteProvider extends AbstractProvider
    * @return array
   ###
   findSuggestionsForPrefix: (prefix) ->
-    method = prefix.substring("$this->".length, prefix.length)
-
     # Filter the words using fuzzaldrin
-    words = fuzzaldrin.filter @methods.names, method
-    console.log prefix
-    console.log words
+    words = fuzzaldrin.filter @methods.names, prefix
+
     # Builds suggestions for the words
     suggestions = []
     for word in words

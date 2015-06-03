@@ -25,7 +25,25 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         $returnValue = $data['values'][$name]['args']['return'];
         if (ucfirst($returnValue) === $returnValue) {
             $parser = new FileParser($classMap[$class]);
-            $className = $parser->getCompleteNamespace($returnValue);
+
+            $found = false;
+            $className = $parser->getCompleteNamespace($returnValue, $found);
+
+            // Look into its parents if use not found
+            if (!$found) {
+                try {
+                    $reflection = new ReflectionClass($class);
+                } catch (Exception $e) {
+                    return $className;
+                }
+
+                while (($parent = $reflection->getParentClass()) && ($found == false)) {
+                    if (isset($classMap[$parent->getName()])) {
+                        $parser = new FileParser($classMap[$parent->getName()]);
+                        $className = $parser->getCompleteNamespace($returnValue, $found);
+                    }
+                }
+            }
 
             return $this->getClassMetadata($className);
         }

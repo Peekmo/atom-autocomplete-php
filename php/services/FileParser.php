@@ -26,10 +26,12 @@ class FileParser
     /**
      * Get the full namespace of the given class
      * @param string $className
+     * @param bool   $found     Set to true if use founded
      * @return string
      */
-    public function getCompleteNamespace($className)
+    public function getCompleteNamespace($className, &$found)
     {
+        $found = false;
         $lines = explode(PHP_EOL, $this->content);
 
         $matches = array();
@@ -46,8 +48,10 @@ class FileParser
 
             if (!empty($matches)) {
                 if (isset($matches[2]) && $matches[2] == $className) {
+                    $found = true;
                     return $matches[1];
                 } else if (substr($matches[1], strlen($matches[1]) - strlen($className)) == $className) {
+                    $found = true;
                     return $matches[1];
                 }
             }
