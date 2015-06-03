@@ -50,15 +50,30 @@ module.exports =
     return name
 
   ###*
-   * Returns the class type of the last one in a ->xxx->xxxx stack
+   * Returns the stack of elements in a ->xxx->xxxx stack
    * @param  {TextEditor} editor
    * @param  {Rang}       position
    * @return string className
   ###
-  getLastStackClass: (editor, position) ->
-    text = editor.getTextInBufferRange([[0, 0], position])
-    
-    return null
+  getStackClasses: (editor, position) ->
+    # Get the line
+    text = editor.getTextInBufferRange([[position.row, 0], position])
+
+    # Get the full text
+    pos = position.column - 1
+    regex = /([a-zA-Z0-9\-_>\$\(\)]{1})/g
+    word = ''
+    while pos >= 0
+      if not text.charAt(pos).match(regex)
+        break
+
+      word = text.charAt(pos) + word
+      pos -= 1
+
+    return [] if not word
+
+    elements = word.split("->")
+    return elements
 
   ###*
    * Get all variables declared in the current function

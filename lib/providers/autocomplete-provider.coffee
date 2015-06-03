@@ -22,11 +22,12 @@ class AutocompleteProvider extends AbstractProvider
     @regex = /(?:[\$]?)(?![this])([a-zA-Z0-9_]+)(?:\(\))?(?:->)/g
 
     prefix = @getPrefix(editor, bufferPosition)
-    console.log prefix
     return unless prefix.length
 
-    className = parser.getLastStackClass(editor, bufferPosition)
-    return unless className?
+    elements = parser.getStackClasses(editor, bufferPosition)
+    return unless elements?
+
+    return null
 
     @methods = proxy.methods(className)
     return unless @methods.names?
