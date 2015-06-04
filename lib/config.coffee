@@ -1,4 +1,5 @@
 fs = require 'fs'
+namespace = require './services/namespace.coffee'
 
 module.exports =
   config: {}
@@ -37,6 +38,10 @@ module.exports =
    * Register config events and write the first config
   ###
   init: () ->
+    # Command for namespaces
+    atom.workspaceView.command "atom-autocomplete-php:namespace", =>
+        namespace.createNamespace(atom.workspace.getActivePaneItem())
+
     @writeConfig()
 
     atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>

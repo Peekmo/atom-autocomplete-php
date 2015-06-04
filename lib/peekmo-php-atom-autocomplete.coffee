@@ -46,8 +46,12 @@ module.exports =
   registerProviders: ->
     @providers.push new VariableProvider()
     @providers.push new FunctionProvider()
-    
-    proxy.composer()
+
+    try
+        proxy.composer()
+    catch err
+        return
+
     @providers.push new ClassProvider()
     @providers.push new AutocompleteProvider()
     @providers.push new StaticProvider()
