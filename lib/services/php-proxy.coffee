@@ -6,7 +6,8 @@ fs = require 'fs'
 data =
   statics: [],
   methods: [],
-  autocomplete: []
+  autocomplete: [],
+  composer: null
 
 ###*
  * Executes a command to PHP proxy
@@ -57,6 +58,25 @@ readIndex = (name) ->
     break
 
 ###*
+ * Open and read the composer.json file in the current folder
+###
+readComposer = () ->
+  for directory in atom.project.getDirectories()
+    path = "#{directory.path}/composer.json"
+
+    try
+      fs.accessSync(path, fs.F_OK | fs.R_OK)
+    catch err
+      continue
+
+    options =
+      encoding: 'UTF-8'
+    data.composer = JSON.parse(fs.readFileSync(path, options))
+    return data.composer
+
+  throw new Error("Unable to find composer.json file or to open it.")
+
+###*
  * Throw a formatted error
  * @param {object} error Error to show
 ###
@@ -85,6 +105,13 @@ module.exports =
   ###
   classes: () ->
     return readIndex('classes')
+
+  ###*
+   * Returns composer.json file
+   * @return {Object}
+  ###
+  composer: () ->
+    return readComposer()
 
   ###*
    * Autocomplete for internal PHP functions

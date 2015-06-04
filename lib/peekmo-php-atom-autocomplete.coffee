@@ -44,11 +44,13 @@ module.exports =
     @providers = []
 
   registerProviders: ->
-    @providers.push new ClassProvider()
-    @providers.push new StaticProvider()
     @providers.push new VariableProvider()
     @providers.push new FunctionProvider()
+    
+    proxy.composer()
+    @providers.push new ClassProvider()
     @providers.push new AutocompleteProvider()
+    @providers.push new StaticProvider()
 
   getProvider: ->
     @providers
