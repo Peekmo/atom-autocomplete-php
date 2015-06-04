@@ -61,14 +61,13 @@ module.exports =
       line = line.trim()
 
       # If we found class keyword, we are not in namespace space, so return
-      if line.indexOf('class ') != -1 || line.indexOf('use ') != -1
-        editor.setTextInBufferRange([[index,0], [index, 0]], "namespace #{namespace};\n\n")
-        return
-
       if line.indexOf('namespace ') == 0
         editor.setTextInBufferRange([[index,0], [index+1, 0]], "namespace #{namespace};\n")
+        return
+      else if line.trim() != "" and line.trim().indexOf("<?") != 0
+        editor.setTextInBufferRange([[index,0], [index, 0]], "namespace #{namespace};\n\n")
         return
 
       index += 1
 
-    return null
+    editor.setTextInBufferRange([[2 ,0], [2, 0]], "namespace #{namespace};\n\n")
