@@ -2,6 +2,12 @@
 
 [![Join the chat at https://gitter.im/Peekmo/atom-autocomplete-php](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Peekmo/atom-autocomplete-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Warning
+
+The plugin seems to not work well with the last version (0.206.0) of atom.
+
+Use *atom --include-deprecated-apis* to use it. I don't know why because I haven't got deprecations on the plugin. So, I need to learn more about changes.
+
 # What is done ?
 
 This plugin provide those amazing features :
