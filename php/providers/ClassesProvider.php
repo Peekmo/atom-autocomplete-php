@@ -16,11 +16,11 @@ class ClassesProvider extends Tools implements ProviderInterface
 
         $mapping = array();
         foreach ($this->getClassMap(true) as $class => $filePath) {
-            $ret = exec(sprintf('%s %s/../parser.php %s --class %s',
-                Config::get('php'),
-                __DIR__,
-                Config::get('projectPath'),
-                str_replace('\\', '\\\\', $class)
+            $ret = exec(sprintf('%s %s %s --class %s',
+                escapeshellarg(Config::get('php')),
+                escapeshellarg(__DIR__ . '/../parser.php'),
+                escapeshellarg(Config::get('projectPath')),
+                escapeshellarg($class)
             ));
 
             if (false === $value = json_decode($ret, true)) {
