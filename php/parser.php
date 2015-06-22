@@ -57,6 +57,8 @@ Config::set('composer', $config['composer']);
 Config::set('php', $config['php']);
 Config::set('projectPath', $project);
 
+// To see if it fix #19
+chdir(Config::get('projectPath'));
 $indexDir =  __DIR__ . '/../indexes/' . md5($project);
 if (!is_dir($indexDir)) {
     if (false === mkdir($indexDir, 0777, true)) {
