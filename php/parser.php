@@ -6,6 +6,9 @@
  * This script returns all functions, classes & methods in the given directory.
  * Internals and user's one
  **/
+require_once(__DIR__ . '/ErrorHandler.php');
+ErrorHandler::register();
+
 require_once(__DIR__ . '/tmp.php');
 require_once(__DIR__ . '/Config.php');
 require_once(__DIR__ . '/services/Tools.php');
@@ -31,17 +34,6 @@ $commands = array(
 );
 
 /**
-* Function called when a fatal occured
-*/
-function fatal_handler() {
-    $error = error_get_last();
-
-    if ($error !== NULL) {
-        die(json_encode(array('error' => $error)));
-    }
-}
-
-/**
 * Print an error
 * @param string $message
 */
@@ -52,8 +44,6 @@ function show_error($message) {
 if (count($argv) < 3) {
     die('Usage : php parser.php <dirname> <command> <args>');
 }
-
-register_shutdown_function('fatal_handler');
 
 $project = $argv[1];
 $command = $argv[2];
