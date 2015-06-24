@@ -157,6 +157,10 @@ module.exports =
     res = execute("--autocomplete #{className} #{name}", false)
     return res
 
+  autoloadClassMap: () ->
+      autoloadDir = config.config.autoload
+      res = execute("--autoloadClassMap #{autoloadDir}", false)
+      return res
 
   ###*
    * Refresh the full index or only for the given classPath

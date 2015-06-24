@@ -22,15 +22,17 @@ require_once(__DIR__ . '/providers/ClassesProvider.php');
 require_once(__DIR__ . '/providers/ClassProvider.php');
 require_once(__DIR__ . '/providers/FunctionsProvider.php');
 require_once(__DIR__ . '/providers/ClassMapRefresh.php');
+require_once(__DIR__ . '/providers/AutoloadClassMap.php');
 
 $commands = array(
-    '--classes'      => 'ClassesProvider',
-    '--class'        => 'ClassProvider',
-    '--statics'      => 'StaticsProvider',
-    '--methods'      => 'MethodsProvider',
-    '--functions'    => 'FunctionsProvider',
-    '--refresh'      => 'ClassMapRefresh',
-    '--autocomplete' => 'AutocompleteProvider'
+    '--classes'          => 'ClassesProvider',
+    '--class'            => 'ClassProvider',
+    '--statics'          => 'StaticsProvider',
+    '--methods'          => 'MethodsProvider',
+    '--functions'        => 'FunctionsProvider',
+    '--refresh'          => 'ClassMapRefresh',
+    '--autocomplete'     => 'AutocompleteProvider',
+    '--autoloadClassMap' => 'AutoloadClassMap'
 );
 
 /**
