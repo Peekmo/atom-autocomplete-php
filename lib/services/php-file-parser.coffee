@@ -26,7 +26,6 @@ module.exports =
     # for each row
     while row != -1
       line = rows[row].trim()
-
       # Looking for a line starting with one of the allowed php declaration of
       # a class (see on top of the file)
       if name == ''
@@ -36,7 +35,8 @@ module.exports =
 
             name = line.split(' ')[0]
       else
-        if line.indexOf(namespaceDeclaration) == 0
+        if line.indexOf(namespaceDeclaration) != -1
+          line = line.replace('<?php', '').trim()
           line = line.substring(namespaceDeclaration.length, line.length).trim()
 
           namespaceEnd = line.indexOf(';')
