@@ -13,7 +13,14 @@ module.exports =
     proxy = require './php-proxy.coffee'
 
     term = editor.getWordUnderCursor()
-    term = parser.findUseForClass(editor, term)
+
+    if term.indexOf('$') == 0
+      return
+
+    namespaceTerm = parser.findUseForClass(editor, term)
+    if namespaceTerm != undefined
+        term = namespaceTerm
+
     console.log term
 
     classMap = proxy.autoloadClassMap()
