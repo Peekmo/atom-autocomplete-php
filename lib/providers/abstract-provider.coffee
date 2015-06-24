@@ -69,10 +69,9 @@ class AbstractProvider
     if matches?
       for match in matches
         start = bufferPosition.column - match.length
-
         if start >= 0
           word = editor.getTextInBufferRange([[bufferPosition.row, bufferPosition.column - match.length], bufferPosition])
-          if word == match
+          if word == match && match.indexOf('->') == -1
             return match
 
     return ''
