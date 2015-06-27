@@ -22,6 +22,8 @@
     "autocomplete-plus": "git+https://github.com/saschagehlich/autocomplete-plus.git",
     "fuzzaldrin": "^2.1.0",
     "minimatch": "^2.0.1",
-    "MD5": "1.2.1"
+    "MD5": "1.2.1",
+    "sub-atom": "~1.0.0",
+    "jquery": "~2.1.4"
   }
 }
