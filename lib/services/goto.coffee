@@ -3,32 +3,82 @@
 ###
 fuzzaldrin = require 'fuzzaldrin'
 parser = require './php-file-parser'
+SubAtom = require 'sub-atom'
+$ = require 'jquery'
 
 module.exports =
-  ###*
-   * Goto the class the cursor is on
-   * @param {TextEditor} editor
-  ###
-  goto: (editor) ->
-    proxy = require './php-proxy.coffee'
 
-    term = editor.getWordUnderCursor()
+    init: () ->
+        @subAtom = new SubAtom
+        @subAtom.add atom.workspace.observeTextEditors (editor) =>
+            @registerEvents editor, editor.getGrammar()
 
-    if term.indexOf('$') == 0
-      return
+    ###*
+     * Goto the class the cursor is on
+     * @param {TextEditor} editor
+    ###
+    gotoFromEditor: (editor) ->
+        term = editor.getWordUnderCursor()
 
-    namespaceTerm = parser.findUseForClass(editor, term)
-    if namespaceTerm != undefined
-        term = namespaceTerm
+        console.log term
+        @gotoFromWord(editor, term)
 
-    console.log term
+    gotoFromWord: (editor, term) ->
+        proxy = require './php-proxy.coffee'
 
-    classMap = proxy.autoloadClassMap()
-    classMapArray = [];
+        if term.indexOf('$') == 0
+            return
 
-    for key,value of classMap
-      classMapArray.push(key)
+        if term.indexOf('\\') == 0
+            term = term.substring(1)
 
-    matches = fuzzaldrin.filter classMapArray, term
+        namespaceTerm = parser.findUseForClass(editor, term)
+        if namespaceTerm != undefined
+            term = namespaceTerm
 
-    atom.workspace.open(classMap[matches[0]])
+        console.log term
+
+        classMap = proxy.autoloadClassMap()
+        classMapArray = [];
+
+        for key,value of classMap
+            classMapArray.push(key)
+
+        matches = fuzzaldrin.filter classMapArray, term
+
+        atom.workspace.open(classMap[matches[0]])
+
+    registerEvents: (editor, grammar) ->
+        if grammar.scopeName.match /text.html.php$/
+            textEditorElement = atom.views.getView(editor)
+            eventSelectors = '.function.argument > .support, .inherited-class, .use.namespace, .class.support'
+            scrollViewElement = $($(textEditorElement)[0].shadowRoot).find('.scroll-view')
+
+            @subAtom.add scrollViewElement, 'mousemove', eventSelectors, (event) =>
+                if event.altKey == false
+                    return
+                selector = @getSelector(event)
+                $(selector).css('text-decoration', 'underline')
+                $(selector).css('cursor', 'pointer')
+            @subAtom.add scrollViewElement, 'mouseout', eventSelectors, (event) =>
+                selector = @getSelector(event)
+                $(selector).css('text-decoration', '')
+                $(selector).css('cursor', '')
+            @subAtom.add scrollViewElement, 'click', eventSelectors, (event) =>
+                if event.altKey == false
+                    return
+                if event.handled != true
+                    @gotoFromWord(editor, $(@getSelector(event)).text())
+                    event.handled = true
+            @subAtom.add editor.onDidDestroy =>
+                $(scrollViewElement).off('click', eventSelectors)
+                $(scrollViewElement).off('mousehover', eventSelectors)
+                $(scrollViewElement).off('mouseout', eventSelectors)
+
+
+    getSelector: (event) ->
+        selector = event.currentTarget
+        if $(selector).parent().hasClass('function argument')
+            return $(selector).parent().children('.support')
+
+        return selector
