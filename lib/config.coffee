@@ -44,7 +44,7 @@ module.exports =
         namespace.createNamespace(atom.workspace.getActivePaneItem())
 
     atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto': =>
-        goto.goto(atom.workspace.getActivePaneItem())
+        goto.gotoFromEditor(atom.workspace.getActivePaneItem())
 
     @writeConfig()
 
@@ -56,3 +56,5 @@ module.exports =
 
     atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
       @writeConfig()
+
+    goto.init()
