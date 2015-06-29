@@ -39,7 +39,7 @@ module.exports =
   ###
   init: () ->
     # Command for namespaces
-    atom.workspaceView.command "atom-autocomplete-php:namespace", =>
+    atom.commands.add 'atom-workspace', 'atom-autocomplete-php:namespace': =>
         namespace.createNamespace(atom.workspace.getActivePaneItem())
 
     @writeConfig()

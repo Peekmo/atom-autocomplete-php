@@ -18,7 +18,11 @@ abstract class Tools
     {
         if (empty($this->classMap) || $force) {
             if (Config::get('classmap_file') && !file_exists(Config::get('classmap_file')) || $force) {
-                exec(Config::get('composer') . ' -d=' . Config::get('projectPath') .' dump-autoload --optimize');
+                exec(sprintf('%s %s dump-autoload --optimize --quiet --no-interaction --working-dir=%s 2>&1',
+                    escapeshellarg(Config::get('php')),
+                    escapeshellarg(Config::get('composer')),
+                    escapeshellarg(Config::get('projectPath'))
+                ));
             }
 
             if (Config::get('classmap_file')) {
