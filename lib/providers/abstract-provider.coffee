@@ -72,6 +72,11 @@ class AbstractProvider
         if start >= 0
           word = editor.getTextInBufferRange([[bufferPosition.row, bufferPosition.column - match.length], bufferPosition])
           if word == match && match.indexOf('->') == -1
+            # Not really nice hack.. But non matching groups take the first word before. So I remove it.
+            # Necessary to have completion juste next to a ( or [ or {
+            if match[0] == '{' or match[0] == '(' or match[0] == '['
+              match = match.substring(1)
+
             return match
 
     return ''
