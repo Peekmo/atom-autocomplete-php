@@ -74,7 +74,7 @@ readComposer = () ->
     data.composer = JSON.parse(fs.readFileSync(path, options))
     return data.composer
 
-  throw new Error("Unable to find composer.json file or to open it.")
+  window.alert 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
 
 ###*
  * Throw a formatted error
