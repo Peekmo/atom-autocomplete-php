@@ -10,6 +10,7 @@ This plugin provide those amazing features :
 - Local function variables autocompletion
 - Writing namespace in top of the file (ctrl - alt - n)
 - Autocompletion on PHP internal functions
+- Autocompletion on ```self``` and ```Class::``` (statics)
 
 # How to make it works ?
 
