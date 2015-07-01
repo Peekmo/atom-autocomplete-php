@@ -11,6 +11,7 @@ module.exports =
     @config['composer'] = atom.config.get('atom-autocomplete-php.binComposer')
     @config['php'] = atom.config.get('atom-autocomplete-php.binPhp')
     @config['autoload'] = atom.config.get('atom-autocomplete-php.autoloadPaths')
+    @config['classmap'] = atom.config.get('atom-autocomplete-php.classMapFiles')
     @config['packagePath'] = atom.packages.resolvePackagePath('atom-autocomplete-php')
 
   ###*
@@ -23,11 +24,16 @@ module.exports =
     for file in @config.autoload
       files += "'#{file}',"
 
+    classmaps = ""
+    for classmap in @config.classmap
+      classmaps += "'#{classmap}',"
+
     text = "<?php
       $config = array(
         'composer' => '#{@config.composer}',
         'php' => '#{@config.php}',
-        'autoload' => array(#{files})
+        'autoload' => array(#{files}),
+        'classmap' => array(#{classmaps})
       );
     "
 
@@ -51,4 +57,7 @@ module.exports =
       @writeConfig()
 
     atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
+      @writeConfig()
+
+    atom.config.onDidChange 'atom-autocomplete-php.classMapFiles', () =>
       @writeConfig()

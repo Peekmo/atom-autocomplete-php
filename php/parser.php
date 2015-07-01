@@ -68,11 +68,18 @@ if (!is_dir($indexDir)) {
 
 Config::set('indexClasses', $indexDir . '/index.classes.json');
 
-foreach ($config['autoload'] as $config) {
-    $path = sprintf('%s/%s/', $project, trim($config, '/'));
-    if (file_exists($path . 'autoload.php')) {
-        require_once($path . 'autoload.php');
-        Config::set('classmap_file', $path . 'composer/autoload_classmap.php');
+foreach ($config['autoload'] as $conf) {
+    $path = sprintf('%s/%s', $project, trim($conf, '/'));
+    if (file_exists($path)) {
+        require_once($path);
+        break;
+    }
+}
+
+foreach ($config['classmap'] as $conf) {
+    $path = sprintf('%s/%s', $project, trim($conf, '/'));
+    if (file_exists($path)) {
+        Config::set('classmap_file', $path);
         break;
     }
 }
