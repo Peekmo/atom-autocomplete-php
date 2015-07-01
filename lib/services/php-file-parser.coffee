@@ -111,16 +111,15 @@ module.exports =
     for line in lines
       line = line.trim()
 
-      # If we found class keyword, we are not in namespace space, so return
+      # If we found class keyword, we are not in namespace space, so return the className
       if line.indexOf('class ') != -1
-        return
+        return if className.indexOf("\\") != 0 then className else className.substr(1)
 
       # Use keyword
       if line.indexOf('use') == 0
         useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
 
         matches = useRegex.exec(line)
-
         # just one use
         if matches[1]? and not matches[2]?
           splits = matches[1].split('\\')
@@ -130,6 +129,8 @@ module.exports =
         # use aliases
         else if matches[1]? and matches[2]? and matches[2] == className
           return matches[1]
+
+    return if className.indexOf("\\") != 0 then className else className.substr(1)
 
   ###*
    * Add the use for the given class if not already added

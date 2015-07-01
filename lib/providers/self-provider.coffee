@@ -6,8 +6,9 @@ parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider.coffee"
 
 module.exports =
-# Autocomplete for static methods and constants
-class StaticProvider extends AbstractProvider
+# Autocomplete for static methods and constants inside a class
+# (keyword self::)
+class SelfProvider extends AbstractProvider
   statics: []
   functionOnly: true
 
@@ -16,13 +17,13 @@ class StaticProvider extends AbstractProvider
    * @return array
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    @regex = /(\b[\\]?[A-Z][a-zA-Z_\\]+::([a-zA-Z_]*))/g
+    @regex = /(\bself::([a-zA-Z_]*))/g
 
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 
     parts = prefix.split("::")
-    @statics = proxy.statics(parser.findUseForClass(editor, parts[0]))
+    @statics = proxy.statics(parser.getCurrentClass(editor, bufferPosition))
     return unless @statics.names?
 
     suggestions = @findSuggestionsForPrefix parts[1].trim()
@@ -42,26 +43,25 @@ class StaticProvider extends AbstractProvider
     suggestions = []
     for word in words
       for element in @statics.values[word]
-        if element.isPublic
-          # Methods
-          if element.isMethod
-            suggestions.push
-              text: word,
-              type: 'method',
-              snippet: @getFunctionSnippet(word, element.args),
-              replacementPrefix: prefix,
-              leftLabel: element.args.return,
-              data:
-                prefix: prefix,
-                args: element.args
+        # Methods
+        if element.isMethod
+          suggestions.push
+            text: word,
+            type: 'method',
+            snippet: @getFunctionSnippet(word, element.args),
+            replacementPrefix: prefix,
+            leftLabel: element.args.return,
+            data:
+              prefix: prefix,
+              args: element.args
 
-          # Constants and public properties
-          else
-            suggestions.push
-              text: word,
-              type: 'constant',
-              replacementPrefix: prefix,
-              data:
-                prefix: prefix
+        # Constants and public properties
+        else
+          suggestions.push
+            text: word,
+            type: 'constant',
+            replacementPrefix: prefix,
+            data:
+              prefix: prefix
 
     return suggestions

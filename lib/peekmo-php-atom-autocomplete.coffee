@@ -3,6 +3,7 @@ StaticProvider = require "./providers/static-provider.coffee"
 FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 AutocompleteProvider = require "./providers/autocomplete-provider.coffee"
+SelfProvider = require "./providers/self-provider.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
@@ -26,12 +27,20 @@ module.exports =
       order: 2
 
     autoloadPaths:
-      title: 'Composer autoloader directories'
-      description: 'Relative path to the directory of autoload.php from composer. You can specify multiple
+      title: 'Autoloader file'
+      description: 'Relative path to the files of autoload.php from composer (or an other one). You can specify multiple
        paths (comma separated) if you have different paths for some projects.'
       type: 'array'
-      default: ['vendor']
+      default: ['vendor/autoload.php', 'autoload.php']
       order: 3
+
+    classMapFiles:
+      title: 'Classmap files'
+      description: 'Relative path to the files that contains a classmap (array with "className" => "fileName"). By default
+       on composer it\'s vendor/composer/autoload_classmap.php'
+      type: 'array'
+      default: ['vendor/composer/autoload_classmap.php', 'autoload/ezp_kernel.php']
+      order: 4
 
   providers: []
 
@@ -55,6 +64,7 @@ module.exports =
     @providers.push new ClassProvider()
     @providers.push new AutocompleteProvider()
     @providers.push new StaticProvider()
+    @providers.push new SelfProvider()
 
   getProvider: ->
     @providers

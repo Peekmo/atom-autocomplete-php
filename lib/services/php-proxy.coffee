@@ -26,6 +26,9 @@ execute = (command, async) ->
         res =
           error: err
 
+      if !res
+        return []
+
       if res.error?
         printError(res.error)
 
@@ -45,7 +48,6 @@ readIndex = (name) ->
   for directory in atom.project.getDirectories()
     crypt = md5(directory.path)
     path = __dirname + "/../../indexes/" + crypt + "/index." + name + ".json"
-
     try
       fs.accessSync(path, fs.F_OK | fs.R_OK)
     catch err
@@ -74,7 +76,7 @@ readComposer = () ->
     data.composer = JSON.parse(fs.readFileSync(path, options))
     return data.composer
 
-  throw new Error("Unable to find composer.json file or to open it.")
+  console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
 
 ###*
  * Throw a formatted error
