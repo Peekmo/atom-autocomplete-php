@@ -48,11 +48,9 @@ readIndex = (name) ->
   for directory in atom.project.getDirectories()
     crypt = md5(directory.path)
     path = __dirname + "/../../indexes/" + crypt + "/index." + name + ".json"
-    console.log path
     try
       fs.accessSync(path, fs.F_OK | fs.R_OK)
     catch err
-      console.log err
       return []
 
     options =

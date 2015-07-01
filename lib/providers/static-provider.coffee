@@ -16,13 +16,13 @@ class StaticProvider extends AbstractProvider
    * @return array
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    @regex = /(\b[A-Z][a-zA-Z_]+::([a-zA-Z_]*))/g
+    @regex = /(\b[\\]?[A-Z][a-zA-Z_\\]+::([a-zA-Z_]*))/g
 
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
 
     parts = prefix.split("::")
-    @statics = proxy.statics(parts[0])
+    @statics = proxy.statics(parser.findUseForClass(editor, parts[0]))
     return unless @statics.names?
 
     suggestions = @findSuggestionsForPrefix parts[1].trim()
