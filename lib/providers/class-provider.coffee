@@ -24,7 +24,7 @@ class ClassProvider extends AbstractProvider
     return unless prefix.length
 
     @classes = proxy.classes()
-    return unless @classes.autocomplete?
+    return unless @classes?.autocomplete?
 
     suggestions = @findSuggestionsForPrefix prefix.trim()
     return unless suggestions.length

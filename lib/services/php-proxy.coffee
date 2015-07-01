@@ -26,6 +26,9 @@ execute = (command, async) ->
         res =
           error: err
 
+      if !res
+        return []
+        
       if res.error?
         printError(res.error)
 
