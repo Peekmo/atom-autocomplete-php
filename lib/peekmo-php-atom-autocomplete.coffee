@@ -3,6 +3,7 @@ StaticProvider = require "./providers/static-provider.coffee"
 FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 AutocompleteProvider = require "./providers/autocomplete-provider.coffee"
+SelfProvider = require "./providers/self-provider.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
@@ -55,6 +56,7 @@ module.exports =
     @providers.push new ClassProvider()
     @providers.push new AutocompleteProvider()
     @providers.push new StaticProvider()
+    @providers.push new SelfProvider()
 
   getProvider: ->
     @providers
