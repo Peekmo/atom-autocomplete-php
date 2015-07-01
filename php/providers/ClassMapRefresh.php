@@ -16,22 +16,26 @@ class ClassMapRefresh extends Tools implements ProviderInterface
         // If we specified a file
         if (count($args) > 0 && $file = $args[0]) {
             if (file_exists(Config::get('indexClasses'))) {
-                $fileExists = true;
-
                 $index = json_decode(file_get_contents(Config::get('indexClasses')), true);
-                if (false !== $class = array_search($file, $classMap)) {
-                    if (isset($index['mapping'][$class])) {
-                        unset($index['mapping'][$class]);
-                    }
 
-                    if (false !== $key = array_search($class, $index['autocomplete'])) {
-                        unset($index['autocomplete'][$key]);
-                        $index['autocomplete'] = array_values($index['autocomplete']);
-                    }
+                // Invalid json (#24)
+                if (false !== $index) {
+                    $fileExists = true;
 
-                    if ($value = $this->buildIndexClass($class)) {
-                        $index['mapping'][$class] = array('methods' => $value);
-                        $index['autocomplete'][] = $class;
+                    if (false !== $class = array_search($file, $classMap)) {
+                        if (isset($index['mapping'][$class])) {
+                            unset($index['mapping'][$class]);
+                        }
+
+                        if (false !== $key = array_search($class, $index['autocomplete'])) {
+                            unset($index['autocomplete'][$key]);
+                            $index['autocomplete'] = array_values($index['autocomplete']);
+                        }
+
+                        if ($value = $this->buildIndexClass($class)) {
+                            $index['mapping'][$class] = array('methods' => $value);
+                            $index['autocomplete'][] = $class;
+                        }
                     }
                 }
             }
