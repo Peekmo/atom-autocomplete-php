@@ -6,9 +6,9 @@ class FileParser
     const NAMESPACE_PATTERN = '/(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/';
 
     /**
-     * @var string Content of the file
+     * @var string Handler to the file
      */
-    protected $content;
+    protected $file;
 
     /**
      * Open the given file
@@ -20,7 +20,7 @@ class FileParser
             throw new \Exception(sprintf('File %s not found', $filePath));
         }
 
-        $this->content = file_get_contents($filePath);
+        $this->file = fopen($filePath, 'r');
     }
 
     /**
@@ -32,17 +32,19 @@ class FileParser
     public function getCompleteNamespace($className, &$found)
     {
         $found = false;
-        $lines = explode(PHP_EOL, $this->content);
 
-        $matches = array();
-        preg_match(self::NAMESPACE_PATTERN, $this->content, $matches);
+        while (!feof($this->file)) {
+            $line = fgets($this->file);
 
-        $fullClass = $className;
-        if (!empty($matches)) {
-            $fullClass = $matches[1] . '\\' . $className;
-        }
+              // Namespace
+            $matches = array();
+            preg_match(self::NAMESPACE_PATTERN, $line, $matches);
 
-        foreach ($lines as $line) {
+            $fullClass = $className;
+            if (!empty($matches)) {
+                $fullClass = $matches[1] . '\\' . $className;
+            }
+
             $matches = array();
             preg_match(self::USE_PATTERN, $line, $matches);
 
@@ -57,11 +59,16 @@ class FileParser
             }
 
             // Stop if declaration of a class
-            if (strpos(trim($line), 'class') === 0) {
+            if (strpos(trim($line), 'class') === 0 || strpos(trim($line), 'abstract') === 0) {
                 return $fullClass;
             }
         }
         return $fullClass;
+    }
+
+    public function __destruct()
+    {
+        fclose($this->file);
     }
 }
 

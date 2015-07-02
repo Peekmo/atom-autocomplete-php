@@ -61,7 +61,7 @@ module.exports =
 
     # Get the full text
     pos = position.column - 1
-    regex = /([a-zA-Z0-9\-_>\$\(\)]{1})/g
+    regex = /([a-zA-Z0-9\-_>\$\(\)\'\'\"\"\[\]]{1})/g
     word = ''
     while pos >= 0
       if not text.charAt(pos).match(regex)
@@ -77,7 +77,7 @@ module.exports =
     # Remove parenthesis
     for key, element of elements
       if element.indexOf("(") != -1
-        elements[key] = element.substr(0, element.indexOf("("))
+        elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
 
     return elements
 

@@ -107,9 +107,10 @@ abstract class Tools
             $args = $this->getMethodArguments($method, $className);
 
             $data['values'][$method->getName()] = array(
-                'isMethod' => true,
-                'isPublic' => $method->isPublic(),
-                'args'     => $args
+                'isMethod'    => true,
+                'isPublic'    => $method->isPublic(),
+                'isProtected' => $method->isProtected(),
+                'args'        => $args
             );
         }
 

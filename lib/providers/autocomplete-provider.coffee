@@ -19,7 +19,7 @@ class AutocompleteProvider extends AbstractProvider
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
     # "new" keyword or word starting with capital letter
-    @regex = /(?:[\$]?)(?![this])([a-zA-Z0-9_]+)(?:\(\))?(?:->)?/g
+    @regex = /(?:[\$]?)(?![this])([a-zA-Z0-9_]+)(?:\([.]*\))?(?:->)?/g
 
     prefix = @getPrefix(editor, bufferPosition)
 
@@ -32,7 +32,8 @@ class AutocompleteProvider extends AbstractProvider
     @methods = proxy.methods(className)
     return unless @methods.names?
 
-    suggestions = @findSuggestionsForPrefix(prefix.trim())
+    elements = prefix.split('->')
+    suggestions = @findSuggestionsForPrefix(elements[elements.length-1].trim())
     return unless suggestions.length
     return suggestions
 
@@ -49,20 +50,22 @@ class AutocompleteProvider extends AbstractProvider
     suggestions = []
     for word in words
       element = @methods.values[word]
+
+      returnValues = element.args.return.split('\\')
       # Methods
       if element.isMethod
         suggestions.push
           text: word,
           type: 'method',
           snippet: @getFunctionSnippet(word, element.args),
-          leftLabel: element.args.return
+          leftLabel: returnValues[returnValues.length - 1]
 
       # Constants and public properties
       else
         suggestions.push
           text: word,
           type: 'property'
-          leftLabel: element.args.return
+          leftLabel: returnValues[returnValues.length - 1]
 
     return suggestions
 
@@ -102,4 +105,8 @@ class AutocompleteProvider extends AbstractProvider
       className = methods.class
       loop_index++
 
-    return className
+    # If no data or a valid end of line, OK
+    if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
+      return className
+
+    return

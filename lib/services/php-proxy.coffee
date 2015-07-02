@@ -7,6 +7,7 @@ data =
   statics: [],
   methods: [],
   autocomplete: [],
+  parent: [],
   composer: null
 
 ###*
@@ -99,7 +100,9 @@ module.exports =
     data =
       error: false,
       statics: [],
-      methods: []
+      methods: [],
+      parent: [],
+      composer: null
 
   ###*
    * Autocomplete for classes name
@@ -149,6 +152,18 @@ module.exports =
       data.methods[className] = res
 
     return data.methods[className]
+
+  ###*
+   * Autocomplete for methods & properties of the parent class
+   * @param  {string} className Class complete name (with namespace)
+   * @return {array}
+  ###
+  parent: (className) ->
+    if not data.parent[className]?
+      res = execute("--parent #{className}", false)
+      data.parent[className] = res
+
+    return data.parent[className]
 
   ###*
    * Autocomplete for methods & properties of a class
