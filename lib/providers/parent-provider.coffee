@@ -37,7 +37,7 @@ class ParentProvider extends AbstractProvider
   findSuggestionsForPrefix: (prefix) ->
     # Filter the words using fuzzaldrin
     words = fuzzaldrin.filter @parent.names, prefix
-    console.log @parent.values
+
     # Builds suggestions for the words
     suggestions = []
     for word in words
