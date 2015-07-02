@@ -50,20 +50,22 @@ class AutocompleteProvider extends AbstractProvider
     suggestions = []
     for word in words
       element = @methods.values[word]
+
+      returnValues = element.args.return.split('\\')
       # Methods
       if element.isMethod
         suggestions.push
           text: word,
           type: 'method',
           snippet: @getFunctionSnippet(word, element.args),
-          leftLabel: element.args.return
+          leftLabel: returnValues[returnValues.length - 1]
 
       # Constants and public properties
       else
         suggestions.push
           text: word,
           type: 'property'
-          leftLabel: element.args.return
+          leftLabel: returnValues[returnValues.length - 1]
 
     return suggestions
 
