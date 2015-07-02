@@ -64,6 +64,6 @@ module.exports =
       @writeConfig()
 
     atom.config.onDidChange 'atom-autocomplete-php.classMapFiles', () =>
-      @writeConfig)
- 
+      @writeConfig()
+
     goto.init()
