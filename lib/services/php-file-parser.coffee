@@ -79,7 +79,6 @@ module.exports =
       if element.indexOf("(") != -1
         elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
 
-    console.log elements
     return elements
 
   ###*

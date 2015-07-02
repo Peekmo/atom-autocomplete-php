@@ -3,6 +3,7 @@ StaticProvider = require "./providers/static-provider.coffee"
 FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 AutocompleteProvider = require "./providers/autocomplete-provider.coffee"
+ParentProvider = require "./providers/parent-provider.coffee"
 SelfProvider = require "./providers/self-provider.coffee"
 
 config = require './config.coffee'
@@ -65,6 +66,7 @@ module.exports =
     @providers.push new AutocompleteProvider()
     @providers.push new StaticProvider()
     @providers.push new SelfProvider()
+    @providers.push new ParentProvider()
 
   getProvider: ->
     @providers

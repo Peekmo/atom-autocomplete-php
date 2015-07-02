@@ -22,6 +22,7 @@ require_once(__DIR__ . '/providers/ClassesProvider.php');
 require_once(__DIR__ . '/providers/ClassProvider.php');
 require_once(__DIR__ . '/providers/FunctionsProvider.php');
 require_once(__DIR__ . '/providers/ClassMapRefresh.php');
+require_once(__DIR__ . '/providers/ParentProvider.php');
 
 $commands = array(
     '--classes'      => 'ClassesProvider',
@@ -30,7 +31,8 @@ $commands = array(
     '--methods'      => 'MethodsProvider',
     '--functions'    => 'FunctionsProvider',
     '--refresh'      => 'ClassMapRefresh',
-    '--autocomplete' => 'AutocompleteProvider'
+    '--autocomplete' => 'AutocompleteProvider',
+    '--parent'       => 'ParentProvider'
 );
 
 /**
