@@ -59,23 +59,20 @@ module.exports =
     # Get the line
     text = editor.getTextInBufferRange([[position.row, 0], position])
 
+    idx = 1
+    while (not text.match(/([\$][a-zA-Z0-9]*)/g)) or (position.row - idx <= 0)
+      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
+      idx++
+
     # Get the full text
-    pos = position.column - 1
-    regex = /([a-zA-Z0-9\-_>\$\(\)\'\'\"\"\[\]]{1})/g
-    word = ''
-    while pos >= 0
-      if not text.charAt(pos).match(regex)
-        break
+    return [] if not text
 
-      word = text.charAt(pos) + word
-      pos -= 1
-
-    return [] if not word
-
-    elements = word.split("->")
-
-    # Remove parenthesis
+    elements = text.split("->")
+    # Remove parenthesis and whitespaces
     for key, element of elements
+      element = element.replace /^\s+|\s+$/g, ""
+
+      elements[key] = element
       if element.indexOf("(") != -1
         elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
 
