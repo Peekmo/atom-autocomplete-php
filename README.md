@@ -6,7 +6,7 @@
 
 This plugin provide those amazing features :
 - Autocompletion on class names with use auto added
-- Autocompletion on class properties and methods. If your PHP doc is right, you should have autocompletion on X levels (e.g : $this->doctrine->getRepo...) (just works inline for now)
+- Autocompletion on class properties and methods. If your PHP doc is right, you should have autocompletion on X levels (e.g : $this->doctrine->getRepo...)
 - Local function variables autocompletion
 - Writing namespace in top of the file (ctrl - alt - n)
 - Autocompletion on PHP internal functions

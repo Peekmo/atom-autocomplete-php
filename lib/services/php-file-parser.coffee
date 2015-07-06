@@ -74,7 +74,6 @@ module.exports =
     # Remove parenthesis and whitespaces
     for key, element of elements
       element = element.replace /^\s+|\s+$/g, ""
-      console.log element[0]
       if element[0] == '{' or element[0] == '(' or element[0] == '['
         element = element.substring(1)
 
@@ -82,7 +81,6 @@ module.exports =
       if element.indexOf("(") != -1
         elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
 
-    console.log elements
     return elements
 
   ###*
