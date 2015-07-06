@@ -33,6 +33,7 @@ class FileParser
     {
         $found = false;
 
+        $fullClass = $className;
         while (!feof($this->file)) {
             $line = fgets($this->file);
 
@@ -40,7 +41,6 @@ class FileParser
             $matches = array();
             preg_match(self::NAMESPACE_PATTERN, $line, $matches);
 
-            $fullClass = $className;
             if (!empty($matches)) {
                 $fullClass = $matches[1] . '\\' . $className;
             }
@@ -63,6 +63,7 @@ class FileParser
                 return $fullClass;
             }
         }
+
         return $fullClass;
     }
 
