@@ -64,12 +64,11 @@ module.exports =
       text = editor.getTextInBufferRange([[position.row - idx, 0], position])
       idx++
 
-    text = text.substr(text.indexOf("$"), text.length)
-
     # Get the full text
     return [] if not text
 
     elements = text.split("->")
+    elements[0] = elements[0].substr(text.lastIndexOf("$"), text.length)
 
     # Remove parenthesis and whitespaces
     for key, element of elements
