@@ -64,12 +64,17 @@ module.exports =
       text = editor.getTextInBufferRange([[position.row - idx, 0], position])
       idx++
 
+    text = text.substr(text.lastIndexOf("$"), text.length)
+
+    # Remove parenthesis content
+    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
+    text = text.replace regx, ""
+
     # Get the full text
     return [] if not text
 
     elements = text.split("->")
-    elements[0] = elements[0].substr(text.lastIndexOf("$"), text.length)
-
+    
     # Remove parenthesis and whitespaces
     for key, element of elements
       element = element.replace /^\s+|\s+$/g, ""
@@ -77,8 +82,6 @@ module.exports =
         element = element.substring(1)
 
       elements[key] = element
-      if element.indexOf("(") != -1
-        elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
 
     return elements
 
