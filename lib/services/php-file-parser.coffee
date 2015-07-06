@@ -64,18 +64,25 @@ module.exports =
       text = editor.getTextInBufferRange([[position.row - idx, 0], position])
       idx++
 
+    text = text.substr(text.indexOf("$"), text.length)
+
     # Get the full text
     return [] if not text
 
     elements = text.split("->")
+
     # Remove parenthesis and whitespaces
     for key, element of elements
       element = element.replace /^\s+|\s+$/g, ""
+      console.log element[0]
+      if element[0] == '{' or element[0] == '(' or element[0] == '['
+        element = element.substring(1)
 
       elements[key] = element
       if element.indexOf("(") != -1
         elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
 
+    console.log elements
     return elements
 
   ###*
