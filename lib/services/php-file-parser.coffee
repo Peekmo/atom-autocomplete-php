@@ -56,28 +56,49 @@ module.exports =
    * @return string className
   ###
   getStackClasses: (editor, position) ->
-    # Get the line
-    text = editor.getTextInBufferRange([[position.row, 0], position])
+    lineIdx = 0
+    parenthesisOpened = 0
+    parenthesisClosed = 0
+    idx = 0
+    end = false
+
+    # Algorithm to get something inside parenthesis
+    # Count parenthesis, when opened == closed and found a variable, it's done
+    while (position.row - lineIdx > 0) and end == false
+      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
+      lineIdx++
+      len = text.length
+
+      while idx < len and end == false
+        if text[len - idx] == "("
+          parenthesisOpened += 1
+        else if text[len - idx] == ")"
+          parenthesisClosed += 1
+        else if text[len - idx] == "{" # If curly brace, we failed.
+          end = true
+        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
+          end = true
+
+        idx += 1
+
+    text = text.substr(text.length - idx + 1, text.length)
+
+    # Remove parenthesis content
+    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
+    text = text.replace regx, ""
 
     # Get the full text
-    pos = position.column - 1
-    regex = /([a-zA-Z0-9\-_>\$\(\)\'\'\"\"\[\]]{1})/g
-    word = ''
-    while pos >= 0
-      if not text.charAt(pos).match(regex)
-        break
+    return [] if not text
 
-      word = text.charAt(pos) + word
-      pos -= 1
+    elements = text.split("->")
 
-    return [] if not word
-
-    elements = word.split("->")
-
-    # Remove parenthesis
+    # Remove parenthesis and whitespaces
     for key, element of elements
-      if element.indexOf("(") != -1
-        elements[key] = element.substr(0, element.indexOf("(")) + element.substr(element.indexOf(")")+1, element.length)
+      element = element.replace /^\s+|\s+$/g, ""
+      if element[0] == '{' or element[0] == '(' or element[0] == '['
+        element = element.substring(1)
+
+      elements[key] = element
 
     return elements
 

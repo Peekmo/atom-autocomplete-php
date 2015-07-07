@@ -196,8 +196,10 @@ module.exports =
     @refresh()
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave((event) =>
-        @clearCache()
-        @refresh(event.path)
+        # Only .php file
+        if event.path.substr(event.path.length - 4) == ".php"
+          @clearCache()
+          @refresh(event.path)
       )
 
     atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>

@@ -37,9 +37,9 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                     return $className;
                 }
 
-                while (($parent = $reflection->getParentClass()) && ($found == false)) {
-                    if (isset($classMap[$parent->getName()])) {
-                        $parser = new FileParser($classMap[$parent->getName()]);
+                while (($reflection = $reflection->getParentClass()) && ($found == false)) {
+                    if (isset($classMap[$reflection->getName()])) {
+                        $parser = new FileParser($classMap[$reflection->getName()]);
                         $className = $parser->getCompleteNamespace($returnValue, $found);
                     }
                 }
