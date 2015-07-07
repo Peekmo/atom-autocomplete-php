@@ -56,15 +56,32 @@ module.exports =
    * @return string className
   ###
   getStackClasses: (editor, position) ->
-    # Get the line
-    text = editor.getTextInBufferRange([[position.row, 0], position])
+    lineIdx = 0
+    parenthesisOpened = 0
+    parenthesisClosed = 0
+    idx = 0
+    end = false
 
-    idx = 1
-    while (not text.match(/([\$][a-zA-Z0-9]*)/g)) or (position.row - idx <= 0)
+    # Algorithm to get something inside parenthesis
+    # Count parenthesis, when opened == closed and found a variable, it's done
+    while (position.row - lineIdx > 0) and end == false
       text = editor.getTextInBufferRange([[position.row - idx, 0], position])
-      idx++
+      lineIdx++
+      len = text.length
 
-    text = text.substr(text.lastIndexOf("$"), text.length)
+      while idx < len and end == false
+        if text[len - idx] == "("
+          parenthesisOpened += 1
+        else if text[len - idx] == ")"
+          parenthesisClosed += 1
+        else if text[len - idx] == "{" # If curly brace, we failed.
+          end = true
+        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
+          end = true
+
+        idx += 1
+
+    text = text.substr(text.length - idx + 1, text.length)
 
     # Remove parenthesis content
     regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
@@ -74,7 +91,7 @@ module.exports =
     return [] if not text
 
     elements = text.split("->")
-    
+
     # Remove parenthesis and whitespaces
     for key, element of elements
       element = element.replace /^\s+|\s+$/g, ""
