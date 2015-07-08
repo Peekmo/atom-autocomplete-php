@@ -1,3 +1,5 @@
+proxy = require "../services/php-proxy.coffee"
+
 # PHP classes/traits declaration
 classDeclarations = [
   'class ',
@@ -83,6 +85,14 @@ module.exports =
 
     text = text.substr(text.length - idx + 1, text.length)
 
+    return @parseStackClass(text)
+
+  ###*
+   * Parse stack class elements
+   * @param {string} text String of the stack class
+   * @return Array
+  ###
+  parseStackClass: (text) ->
     # Remove parenthesis content
     regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
     text = text.replace regx, ""
@@ -266,12 +276,12 @@ module.exports =
 
     if element.replace(/[\$][a-zA-Z0-9_]+/g, "").length > 0
       return null
-    
+
     # Regex variable definition
     regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
     while bufferPosition.row - idx > 0
       # Get the line
-      line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], [bufferPosition.row - idx, 5000]])
+      line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
 
       # Get chain of all scopes
       chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
@@ -279,6 +289,11 @@ module.exports =
 
       if null != matches
         value = matches[1]
+        elements = @parseStackClass(value)
+        elements.push("") # Push one more element to get fully the last class
+
+        bufferPosition.row -= idx
+        return @parseElements(editor, bufferPosition, elements)
 
       if chain.indexOf("function") != -1
         regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s]*\\#{element}).)*[,\\s]?([a-zA-Z]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
@@ -297,5 +312,51 @@ module.exports =
         break
 
       idx++
+
+    return null
+
+
+  ###*
+   * Parse all elements from the given array to return the last className (if any)
+   * @param  Array elements Elements to parse
+   * @return string|null full class name of the last element
+  ###
+  parseElements: (editor, bufferPosition, elements) ->
+    loop_index = 0
+    className  = null
+
+    for element in elements
+      # $this keyword
+      if loop_index == 0
+        if element == '$this'
+
+          className = @getCurrentClass(editor, bufferPosition)
+          loop_index++
+          continue
+        else
+          className = @getVariableType(editor, bufferPosition, element)
+          loop_index++
+          continue
+
+      # Last element
+      if loop_index >= elements.length - 1
+        break
+
+      if className == null
+        break
+
+      methods = proxy.autocomplete(className, element)
+
+      # Element not found or no return value
+      if not methods.class? or not @isClass(methods.class)
+        className = null
+        break
+
+      className = methods.class
+      loop_index++
+
+    # If no data or a valid end of line, OK
+    if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
+      return className
 
     return null
