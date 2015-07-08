@@ -264,9 +264,9 @@ module.exports =
   getVariableType: (editor, bufferPosition, element) ->
     idx = 1
 
-    if not element.match(/[\$][a-zA-Z0-9_]+/g)
+    if element.replace(/[\$][a-zA-Z0-9_]+/g, "").length > 0
       return null
-      
+    
     # Regex variable definition
     regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
     while bufferPosition.row - idx > 0
@@ -281,7 +281,7 @@ module.exports =
         value = matches[1]
 
       if chain.indexOf("function") != -1
-        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s]*\\$request).)*[,\\s]?([a-zA-Z]*)[\\s]*\\$request[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
+        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s]*\\#{element}).)*[,\\s]?([a-zA-Z]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
         matches = regexFunction.exec(line)
 
         if null == matches
