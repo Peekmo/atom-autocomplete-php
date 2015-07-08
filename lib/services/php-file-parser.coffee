@@ -264,6 +264,9 @@ module.exports =
   getVariableType: (editor, bufferPosition, element) ->
     idx = 1
 
+    if not element.match(/[\$][a-zA-Z0-9_]+/g)
+      return null
+      
     # Regex variable definition
     regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
     while bufferPosition.row - idx > 0
