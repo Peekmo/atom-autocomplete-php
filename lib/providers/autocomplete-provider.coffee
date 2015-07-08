@@ -86,6 +86,7 @@ class AutocompleteProvider extends AbstractProvider
           loop_index++
           continue
         else
+          className = parser.getVariableType(editor, bufferPosition, element)
           break
 
       # Last element

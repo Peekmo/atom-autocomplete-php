@@ -253,3 +253,46 @@ module.exports =
 
     @cache[text] = result
     return result
+
+  ###*
+   * Get the type of a variable
+   *
+   * @param {TextEditor} editor
+   * @param {Range}      bufferPosition
+   * @param {string}     element        Variable to search
+  ###
+  getVariableType: (editor, bufferPosition, element) ->
+    idx = 1
+
+    # Regex variable definition
+    regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
+    while bufferPosition.row - idx > 0
+      # Get the line
+      line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], [bufferPosition.row - idx, 5000]])
+
+      # Get chain of all scopes
+      chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
+      matches = regexElement.exec(line)
+
+      if null != matches
+        value = matches[1]
+
+      if chain.indexOf("function") != -1
+        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s]*\\$request).)*[,\\s]?([a-zA-Z]*)[\\s]*\\$request[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
+        matches = regexFunction.exec(line)
+
+        if null == matches
+          return null
+
+        func = matches[1]
+        value = matches[2]
+
+        # If we have a type hint
+        if value != ""
+          return @findUseForClass(editor, value)
+
+        break
+
+      idx++
+
+    return null
