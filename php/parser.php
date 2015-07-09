@@ -23,6 +23,7 @@ require_once(__DIR__ . '/providers/ClassProvider.php');
 require_once(__DIR__ . '/providers/FunctionsProvider.php');
 require_once(__DIR__ . '/providers/ClassMapRefresh.php');
 require_once(__DIR__ . '/providers/ParentProvider.php');
+require_once(__DIR__ . '/providers/DocParamProvider.php');
 
 $commands = array(
     '--classes'      => 'ClassesProvider',
@@ -32,7 +33,8 @@ $commands = array(
     '--functions'    => 'FunctionsProvider',
     '--refresh'      => 'ClassMapRefresh',
     '--autocomplete' => 'AutocompleteProvider',
-    '--parent'       => 'ParentProvider'
+    '--parent'       => 'ParentProvider',
+    '--doc-params'   => 'DocParamProvider'
 );
 
 /**
