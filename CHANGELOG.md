@@ -1,3 +1,7 @@
+## 0.4.0
+* Completion on local variables
+* Bug fixes
+
 ## 0.3.0
 * Completion $this on multiline
 * Bug fixes

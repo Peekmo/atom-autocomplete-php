@@ -295,15 +295,17 @@ module.exports =
         elements = @parseStackClass(value)
         elements.push("") # Push one more element to get fully the last class
 
-        bufferPosition.row -= idx
-        className = @parseElements(editor, bufferPosition, elements)
+        newPosition =
+            row : bufferPosition.row - idx
+            column: bufferPosition.column
+        className = @parseElements(editor, newPosition, elements)
 
         # if className is null, we check if there's a /** @var */ on top of it, to guess the type
         # Get the line
-        line = editor.getTextInBufferRange([[bufferPosition.row - idx - 1, 0], [bufferPosition.row - idx, 10000]])
+        line = editor.getTextInBufferRange([[newPosition.row - 1, 0], [newPosition.row, 10000]])
 
         # Get chain of all scopes
-        chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx - 1, line.length]).getScopeChain()
+        chain = editor.scopeDescriptorForBufferPosition([newPosition.row - 1, line.length]).getScopeChain()
 
         if chain.indexOf("comment") != -1
           regexVar = /\@var[\s]([a-zA-Z_\\]+)/g
