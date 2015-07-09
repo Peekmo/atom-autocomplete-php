@@ -106,6 +106,13 @@ $x->{YEAAAAH}
 ```
 
 Note : The multiline autocompletion **works**
+```php
+$this
+    ->getRequest()
+    ->session
+    ->{yeaaaah}
+;
+```
 
 # Next
 
