@@ -24,6 +24,7 @@ execute = (command, async) ->
         stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command)
         res = JSON.parse(stdout)
       catch err
+        console.log err
         res =
           error: err
 
@@ -178,7 +179,7 @@ module.exports =
    * Returns params from the documentation of the given function
    *
    * @param {string} className
-   * @param {string} functionName 
+   * @param {string} functionName
   ###
   docParams: (className, functionName) ->
     res = execute("--doc-params #{className} #{functionName}", false)
