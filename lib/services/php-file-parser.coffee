@@ -52,67 +52,6 @@ module.exports =
     return name
 
   ###*
-   * Returns the stack of elements in a ->xxx->xxxx stack
-   * @param  {TextEditor} editor
-   * @param  {Rang}       position
-   * @return string className
-  ###
-  getStackClasses: (editor, position) ->
-    lineIdx = 0
-    parenthesisOpened = 0
-    parenthesisClosed = 0
-    idx = 0
-    end = false
-
-    # Algorithm to get something inside parenthesis
-    # Count parenthesis, when opened == closed and found a variable, it's done
-    while (position.row - lineIdx > 0) and end == false
-      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
-      lineIdx++
-      len = text.length
-
-      while idx < len and end == false
-        if text[len - idx] == "("
-          parenthesisOpened += 1
-        else if text[len - idx] == ")"
-          parenthesisClosed += 1
-        else if text[len - idx] == "{" # If curly brace, we failed.
-          end = true
-        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
-          end = true
-
-        idx += 1
-
-    text = text.substr(text.length - idx + 1, text.length)
-
-    return @parseStackClass(text)
-
-  ###*
-   * Parse stack class elements
-   * @param {string} text String of the stack class
-   * @return Array
-  ###
-  parseStackClass: (text) ->
-    # Remove parenthesis content
-    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
-    text = text.replace regx, ""
-
-    # Get the full text
-    return [] if not text
-
-    elements = text.split("->")
-
-    # Remove parenthesis and whitespaces
-    for key, element of elements
-      element = element.replace /^\s+|\s+$/g, ""
-      if element[0] == '{' or element[0] == '(' or element[0] == '['
-        element = element.substring(1)
-
-      elements[key] = element
-
-    return elements
-
-  ###*
    * Get all variables declared in the current function
    * @param {TextEdutir} editor         Atom text editor
    * @param {Range}      bufferPosition Position of the current buffer
@@ -265,6 +204,67 @@ module.exports =
     return result
 
   ###*
+   * Returns the stack of elements in a ->xxx->xxxx stack
+   * @param  {TextEditor} editor
+   * @param  {Rang}       position
+   * @return string className
+  ###
+  getStackClasses: (editor, position) ->
+    lineIdx = 0
+    parenthesisOpened = 0
+    parenthesisClosed = 0
+    idx = 0
+    end = false
+
+    # Algorithm to get something inside parenthesis
+    # Count parenthesis, when opened == closed and found a variable, it's done
+    while (position.row - lineIdx > 0) and end == false
+      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
+      lineIdx++
+      len = text.length
+
+      while idx < len and end == false
+        if text[len - idx] == "("
+          parenthesisOpened += 1
+        else if text[len - idx] == ")"
+          parenthesisClosed += 1
+        else if text[len - idx] == "{" # If curly brace, we failed.
+          end = true
+        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
+          end = true
+
+        idx += 1
+
+    text = text.substr(text.length - idx + 1, text.length)
+
+    return @parseStackClass(text)
+
+  ###*
+   * Parse stack class elements
+   * @param {string} text String of the stack class
+   * @return Array
+  ###
+  parseStackClass: (text) ->
+    # Remove parenthesis content
+    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
+    text = text.replace regx, ""
+
+    # Get the full text
+    return [] if not text
+
+    elements = text.split("->")
+
+    # Remove parenthesis and whitespaces
+    for key, element of elements
+      element = element.replace /^\s+|\s+$/g, ""
+      if element[0] == '{' or element[0] == '(' or element[0] == '['
+        element = element.substring(1)
+
+      elements[key] = element
+
+    return elements
+
+  ###*
    * Get the type of a variable
    *
    * @param {TextEditor} editor
@@ -293,10 +293,26 @@ module.exports =
         elements.push("") # Push one more element to get fully the last class
 
         bufferPosition.row -= idx
-        return @parseElements(editor, bufferPosition, elements)
+        className = @parseElements(editor, bufferPosition, elements)
+
+        # if className is null, we check if there's a /** @var */ on top of it, to guess the type
+        # Get the line
+        line = editor.getTextInBufferRange([[bufferPosition.row - idx - 1, 0], [bufferPosition.row - idx, 10000]])
+
+        # Get chain of all scopes
+        chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx - 1, line.length]).getScopeChain()
+
+        if chain.indexOf("comment") != -1
+          regexVar = /\@var[\s]([a-zA-Z_\\]+)/g
+          matches = regexVar.exec(line)
+
+          if null == matches
+            return className
+
+          return @findUseForClass(editor, matches[1])
 
       if chain.indexOf("function") != -1
-        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s]*\\#{element}).)*[,\\s]?([a-zA-Z]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
+        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s\\_]*\\#{element}).)*[,\\s]?([a-zA-Z\\_]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
         matches = regexFunction.exec(line)
 
         if null == matches
