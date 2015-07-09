@@ -274,7 +274,10 @@ module.exports =
   getVariableType: (editor, bufferPosition, element) ->
     idx = 1
 
-    if element.replace(/[\$][a-zA-Z0-9_]+/g, "").length > 0
+    if element.replace(/[\$][a-zA-Z0-9_]+/g, "").trim().length > 0
+      return null
+
+    if element.trim().length == 0
       return null
 
     # Regex variable definition
@@ -312,7 +315,7 @@ module.exports =
           return @findUseForClass(editor, matches[1])
 
       if chain.indexOf("function") != -1
-        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s\\_]*\\#{element}).)*[,\\s]?([a-zA-Z\\_]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\']*[\\s]*[\\)]", "g")
+        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s\\_]*\\#{element}).)*[,\\s]?([a-zA-Z\\_]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
         matches = regexFunction.exec(line)
 
         if null == matches
@@ -324,6 +327,11 @@ module.exports =
         # If we have a type hint
         if value != ""
           return @findUseForClass(editor, value)
+
+        # otherwise, we are parsing PHPdoc (@param)
+        params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
+        if params.params? and params.params[element]?
+          return @findUseForClass(editor, params.params[element])
 
         break
 
