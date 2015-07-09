@@ -8,6 +8,7 @@ class DocParser
     const RETURN_VALUE = '@return';
     const PARAM_TYPE = '@param';
     const VAR_TYPE = '@var';
+    const DESCRIPTION = 'description';
 
     /**
      * Get data for the given class
@@ -45,25 +46,26 @@ class DocParser
     public function parse($comment, $filters)
     {
         $comment = str_replace(array('*', '/'), '', $comment);
-        $comment = str_replace(array('\n', '\r\n', PHP_EOL), ' ', $comment);
+        $escapedComment = str_replace(array('\n', '\r\n', PHP_EOL), ' ', $comment);
+        $linedComment = str_replace(array('\n', '\r\n', PHP_EOL), '$@$', $comment);
 
         $result = array();
         foreach($filters as $filter) {
             switch ($filter) {
                 case self::VAR_TYPE:
-                    $var = $this->parseVar($comment);
+                    $var = $this->parseVar($escapedComment);
                     if ($var) {
                         $result['var'] = $var;
                     }
                     break;
                 case self::RETURN_VALUE:
-                    $return = $this->parseVar($comment, self::RETURN_VALUE);
+                    $return = $this->parseVar($escapedComment, self::RETURN_VALUE);
                     if ($return) {
                         $result['return'] = $return;
                     }
                     break;
                 case self::PARAM_TYPE:
-                    $res = $comment;
+                    $res = $escapedComment;
                     $result['params'] = array();
                     while (null !== $ret = $this->parseParams($res)) {
                         $result['params'][$ret['name']] = $ret['type'];
@@ -71,8 +73,59 @@ class DocParser
                     }
 
                     break;
+                case self::DESCRIPTION:
+                    $desc = $this->parseDescription($linedComment);
+                    $result['descriptions'] = $desc;
+
+                    break;
                 default:
                     break;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Search for the long and short description on a method or attribute
+     *
+     * @param string $comment Comment
+     *
+     * @return array ('short' => short description, 'long' => long description)
+     */
+    private function parseDescription($comment)
+    {
+        $result = array(
+            'short' => '',
+            'long'  => ''
+        );
+
+        $lines = explode('$@$', $comment);
+
+        $short = true;
+        foreach ($lines as $line) {
+            if (
+                false !== strpos($line, self::VAR_TYPE)
+                || false !== strpos($line, self::PARAM_TYPE)
+                || false !== strpos($line, self::RETURN_VALUE)
+            ) {
+                return $result;
+            }
+
+            if (trim($line) == '' && $result['short'] != '') {
+                $short = false;
+            } else {
+                if ($short) {
+                    $result['short'] = $result['short'] != ''
+                        ? $result['short'] . PHP_EOL . trim($line)
+                        : trim($line)
+                    ;
+                } else {
+                    $result['long'] = $result['long'] != ''
+                        ? $result['long'] . PHP_EOL . trim($line)
+                        : trim($line)
+                    ;
+                }
             }
         }
 

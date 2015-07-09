@@ -52,6 +52,7 @@ class AutocompleteProvider extends AbstractProvider
       element = @methods.values[word]
 
       returnValues = element.args.return.split('\\')
+
       # Methods
       if element.isMethod
         suggestions.push
@@ -59,6 +60,7 @@ class AutocompleteProvider extends AbstractProvider
           type: 'method',
           snippet: @getFunctionSnippet(word, element.args),
           leftLabel: returnValues[returnValues.length - 1]
+          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
 
       # Constants and public properties
       else
@@ -66,5 +68,6 @@ class AutocompleteProvider extends AbstractProvider
           text: word,
           type: 'property'
           leftLabel: returnValues[returnValues.length - 1]
+          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
 
     return suggestions
