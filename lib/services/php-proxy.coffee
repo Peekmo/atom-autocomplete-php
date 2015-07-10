@@ -176,9 +176,18 @@ module.exports =
     return res
 
   autoloadClassMap: () ->
-      autoloadDir = config.config.autoload
-      res = execute("--autoloadClassMap #{autoloadDir}", false)
+      res = execute("--autoloadClassMap", false)
       return res
+  ###*
+   * Returns params from the documentation of the given function
+   *
+   * @param {string} className
+   * @param {string} functionName
+  ###
+  docParams: (className, functionName) ->
+    res = execute("--doc-params #{className} #{functionName}", false)
+    return res
+
 
   ###*
    * Refresh the full index or only for the given classPath

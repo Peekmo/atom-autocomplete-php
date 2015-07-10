@@ -36,7 +36,7 @@ $commands = array(
     '--autocomplete'     => 'AutocompleteProvider',
     '--autoloadClassMap' => 'AutoloadClassMap',
     '--parent'           => 'ParentProvider',
-    '--doc-params'   => 'DocParamProvider'
+    '--doc-params'       => 'DocParamProvider'
 );
 
 /**

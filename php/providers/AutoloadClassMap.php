@@ -9,9 +9,8 @@ class AutoloadClassMap extends Tools implements ProviderInterface
      */
     public function execute($args = array())
     {
-        $autoLoadDir = $args[0];
-        $loader = require $autoLoadDir . '/autoload.php';
-        return $loader->getClassMap();
+        $classmap = require Config::get('classmap_file');
+        return $classmap;
     }
 }
 
