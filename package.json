@@ -24,6 +24,7 @@
     "minimatch": "^2.0.1",
     "MD5": "1.2.1",
     "sub-atom": "~1.0.0",
-    "jquery": "~2.1.4"
+    "jquery": "~2.1.4",
+    "atom-space-pen-views": "~2.0.5"
   }
 }
