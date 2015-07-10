@@ -51,7 +51,7 @@ module.exports =
     registerEvents: (editor, grammar) ->
         if grammar.scopeName.match /text.html.php$/
             textEditorElement = atom.views.getView(editor)
-            eventSelectors = '.function.argument > .support, .inherited-class, .use.namespace, .class.support'
+            eventSelectors = '.function.argument > .support, .inherited-class, .namespace, .class.support'
             scrollViewElement = $($(textEditorElement)[0].shadowRoot).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mousemove', eventSelectors, (event) =>
@@ -78,7 +78,9 @@ module.exports =
 
     getSelector: (event) ->
         selector = event.currentTarget
-        if $(selector).parent().hasClass('function argument')
-            return $(selector).parent().children('.support')
+        if $(selector).parent().hasClass('function argument') ||
+           $(selector).prev().hasClass('namespace') ||
+           $(selector).next().hasClass('class')
+            return $(selector).parent().children('.namespace, .class')
 
         return selector
