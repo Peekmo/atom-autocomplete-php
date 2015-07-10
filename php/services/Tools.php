@@ -20,12 +20,12 @@ abstract class Tools
             if (Config::get('classmap_file') && !file_exists(Config::get('classmap_file')) || $force) {
                 // Check if composer is executable or not
                 if (is_executable(Config::get('composer'))) {
-                    exec(sprintf('%s dump-autoload --optimize --quiet --no-interaction --working-dir=%s',
+                    exec(sprintf('%s dump-autoload --optimize --quiet --no-interaction --working-dir=%s 2>&1',
                         escapeshellarg(Config::get('composer')),
                         escapeshellarg(Config::get('projectPath'))
                     ));
                 } else {
-                    exec(sprintf('%s %s dump-autoload --optimize --quiet --no-interaction --working-dir=%s',
+                    exec(sprintf('%s %s dump-autoload --optimize --quiet --no-interaction --working-dir=%s 2>&1',
                         escapeshellarg(Config::get('php')),
                         escapeshellarg(Config::get('composer')),
                         escapeshellarg(Config::get('projectPath'))
