@@ -51,6 +51,7 @@ class SelfProvider extends AbstractProvider
             snippet: @getFunctionSnippet(word, element.args),
             replacementPrefix: prefix,
             leftLabel: element.args.return,
+            description: if element.args.descriptions.short? then element.args.descriptions.short else ''
             data:
               prefix: prefix,
               args: element.args

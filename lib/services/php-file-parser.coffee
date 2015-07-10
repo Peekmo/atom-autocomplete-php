@@ -1,3 +1,5 @@
+proxy = require "../services/php-proxy.coffee"
+
 # PHP classes/traits declaration
 classDeclarations = [
   'class ',
@@ -48,59 +50,6 @@ module.exports =
       row--
 
     return name
-
-  ###*
-   * Returns the stack of elements in a ->xxx->xxxx stack
-   * @param  {TextEditor} editor
-   * @param  {Rang}       position
-   * @return string className
-  ###
-  getStackClasses: (editor, position) ->
-    lineIdx = 0
-    parenthesisOpened = 0
-    parenthesisClosed = 0
-    idx = 0
-    end = false
-
-    # Algorithm to get something inside parenthesis
-    # Count parenthesis, when opened == closed and found a variable, it's done
-    while (position.row - lineIdx > 0) and end == false
-      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
-      lineIdx++
-      len = text.length
-
-      while idx < len and end == false
-        if text[len - idx] == "("
-          parenthesisOpened += 1
-        else if text[len - idx] == ")"
-          parenthesisClosed += 1
-        else if text[len - idx] == "{" # If curly brace, we failed.
-          end = true
-        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
-          end = true
-
-        idx += 1
-
-    text = text.substr(text.length - idx + 1, text.length)
-
-    # Remove parenthesis content
-    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
-    text = text.replace regx, ""
-
-    # Get the full text
-    return [] if not text
-
-    elements = text.split("->")
-
-    # Remove parenthesis and whitespaces
-    for key, element of elements
-      element = element.replace /^\s+|\s+$/g, ""
-      if element[0] == '{' or element[0] == '(' or element[0] == '['
-        element = element.substring(1)
-
-      elements[key] = element
-
-    return elements
 
   ###*
    * Get all variables declared in the current function
@@ -253,3 +202,187 @@ module.exports =
 
     @cache[text] = result
     return result
+
+  ###*
+   * Returns the stack of elements in a ->xxx->xxxx stack
+   * @param  {TextEditor} editor
+   * @param  {Rang}       position
+   * @return string className
+  ###
+  getStackClasses: (editor, position) ->
+    lineIdx = 0
+    parenthesisOpened = 0
+    parenthesisClosed = 0
+    idx = 0
+    end = false
+
+    # Algorithm to get something inside parenthesis
+    # Count parenthesis, when opened == closed and found a variable, it's done
+    while (position.row - lineIdx > 0) and end == false
+      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
+      lineIdx++
+      len = text.length
+
+      while idx < len and end == false
+        if text[len - idx] == "("
+          parenthesisOpened += 1
+        else if text[len - idx] == ")"
+          parenthesisClosed += 1
+        else if text[len - idx] == "{" # If curly brace, we failed.
+          end = true
+        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
+          end = true
+
+        idx += 1
+
+    text = text.substr(text.length - idx + 1, text.length)
+
+    return @parseStackClass(text)
+
+  ###*
+   * Parse stack class elements
+   * @param {string} text String of the stack class
+   * @return Array
+  ###
+  parseStackClass: (text) ->
+    # Remove parenthesis content
+    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
+    text = text.replace regx, ""
+
+    # Get the full text
+    return [] if not text
+
+    elements = text.split("->")
+
+    # Remove parenthesis and whitespaces
+    for key, element of elements
+      element = element.replace /^\s+|\s+$/g, ""
+      if element[0] == '{' or element[0] == '(' or element[0] == '['
+        element = element.substring(1)
+
+      elements[key] = element
+
+    return elements
+
+  ###*
+   * Get the type of a variable
+   *
+   * @param {TextEditor} editor
+   * @param {Range}      bufferPosition
+   * @param {string}     element        Variable to search
+  ###
+  getVariableType: (editor, bufferPosition, element) ->
+    idx = 1
+
+    if element.replace(/[\$][a-zA-Z0-9_]+/g, "").trim().length > 0
+      return null
+
+    if element.trim().length == 0
+      return null
+
+    # Regex variable definition
+    regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
+    while bufferPosition.row - idx > 0
+      # Get the line
+      line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
+
+      # Get chain of all scopes
+      chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
+      matches = regexElement.exec(line)
+
+      if null != matches
+        value = matches[1]
+        elements = @parseStackClass(value)
+        elements.push("") # Push one more element to get fully the last class
+
+        newPosition =
+            row : bufferPosition.row - idx
+            column: bufferPosition.column
+        className = @parseElements(editor, newPosition, elements)
+
+        # if className is null, we check if there's a /** @var */ on top of it, to guess the type
+        # Get the line
+        line = editor.getTextInBufferRange([[newPosition.row - 1, 0], [newPosition.row, 10000]])
+
+        # Get chain of all scopes
+        chain = editor.scopeDescriptorForBufferPosition([newPosition.row - 1, line.length]).getScopeChain()
+
+        if chain.indexOf("comment") != -1
+          regexVar = /\@var[\s]([a-zA-Z_\\]+)/g
+          matches = regexVar.exec(line)
+
+          if null == matches
+            return className
+
+          return @findUseForClass(editor, matches[1])
+
+      if chain.indexOf("function") != -1
+        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s\\_]*\\#{element}).)*[,\\s]?([a-zA-Z\\_]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
+        matches = regexFunction.exec(line)
+
+        if null == matches
+          return null
+
+        func = matches[1]
+        value = matches[2]
+
+        # If we have a type hint
+        if value != ""
+          return @findUseForClass(editor, value)
+
+        # otherwise, we are parsing PHPdoc (@param)
+        params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
+        if params.params? and params.params[element]?
+          return @findUseForClass(editor, params.params[element])
+
+        break
+
+      idx++
+
+    return null
+
+
+  ###*
+   * Parse all elements from the given array to return the last className (if any)
+   * @param  Array elements Elements to parse
+   * @return string|null full class name of the last element
+  ###
+  parseElements: (editor, bufferPosition, elements) ->
+    loop_index = 0
+    className  = null
+
+    for element in elements
+      # $this keyword
+      if loop_index == 0
+        if element == '$this'
+
+          className = @getCurrentClass(editor, bufferPosition)
+          loop_index++
+          continue
+        else
+          className = @getVariableType(editor, bufferPosition, element)
+          loop_index++
+          continue
+
+      # Last element
+      if loop_index >= elements.length - 1
+        break
+
+      if className == null
+        break
+
+      methods = proxy.autocomplete(className, element)
+
+      # Element not found or no return value
+      if not methods.class? or not @isClass(methods.class)
+        className = null
+        break
+
+      className = methods.class
+      loop_index++
+
+    # If no data or a valid end of line, OK
+    if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
+      return className
+
+    return null

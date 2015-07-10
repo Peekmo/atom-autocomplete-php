@@ -70,12 +70,14 @@ abstract class Tools
         if ($className) {
             $parser = new DocParser();
             $return = $parser->get($className, 'method', $method->getName(), array(DocParser::RETURN_VALUE));
+            $descriptions = $parser->get($className, 'method', $method->getName(), array(DocParser::DESCRIPTION));
         }
 
         return array(
             'parameters' => $parameters,
             'optionals' => $optionals,
-            'return'    => ($className && !empty($return)) ? $return['return'] : ''
+            'return'    => ($className && !empty($return)) ? $return['return'] : '',
+            'descriptions' => ($className && $descriptions) ? $descriptions['descriptions'] : array()
         );
     }
 
@@ -123,11 +125,15 @@ abstract class Tools
 
             $parser = new DocParser();
             $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
+            $descriptions = $parser->get($className, 'property', $attribute->getName(), array(DocParser::DESCRIPTION));
 
             $data['values'][$attribute->getName()] = array(
                 'isMethod' => false,
                 'isPublic' => $attribute->isPublic(),
-                'args'     => array('return' => !empty($return) ? $return['var'] : '')
+                'args'     => array(
+                    'return' => !empty($return) ? $return['var'] : '',
+                    'descriptions' => $descriptions['descriptions']
+                )
             );
         }
 

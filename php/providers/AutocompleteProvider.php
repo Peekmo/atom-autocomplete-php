@@ -12,6 +12,10 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         $class = $args[0];
         $name  = $args[1];
 
+        if (strpos($class, '\\') == 0) {
+            $class = substr($class, 1);
+        }
+
         $classMap = $this->getClassMap();
         $data = $this->getClassMetadata($class);
         if (!isset($data['values'][$name]) || !isset($classMap[$class])) {
@@ -23,7 +27,9 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         }
 
         $returnValue = $data['values'][$name]['args']['return'];
-        if (ucfirst($returnValue) === $returnValue) {
+        if ($returnValue == '$this' || $returnValue == 'self') {
+            return $data;
+        } else if (ucfirst($returnValue) === $returnValue) {
             $parser = new FileParser($classMap[$class]);
 
             $found = false;
