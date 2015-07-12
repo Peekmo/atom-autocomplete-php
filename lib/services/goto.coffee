@@ -112,7 +112,7 @@ module.exports =
             return null
 
         if $(selector).parent().hasClass('function argument') ||
-           $(selector).prev().hasClass('namespace') ||
+           $(selector).prev().hasClass('namespace') && $(selector).hasClass('class') ||
            $(selector).next().hasClass('class')
             return $(selector).parent().children('.namespace, .class')
 
