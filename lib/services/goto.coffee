@@ -5,6 +5,7 @@ fuzzaldrin = require 'fuzzaldrin'
 parser = require './php-file-parser'
 SubAtom = require 'sub-atom'
 GotoSelectView = require './goto-select-list-view.coffee'
+{TextEditor} = require 'atom'
 $ = require 'jquery'
 
 module.exports =
@@ -13,14 +14,23 @@ module.exports =
         @subAtom = new SubAtom
         self = this
         atom.workspace.observeTextEditors (editor) ->
-            console.log editor
-            console.log typeof editor
-            if typeof editor != "undefined"
-                editor.hasGotoEvents = true
-                self.registerEvents editor, editor.getGrammar()
+            self.registerEvents editor, editor.getGrammar()
 
-            editors = atom.workspace.getTextEditors()
-            console.log editors
+        atom.workspace.onDidDestroyPane (pane) ->
+            panes = atom.workspace.getPanes()
+            if panes.length == 1
+                for paneItem in panes[0].items
+                    if paneItem instanceof TextEditor
+                        self.registerEvents paneItem, paneItem.getGrammar()
+
+        atom.workspace.onDidAddPane (observedPane) ->
+            panes = atom.workspace.getPanes()
+            for pane in panes
+                if pane == observedPane
+                    continue
+                for paneItem in pane.items
+                    if paneItem instanceof TextEditor
+                        self.registerEvents paneItem, paneItem.getGrammar()
 
         @selectView = new GotoSelectView
 
