@@ -386,3 +386,36 @@ module.exports =
       return className
 
     return null
+
+  getClassFromBufferPosition: (editor, position) ->
+    foundStart = false
+    foundEnd = false
+    startBufferPosition = []
+    endBufferPosition = []
+    regex = /\(|\s|\)|;|'|,|"|:|\|/
+    index = -1
+    previousText = ''
+
+    loop
+      index++
+      startBufferPosition = [position.row, position.column - index - 1]
+      range = [[position.row, position.column], [startBufferPosition[0], startBufferPosition[1]]]
+      currentText = editor.getTextInBufferRange(range)
+      if regex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
+          foundStart = true
+      previousText = editor.getTextInBufferRange(range)
+      break if foundStart
+    index = -1
+    loop
+      index++
+      endBufferPosition = [position.row, position.column + index + 1]
+      range = [[position.row, position.column], [endBufferPosition[0], endBufferPosition[1]]]
+      currentText = editor.getTextInBufferRange(range)
+      if regex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
+          foundEnd = true
+      previousText = editor.getTextInBufferRange(range)
+      break if foundEnd
+
+    startBufferPosition[1] += 1
+    endBufferPosition[1] -= 1
+    return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
