@@ -39,8 +39,10 @@ module.exports =
      * @param {TextEditor} editor
     ###
     gotoFromEditor: (editor) ->
-        term = editor.getWordUnderCursor()
-        @gotoFromWord(editor, term)
+        if editor.getGrammar().scopeName.match /text.html.php$/
+            position = editor.getCursorBufferPosition()
+            term = parser.getClassFromBufferPosition(editor, position)
+            @gotoFromWord(editor, term)
 
     gotoFromWord: (editor, term) ->
         proxy = require './php-proxy.coffee'
