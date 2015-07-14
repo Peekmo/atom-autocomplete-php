@@ -87,7 +87,12 @@ foreach ($config['classmap'] as $conf) {
 }
 
 $new = new $commands[$command]();
-$data = $new->execute(array_slice($argv, 3));
+
+$args = array_slice($argv, 3);
+foreach ($args as &$arg) {
+    $arg = str_replace('\\\\', '\\', $arg);
+}
+$data = $new->execute($args);
 
 if (false === $encoded = json_encode($data)) {
     echo json_encode(array());
