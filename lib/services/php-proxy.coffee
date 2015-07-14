@@ -17,11 +17,11 @@ data =
  * @return {array}           Json of the response
 ###
 execute = (command, async) ->
-  for c in command
-    c.replace(/\\/g, '\\\\')
-
   for directory in atom.project.getDirectories()
     if not async
+      for c in command
+        c.replace(/\\/g, '\\\\')
+
       try
         stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php", directory.path].concat(command)).output[1].toString('ascii')
         res = JSON.parse(stdout)
@@ -37,6 +37,8 @@ execute = (command, async) ->
 
       return res
     else
+      command.replace(/\\/g, '\\\\')
+
       console.log 'Building index'
       exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command, (error, stdout, stderr) ->
         console.log 'Build done'

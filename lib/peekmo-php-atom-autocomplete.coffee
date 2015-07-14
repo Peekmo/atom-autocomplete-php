@@ -16,7 +16,7 @@ module.exports =
       description: 'This plugin depends on composer in order to work. Specify the path
        to your composer bin (e.g : bin/composer, composer.phar, composer)'
       type: 'string'
-      default: 'composer'
+      default: '/usr/local/bin/composer'
       order: 1
 
     binPhp:

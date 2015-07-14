@@ -22,6 +22,7 @@ Finally, your project must follow the PSR norm, some weird things could happen o
 
 # Settings
 
+(note : For windows example check the section "Windows settings")
 To configure the plugin, click on "package" in your preferences, and select "settings" on atom-autocomplete-php plugin.
 
 ![Configuration](http://i.imgur.com/MCtNGJQ.png)
@@ -30,6 +31,10 @@ To configure the plugin, click on "package" in your preferences, and select "set
 - *Command to use composer* : it's highly recommended to write here the full path to your composer.phar bin. E.G on unix systems, it could be /usr/local/bin/composer. Using an alias is not recommended at all !
 - *Command php* : Command to execute PHP cli in your console. (php by default on unix systems). If it doesn't work, put here the full path to your PHP bin.
 - *Composer autoload directories* : Write here, a coma separated list of all the different directories where your composer vendors are in your different projects. By default, it's "vendor", but if you changed it, make sure to update this list ;)
+
+# Windows settings
+An example of settings for windows with PHP installed with WAMP and Composer installed with ComposerSetup
+![Settings](http://i.imgur.com/hY5ypG2.png)
 
 # Next
 
