@@ -26,6 +26,7 @@ execute = (command, async) ->
         stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php", directory.path].concat(command)).output[1].toString('ascii')
         res = JSON.parse(stdout)
       catch err
+        console.log err
         res =
           error: err
 
@@ -176,6 +177,16 @@ module.exports =
   ###
   autocomplete: (className, name) ->
     res = execute(["--autocomplete", className, name], false)
+    return res
+
+  ###*
+   * Returns params from the documentation of the given function
+   *
+   * @param {string} className
+   * @param {string} functionName
+  ###
+  docParams: (className, functionName) ->
+    res = execute("--doc-params #{className} #{functionName}", false)
     return res
 
 

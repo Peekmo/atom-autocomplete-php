@@ -26,7 +26,7 @@ class AutocompleteProvider extends AbstractProvider
     elements = parser.getStackClasses(editor, bufferPosition)
     return unless elements?
 
-    className = @parseElements(editor, bufferPosition, elements)
+    className = parser.parseElements(editor, bufferPosition, elements)
     return unless className?
 
     @methods = proxy.methods(className)
@@ -52,6 +52,7 @@ class AutocompleteProvider extends AbstractProvider
       element = @methods.values[word]
 
       returnValues = element.args.return.split('\\')
+
       # Methods
       if element.isMethod
         suggestions.push
@@ -59,6 +60,7 @@ class AutocompleteProvider extends AbstractProvider
           type: 'method',
           snippet: @getFunctionSnippet(word, element.args),
           leftLabel: returnValues[returnValues.length - 1]
+          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
 
       # Constants and public properties
       else
@@ -66,47 +68,6 @@ class AutocompleteProvider extends AbstractProvider
           text: word,
           type: 'property'
           leftLabel: returnValues[returnValues.length - 1]
+          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
 
     return suggestions
-
-  ###*
-   * Parse all elements from the given array to return the last className (if any)
-   * @param  Array elements Elements to parse
-   * @return string|null full class name of the last element
-  ###
-  parseElements: (editor, bufferPosition, elements) ->
-    loop_index = 0
-    className  = null
-
-    for element in elements
-      # $this keyword
-      if loop_index == 0
-        if element == '$this'
-          className = parser.getCurrentClass(editor, bufferPosition)
-          loop_index++
-          continue
-        else
-          break
-
-      # Last element
-      if loop_index >= elements.length - 1
-        break
-
-      if className == null
-        break
-
-      methods = proxy.autocomplete(className, element)
-
-      # Element not found or no return value
-      if not methods.class? or not parser.isClass(methods.class)
-        className = null
-        break
-
-      className = methods.class
-      loop_index++
-
-    # If no data or a valid end of line, OK
-    if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
-      return className
-
-    return
