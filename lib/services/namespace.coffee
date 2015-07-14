@@ -25,6 +25,9 @@ module.exports =
             path = path.substr(directory.path.length+1)
             break
 
+    # Path with \ replaced by / to be ok with composer.json
+    path = path.replace(/\\/g, '/')
+
     # Get the root namespace
     namespace = null
     for src, name of autoloaders

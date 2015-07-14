@@ -197,7 +197,17 @@ module.exports =
         # Only .php file
         if event.path.substr(event.path.length - 4) == ".php"
           @clearCache()
-          @refresh(event.path)
+
+          # For Windows - Replace \ in class namespace to / because
+          # composer use / instead of \
+          path = event.path
+          for directory in atom.project.getDirectories()
+              if path.indexOf(directory.path) == 0
+                  classPath = path.substr(0, directory.path.length+1)
+                  path = path.substr(directory.path.length+1)
+                  break
+
+          @refresh(classPath + path.replace(/\\/g, '/'))
       )
 
     atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>

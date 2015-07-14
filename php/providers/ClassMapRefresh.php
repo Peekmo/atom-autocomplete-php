@@ -40,8 +40,9 @@ class ClassMapRefresh extends Tools implements ProviderInterface
                 }
             }
         }
+
         // Otherwise, full index
-        else if (!$fileExists) {
+        if (!$fileExists) {
             // Autoload classes
             foreach ($classMap as $class => $filePath) {
                 if ($value = $this->buildIndexClass($class)) {
