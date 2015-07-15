@@ -2,8 +2,6 @@
 
 [![Join the chat at https://gitter.im/Peekmo/atom-autocomplete-php](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Peekmo/atom-autocomplete-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-/!\ The plugin has not been tested on Windows. Contribution is welcome to make it works on this platform.
-
 # What is done ?
 
 This plugin provide those amazing features :
