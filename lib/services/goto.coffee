@@ -14,15 +14,19 @@ module.exports =
         @subAtom = new SubAtom
         self = this
         atom.workspace.observeTextEditors (editor) ->
-            self.registerEvents editor, editor.getGrammar()
+            self.registerEvents editor
 
+        # When you go back to only have 1 pane the events are lost, so need
+        # to re-register.
         atom.workspace.onDidDestroyPane (pane) ->
             panes = atom.workspace.getPanes()
             if panes.length == 1
                 for paneItem in panes[0].items
                     if paneItem instanceof TextEditor
-                        self.registerEvents paneItem, paneItem.getGrammar()
+                        self.registerEvents paneItem
 
+        # Having to re-register events as when a new pane is created the
+        # old panes lose the events.
         atom.workspace.onDidAddPane (observedPane) ->
             panes = atom.workspace.getPanes()
             for pane in panes
@@ -30,13 +34,13 @@ module.exports =
                     continue
                 for paneItem in pane.items
                     if paneItem instanceof TextEditor
-                        self.registerEvents paneItem, paneItem.getGrammar()
+                        self.registerEvents paneItem
 
         @selectView = new GotoSelectView
 
     ###*
      * Goto the class the cursor is on
-     * @param {TextEditor} editor
+     * @param TextEditor editor TextEditor to pull term from.
     ###
     gotoFromEditor: (editor) ->
         if editor.getGrammar().scopeName.match /text.html.php$/
@@ -44,6 +48,11 @@ module.exports =
             term = parser.getClassFromBufferPosition(editor, position)
             @gotoFromWord(editor, term)
 
+    ###*
+     * Goto the class from the term given.
+     * @param  {TextEditor} editor  TextEditor to search for namespace of term.
+     * @param  {string}     term    Term to search for.
+    ###
     gotoFromWord: (editor, term) ->
         proxy = require './php-proxy.coffee'
 
@@ -78,8 +87,12 @@ module.exports =
             @selectView.setItems(listViewArray)
             @selectView.show()
 
-    registerEvents: (editor, grammar) ->
-        if grammar.scopeName.match /text.html.php$/
+    ###*
+     * Registers the mouse events for alt-click.
+     * @param  {TextEditor} editor  TextEditor to register events to.
+    ###
+    registerEvents: (editor) ->
+        if editor.getGrammar().scopeName.match /text.html.php$/
             textEditorElement = atom.views.getView(editor)
             eventSelectors = '.inherited-class, .support.namespace, .support.class'
             scrollViewElement = $($(textEditorElement)[0].shadowRoot).find('.scroll-view')
@@ -106,7 +119,11 @@ module.exports =
                     @gotoFromWord(editor, $(selector).text())
                     event.handled = true
 
-
+    ###*
+     * Gets the correct selector when a class or namespace is clicked.
+     * @param  {jQuery.Event}  event  A jQuery event.
+     * @return {object|null}          A selector to be used with jQuery.
+    ###
     getSelector: (event) ->
         selector = event.currentTarget
 
