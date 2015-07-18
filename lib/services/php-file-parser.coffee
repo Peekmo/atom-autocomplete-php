@@ -387,6 +387,12 @@ module.exports =
 
     return null
 
+  ###*
+   * Gets the class and namespace (if there is one) from the buffer position given.
+   * @param  {TextEditor}     editor   TextEditor to search.
+   * @param  {BufferPosition} position BufferPosition to start searching from.
+   * @return {string}  Returns a string of the class. 
+  ###
   getClassFromBufferPosition: (editor, position) ->
     foundStart = false
     foundEnd = false
