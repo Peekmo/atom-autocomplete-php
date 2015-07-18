@@ -17,11 +17,13 @@ data =
  * @return {array}           Json of the response
 ###
 execute = (command, async) ->
-  command = command.replace(/\\/g, '\\\\')
   for directory in atom.project.getDirectories()
     if not async
+      for c in command
+        c.replace(/\\/g, '\\\\')
+
       try
-        stdout = exec.execSync(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command)
+        stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php", directory.path].concat(command)).output[1].toString('ascii')
         res = JSON.parse(stdout)
       catch err
         console.log err
@@ -36,6 +38,8 @@ execute = (command, async) ->
 
       return res
     else
+      command.replace(/\\/g, '\\\\')
+
       console.log 'Building index'
       exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command, (error, stdout, stderr) ->
         console.log 'Build done'
@@ -125,7 +129,7 @@ module.exports =
   ###
   functions: () ->
     if not data.functions?
-      res = execute("--functions", false)
+      res = execute(["--functions"], false)
       data.functions = res
 
     return data.functions
@@ -137,7 +141,7 @@ module.exports =
   ###
   statics: (className) ->
     if not data.statics[className]?
-      res = execute("--statics #{className}", false)
+      res = execute(["--statics", "#{className}"], false)
       data.statics[className] = res
 
     return data.statics[className]
@@ -149,7 +153,7 @@ module.exports =
   ###
   methods: (className) ->
     if not data.methods[className]?
-      res = execute("--methods #{className}", false)
+      res = execute(["--methods","#{className}"], false)
       data.methods[className] = res
 
     return data.methods[className]
@@ -161,7 +165,7 @@ module.exports =
   ###
   parent: (className) ->
     if not data.parent[className]?
-      res = execute("--parent #{className}", false)
+      res = execute(["--parent", "#{className}"], false)
       data.parent[className] = res
 
     return data.parent[className]
@@ -172,7 +176,7 @@ module.exports =
    * @return {array}
   ###
   autocomplete: (className, name) ->
-    res = execute("--autocomplete #{className} #{name}", false)
+    res = execute(["--autocomplete", className, name], false)
     return res
 
   autoloadClassMap: () ->
@@ -209,7 +213,17 @@ module.exports =
         # Only .php file
         if event.path.substr(event.path.length - 4) == ".php"
           @clearCache()
-          @refresh(event.path)
+
+          # For Windows - Replace \ in class namespace to / because
+          # composer use / instead of \
+          path = event.path
+          for directory in atom.project.getDirectories()
+              if path.indexOf(directory.path) == 0
+                  classPath = path.substr(0, directory.path.length+1)
+                  path = path.substr(directory.path.length+1)
+                  break
+
+          @refresh(classPath + path.replace(/\\/g, '/'))
       )
 
     atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>

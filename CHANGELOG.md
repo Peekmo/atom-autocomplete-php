@@ -1,3 +1,6 @@
+## 0.5.0
+* Support for Windows
+
 ## 0.4.0
 * Completion on local variables
 * Bug fixes

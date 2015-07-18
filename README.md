@@ -2,8 +2,6 @@
 
 [![Join the chat at https://gitter.im/Peekmo/atom-autocomplete-php](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Peekmo/atom-autocomplete-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-/!\ The plugin has not been tested on Windows. Contribution is welcome to make it works on this platform.
-
 # What is done ?
 
 This plugin provide those amazing features :
@@ -23,6 +21,7 @@ Finally, your project must follow the PSR norm, some weird things could happen o
 
 # Settings
 
+(note : For windows example check the section "Windows settings")
 To configure the plugin, click on "package" in your preferences, and select "settings" on atom-autocomplete-php plugin.
 
 ![Configuration](http://i.imgur.com/LYBcaHE.png)
@@ -113,6 +112,10 @@ $this
     ->{yeaaaah}
 ;
 ```
+
+# Windows settings
+An example of settings for windows with PHP installed with WAMP and Composer installed with ComposerSetup
+![Settings](http://i.imgur.com/hY5ypG2.png)
 
 # Next
 
