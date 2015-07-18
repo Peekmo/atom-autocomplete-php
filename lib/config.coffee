@@ -1,6 +1,5 @@
 fs = require 'fs'
 namespace = require './services/namespace.coffee'
-goto = require './services/goto.coffee'
 
 module.exports =
   config: {}
@@ -65,5 +64,3 @@ module.exports =
 
     atom.config.onDidChange 'atom-autocomplete-php.classMapFiles', () =>
       @writeConfig()
-
-    goto.init()

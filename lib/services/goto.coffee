@@ -39,6 +39,12 @@ module.exports =
         @selectView = new GotoSelectView
 
     ###*
+     * Deactives the goto feature.
+    ###
+    deactivate: () ->
+        @subAtom.dispose()
+
+    ###*
      * Goto the class the cursor is on
      * @param TextEditor editor TextEditor to pull term from.
     ###

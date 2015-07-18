@@ -8,6 +8,7 @@ SelfProvider = require "./providers/self-provider.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
+goto = require './services/goto.coffee'
 
 module.exports =
   config:
@@ -49,9 +50,11 @@ module.exports =
     @registerProviders()
     config.init()
     proxy.init()
+    goto.init()
 
   deactivate: ->
     @providers = []
+    goto.deactivate()
 
   registerProviders: ->
     @providers.push new VariableProvider()
