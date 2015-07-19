@@ -1,5 +1,6 @@
 fs = require 'fs'
 namespace = require './services/namespace.coffee'
+goto = require './services/goto.coffee'
 
 module.exports =
   config: {}
