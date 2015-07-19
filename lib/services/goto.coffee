@@ -115,14 +115,14 @@ module.exports =
                 selector = @getSelector(event)
                 if selector == null
                     return
-                $(selector).css('text-decoration', 'underline')
+                $(selector).css('border-bottom', '1px solid ' + $(selector).css('color'))
                 $(selector).css('cursor', 'pointer')
                 self.isHovering = true
             @subAtom.add scrollViewElement, 'mouseout', hoverEventSelectors, (event) =>
                 selector = @getSelector(event)
                 if selector == null
                     return
-                $(selector).css('text-decoration', '')
+                $(selector).css('border-bottom', '')
                 $(selector).css('cursor', '')
                 self.isHovering = false
             @subAtom.add scrollViewElement, 'click', clickEventSelectors, (event) =>
