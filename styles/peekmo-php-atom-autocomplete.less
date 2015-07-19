@@ -11,3 +11,9 @@
     width: 100%;
     margin-left: -50%;
 }
+
+atom-text-editor .clickable .region,
+atom-text-editor::shadow .comment-clickable .region {
+    pointer-events: all;
+    z-index: 9999;
+}
