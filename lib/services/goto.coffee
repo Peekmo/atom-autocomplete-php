@@ -171,7 +171,7 @@ module.exports =
         text = editor.getText()
         rows = text.split('\n')
         for key,row of rows
-            regex = /@param|@var|@return/gi
+            regex = /@param|@var|@return|@throws/gi
             if regex.test(row)
                 @addMarkerToCommentLine row.split(' '), parseInt(key), editor, true
 
