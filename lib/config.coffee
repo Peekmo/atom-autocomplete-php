@@ -1,6 +1,5 @@
 fs = require 'fs'
 namespace = require './services/namespace.coffee'
-goto = require './services/goto.coffee'
 
 module.exports =
   config: {}
@@ -48,9 +47,6 @@ module.exports =
     # Command for namespaces
     atom.commands.add 'atom-workspace', 'atom-autocomplete-php:namespace': =>
         namespace.createNamespace(atom.workspace.getActivePaneItem())
-
-    atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto': =>
-        goto.gotoFromEditor(atom.workspace.getActivePaneItem())
 
     @writeConfig()
 
