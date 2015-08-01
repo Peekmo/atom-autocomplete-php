@@ -6,10 +6,10 @@ class GotoClass extends AbstractGoto
     hoverEventSelectors: '.entity.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
     clickEventSelectors: '.entity.inherited-class, .support.namespace, .support.class'
 
-    init: () ->
-        super
+    init: (manager) ->
+        super(manager)
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto': =>
-            goto.gotoFromEditor(atom.workspace.getActivePaneItem())
+            @gotoFromEditor(atom.workspace.getActivePaneItem())
 
 
     ###*
@@ -48,6 +48,7 @@ class GotoClass extends AbstractGoto
 
         matches = @fuzzaldrin.filter classMapArray, term
 
+        @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
         if matches[0] == term || matches.length == 1
             atom.workspace.open(classMap[matches[0]], {
                 searchAllPanes: true

@@ -7,8 +7,8 @@ class GotoFunction extends AbstractGoto
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
 
-    init: () ->
-        super
+    init: (manager) ->
+        super(manager)
         @jumpToFunctionOnLoad = ''
         self = @
         atom.workspace.onDidChangeActivePaneItem (paneItem) ->
@@ -39,6 +39,7 @@ class GotoFunction extends AbstractGoto
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
 
         if currentClass == calledClass && @jumpToFunction(editor, term)
+            @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
 
         methods = proxy.methods(calledClass)
@@ -50,6 +51,7 @@ class GotoFunction extends AbstractGoto
         atom.workspace.open(classMap[parentClass], {
             searchAllPanes: true
         })
+        @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
         @jumpToFunctionOnLoad = term
 
     ###*

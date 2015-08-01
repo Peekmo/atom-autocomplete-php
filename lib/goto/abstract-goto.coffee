@@ -11,13 +11,14 @@ class AbstractGoto
     allMarkers: []
     hoverEventSelectors: ''
     clickEventSelectors: ''
+    manager: {}
 
-    init: () ->
+    init: (manager) ->
         @subAtom = new SubAtom
         @$ = require 'jquery'
         @parser = require '../services/php-file-parser'
         @fuzzaldrin = require 'fuzzaldrin'
-
+        @manager = manager
         self = this
         atom.workspace.observeTextEditors (editor) ->
             self.registerMarkers editor
