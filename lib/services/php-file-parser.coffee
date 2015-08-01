@@ -427,6 +427,11 @@ module.exports =
     endBufferPosition[1] -= 1
     return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
 
+  ###*
+   * Gets the parent class of the current class opened in the editor
+   * @param  {TextEditor} editor Editor with the class in.
+   * @return {string}            The namespace and class of the parent
+  ###
   getParentClass: (editor) ->
     text = editor.getText()
 
@@ -440,6 +445,12 @@ module.exports =
         extendsIndex = words.indexOf('extends')
         return @findUseForClass(editor, words[extendsIndex + 1])
 
+  ###*
+   * Finds the buffer position of the function name given
+   * @param  {TextEditor} editor TextEditor to search
+   * @param  {string}     term   The function name to search for
+   * @return {mixed}             Either null or the buffer position of the function.
+  ###
   findBufferPositionOfFunction: (editor, term) ->
     text = editor.getText()
     row = 0

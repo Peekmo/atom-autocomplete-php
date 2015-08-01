@@ -52,6 +52,12 @@ class GotoFunction extends AbstractGoto
         })
         @jumpToFunctionOnLoad = term
 
+    ###*
+     * Jumps to the function within the editor
+     * @param  {TextEditor} editor The editor that has the function in.
+     * @param  {string} method     The function to find and then jump to.
+     * @return {boolean}           Whether the finding was successful.
+    ###
     jumpToFunction: (editor, method) ->
         bufferPosition = @parser.findBufferPositionOfFunction(editor, method)
         if bufferPosition == null
