@@ -388,17 +388,18 @@ module.exports =
     return null
 
   ###*
-   * Gets the class and namespace (if there is one) from the buffer position given.
+   * Gets the full words from the buffer position given.
+   * E.g. Getting a class with its namespace.
    * @param  {TextEditor}     editor   TextEditor to search.
    * @param  {BufferPosition} position BufferPosition to start searching from.
-   * @return {string}  Returns a string of the class. 
+   * @return {string}  Returns a string of the class.
   ###
-  getClassFromBufferPosition: (editor, position) ->
+  getFullWordFromBufferPosition: (editor, position) ->
     foundStart = false
     foundEnd = false
     startBufferPosition = []
     endBufferPosition = []
-    regex = /\(|\s|\)|;|'|,|"|:|\|/
+    regex = /\(|\s|\)|;|'|,|"|\|/
     index = -1
     previousText = ''
 
@@ -425,3 +426,35 @@ module.exports =
     startBufferPosition[1] += 1
     endBufferPosition[1] -= 1
     return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
+
+  getParentClass: (editor) ->
+    text = editor.getText()
+
+    lines = text.split('\n')
+    for line in lines
+      line = line.trim()
+
+      # If we found extends keyword, return the class
+      if line.indexOf('extends ') != -1
+        words = line.split(' ')
+        extendsIndex = words.indexOf('extends')
+        return @findUseForClass(editor, words[extendsIndex + 1])
+
+  findBufferPositionOfFunction: (editor, term) ->
+    text = editor.getText()
+    row = 0
+    lines = text.split('\n')
+    for line in lines
+      regex = ///function\ +#{term}(\ +|\()///i
+      if regex.test(line)
+        words = line.split(' ')
+        functionIndex = 0
+        for element in words
+            if element.indexOf(term) != -1
+                break
+            functionIndex++;
+
+        reducedWords = words.slice(0, functionIndex).join(' ')
+        return [row, reducedWords.length + 1]
+      row += 1
+    return null
