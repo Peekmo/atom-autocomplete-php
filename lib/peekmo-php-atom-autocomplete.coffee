@@ -6,12 +6,10 @@ AutocompleteProvider = require "./providers/autocomplete-provider.coffee"
 ParentProvider = require "./providers/parent-provider.coffee"
 SelfProvider = require "./providers/self-provider.coffee"
 
-GotoClass = require './goto/class-goto.coffee'
-GotoFunction = require './goto/function-goto.coffee'
+GotoManager = require "./goto/goto-manager.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
-gotos = []
 
 module.exports =
   config:
@@ -51,13 +49,14 @@ module.exports =
 
   activate: ->
     @registerProviders()
-    @registerGotos()
+    @gotoManager = new GotoManager()
+    @gotoManager.init()
     config.init()
     proxy.init()
 
   deactivate: ->
     @providers = []
-    goto.deactivate()
+    @gotoManager.deactivate()
 
   registerProviders: ->
     @providers.push new VariableProvider()
@@ -76,15 +75,3 @@ module.exports =
 
   getProvider: ->
     @providers
-
-  registerGotos: ->
-    @gotos = []
-    @gotos.push new GotoClass()
-    @gotos.push new GotoFunction()
-
-    for goto in @gotos
-      goto.init()
-
-  deactivateGotos: ->
-    for goto in @gotos
-      goto.deactivate()
