@@ -10,11 +10,10 @@ class GotoFunction extends AbstractGoto
     init: (manager) ->
         super(manager)
         @jumpToFunctionOnLoad = ''
-        self = @
-        atom.workspace.onDidChangeActivePaneItem (paneItem) ->
+        atom.workspace.onDidChangeActivePaneItem (paneItem) =>
             if paneItem instanceof TextEditor && self.jumpToFunctionOnLoad != ''
-                self.jumpToFunction(paneItem, self.jumpToFunctionOnLoad)
-                self.jumpToFunctionOnLoad = ''
+                @jumpToFunction(paneItem, @jumpToFunctionOnLoad)
+                @jumpToFunctionOnLoad = ''
 
     ###*
      * Goto the class from the term given.

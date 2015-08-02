@@ -19,30 +19,29 @@ class AbstractGoto
         @parser = require '../services/php-file-parser'
         @fuzzaldrin = require 'fuzzaldrin'
         @manager = manager
-        self = this
-        atom.workspace.observeTextEditors (editor) ->
-            self.registerMarkers editor
-            self.registerEvents editor
+        atom.workspace.observeTextEditors (editor) =>
+            @registerMarkers editor
+            @registerEvents editor
 
         # When you go back to only have 1 pane the events are lost, so need
         # to re-register.
-        atom.workspace.onDidDestroyPane (pane) ->
+        atom.workspace.onDidDestroyPane (pane) =>
             panes = atom.workspace.getPanes()
             if panes.length == 1
                 for paneItem in panes[0].items
                     if paneItem instanceof TextEditor
-                        self.registerEvents paneItem
+                        @registerEvents paneItem
 
         # Having to re-register events as when a new pane is created the
         # old panes lose the events.
-        atom.workspace.onDidAddPane (observedPane) ->
+        atom.workspace.onDidAddPane (observedPane) =>
             panes = atom.workspace.getPanes()
             for pane in panes
                 if pane == observedPane
                     continue
                 for paneItem in pane.items
                     if paneItem instanceof TextEditor
-                        self.registerEvents paneItem
+                        @registerEvents paneItem
 
         @selectView = new GotoSelectView
 
@@ -76,40 +75,39 @@ class AbstractGoto
             textEditorElement = atom.views.getView(editor)
             scrollViewElement = @$(textEditorElement.shadowRoot).find('.scroll-view')
 
-            self = @
-            @subAtom.add scrollViewElement, 'mousemove', self.hoverEventSelectors, (event) =>
+            @subAtom.add scrollViewElement, 'mousemove', @hoverEventSelectors, (event) =>
                 if event.altKey == false
                     return
                 selector = @getSelector(event)
                 if selector == null
                     return
-                self.$(selector).css('border-bottom', '1px solid ' + self.$(selector).css('color'))
-                self.$(selector).css('cursor', 'pointer')
-                self.isHovering = true
-            @subAtom.add scrollViewElement, 'mouseout', self.hoverEventSelectors, (event) =>
+                @$(selector).css('border-bottom', '1px solid ' + @$(selector).css('color'))
+                @$(selector).css('cursor', 'pointer')
+                @isHovering = true
+            @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
                 selector = @getSelector(event)
                 if selector == null
                     return
-                self.$(selector).css('border-bottom', '')
-                self.$(selector).css('cursor', '')
+                @$(selector).css('border-bottom', '')
+                @$(selector).css('cursor', '')
                 self.isHovering = false
-            @subAtom.add scrollViewElement, 'click', self.clickEventSelectors, (event) =>
+            @subAtom.add scrollViewElement, 'click', @clickEventSelectors, (event) =>
                 selector = @getSelector(event)
                 if selector == null || event.altKey == false
                     return
                 if event.handled != true
-                    @gotoFromWord(editor, self.$(selector).text())
+                    @gotoFromWord(editor, @$(selector).text())
                     event.handled = true
-            editor.onDidChangeCursorPosition (event) ->
-                if self.isHovering == false
+            editor.onDidChangeCursorPosition (event) =>
+                if @isHovering == false
                     return
                 markerProperties =
                     containsBufferPosition: event.newBufferPosition
                 markers = event.cursor.editor.findMarkers markerProperties
                 for key,marker of markers
-                    for allKey,allMarker of self.allMarkers[editor.getLongTitle()]
+                    for allKey,allMarker of @allMarkers[editor.getLongTitle()]
                         if marker.id == allMarker.id
-                            self.gotoFromWord(event.cursor.editor, marker.getProperties().term)
+                            @gotoFromWord(event.cursor.editor, marker.getProperties().term)
                             break
 
     ###*
