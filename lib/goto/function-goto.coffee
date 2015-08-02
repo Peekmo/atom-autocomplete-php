@@ -8,6 +8,11 @@ class GotoFunction extends AbstractGoto
     clickEventSelectors: '.function-call'
     gotoRegex: /^\$?\w+((->|::)\w+)+/
 
+    ###*
+     * Initialisation of Gotos
+     * @param  {GotoManager} manager The manager that stores this goto.
+     *                               Used mainly for backtrack registering.
+    ###
     init: (manager) ->
         super(manager)
         @jumpToFunctionOnLoad = ''

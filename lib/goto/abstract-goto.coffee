@@ -14,6 +14,11 @@ class AbstractGoto
     manager: {}
     gotoRegex: ''
 
+    ###*
+     * Initialisation of Gotos
+     * @param  {GotoManager} manager The manager that stores this goto. 
+     *                               Used mainly for backtrack registering.
+    ###
     init: (manager) ->
         @subAtom = new SubAtom
         @$ = require 'jquery'
