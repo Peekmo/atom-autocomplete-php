@@ -1,6 +1,7 @@
 GotoClass = require './class-goto.coffee'
 GotoFunction = require './function-goto.coffee'
 {TextEditor} = require 'atom'
+parser = require '../services/php-file-parser.coffee'
 
 module.exports =
 class GotoManager
@@ -15,6 +16,9 @@ class GotoManager
 
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto-backtrack': =>
             @backTrack(atom.workspace.getActivePaneItem())
+
+        atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto': =>
+            @goto(atom.workspace.getActivePaneItem())
 
     deactivate: () ->
         for goto in @gotos
@@ -45,3 +49,10 @@ class GotoManager
                 initialLine: lastTrace.position[0]
                 initialColumn: lastTrace.position[1]
             })
+
+    goto: (editor) ->
+        fullTerm = parser.getFullWordFromBufferPosition(editor, editor.getCursorBufferPosition())
+        for goto in @gotos
+            if goto.canGoto(fullTerm)
+                goto.gotoFromEditor(editor)
+                break

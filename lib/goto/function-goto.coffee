@@ -6,12 +6,13 @@ class GotoFunction extends AbstractGoto
 
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
+    gotoRegex: /^\$?\w+((->|::)\w+)+/
 
     init: (manager) ->
         super(manager)
         @jumpToFunctionOnLoad = ''
         atom.workspace.onDidChangeActivePaneItem (paneItem) =>
-            if paneItem instanceof TextEditor && self.jumpToFunctionOnLoad != ''
+            if paneItem instanceof TextEditor && @jumpToFunctionOnLoad != ''
                 @jumpToFunction(paneItem, @jumpToFunctionOnLoad)
                 @jumpToFunctionOnLoad = ''
 
@@ -25,18 +26,20 @@ class GotoFunction extends AbstractGoto
         bufferPosition = editor.getCursorBufferPosition()
         fullCall = @parser.getFullWordFromBufferPosition(editor, bufferPosition)
         calledClass = ''
-
+        splitter = '->'
         if fullCall.indexOf('->') != -1
             calledClass = @parser.parseElements(editor, bufferPosition, fullCall.split('->'))
         else
             parts = fullCall.split('::')
+            splitter = '::'
             if parts[0] == 'parent'
                 calledClass = @parser.getParentClass(editor)
             else
                 calledClass = @parser.findUseForClass(editor, parts[0])
 
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
-
+        termParts = term.split(splitter)
+        term = termParts.pop()
         if currentClass == calledClass && @jumpToFunction(editor, term)
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return

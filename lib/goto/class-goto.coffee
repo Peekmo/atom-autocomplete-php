@@ -5,22 +5,7 @@ class GotoClass extends AbstractGoto
 
     hoverEventSelectors: '.entity.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
     clickEventSelectors: '.entity.inherited-class, .support.namespace, .support.class'
-
-    init: (manager) ->
-        super(manager)
-        atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto': =>
-            @gotoFromEditor(atom.workspace.getActivePaneItem())
-
-
-    ###*
-     * Goto the class the cursor is on
-     * @param TextEditor editor TextEditor to pull term from.
-    ###
-    gotoFromEditor: (editor) ->
-        if editor.getGrammar().scopeName.match /text.html.php$/
-            position = editor.getCursorBufferPosition()
-            term = @parser.getFullWordFromBufferPosition(editor, position)
-            @gotoFromWord(editor, term)
+    gotoRegex: /^\\?[A-Z][A-za-z0-9]*(\\[A-Z][A-Za-z0-9])*$/
 
     ###*
      * Goto the class from the term given.

@@ -12,6 +12,7 @@ class AbstractGoto
     hoverEventSelectors: ''
     clickEventSelectors: ''
     manager: {}
+    gotoRegex: ''
 
     init: (manager) ->
         @subAtom = new SubAtom
@@ -57,6 +58,10 @@ class AbstractGoto
      * @param TextEditor editor TextEditor to pull term from.
     ###
     gotoFromEditor: (editor) ->
+        if editor.getGrammar().scopeName.match /text.html.php$/
+            position = editor.getCursorBufferPosition()
+            term = @parser.getFullWordFromBufferPosition(editor, position)
+            @gotoFromWord(editor, term)
 
     ###*
      * Goto from the term given.
@@ -90,7 +95,7 @@ class AbstractGoto
                     return
                 @$(selector).css('border-bottom', '')
                 @$(selector).css('cursor', '')
-                self.isHovering = false
+                @isHovering = false
             @subAtom.add scrollViewElement, 'click', @clickEventSelectors, (event) =>
                 selector = @getSelector(event)
                 if selector == null || event.altKey == false
@@ -123,3 +128,11 @@ class AbstractGoto
     ###
     getSelector: (event) ->
         return event.currentTarget
+
+    ###*
+     * Returns whether this goto is able to jump using the term.
+     * @param  {string} term Term to check.
+     * @return {boolean}     Whether a jump is possible.
+    ###
+    canGoto: (term) ->
+        return term.match(@gotoRegex)?.length > 0
