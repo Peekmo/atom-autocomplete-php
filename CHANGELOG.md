@@ -1,3 +1,7 @@
+## 0.6.0
+* Goto command on first level of methods, and classes (#42 by @CWDN)
+* Fix namespace on the same line as PHP tag
+
 ## 0.5.0
 * Support for Windows
 
