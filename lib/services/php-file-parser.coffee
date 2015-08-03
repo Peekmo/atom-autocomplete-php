@@ -32,12 +32,12 @@ module.exports =
       # a class (see on top of the file)
       if name == ''
         for classDeclaration in classDeclarations
-          if line.indexOf(classDeclaration) == 0
+          if line.toLowerCase().indexOf(classDeclaration) == 0
             line = line.substring(classDeclaration.length, line.length).trim()
 
             name = line.split(' ')[0]
       else
-        if line.indexOf(namespaceDeclaration) != -1
+        if line.toLowerCase().indexOf(namespaceDeclaration) != -1
           line = line.replace('<?php', '').trim()
           line = line.substring(namespaceDeclaration.length, line.length).trim()
 
