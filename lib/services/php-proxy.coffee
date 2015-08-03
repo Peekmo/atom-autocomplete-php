@@ -1,4 +1,5 @@
 exec = require "child_process"
+process = require "process"
 config = require "../config.coffee"
 md5 = require 'MD5'
 fs = require 'fs'
@@ -9,6 +10,8 @@ data =
   autocomplete: [],
   parent: [],
   composer: null
+
+currentProcesses = []
 
 ###*
  * Executes a command to PHP proxy
@@ -23,8 +26,14 @@ execute = (command, async) ->
         c.replace(/\\/g, '\\\\')
 
       try
-        stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php", directory.path].concat(command)).output[1].toString('ascii')
-        res = JSON.parse(stdout)
+        # avoid multiple processes of the same command
+        if not currentProcesses[command]?
+          currentProcesses[command] = true
+
+          stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php",  directory.path].concat(command)).output[1].toString('ascii')
+
+          delete currentProcesses[command]
+          res = JSON.parse(stdout)
       catch err
         console.log err
         res =
@@ -40,11 +49,13 @@ execute = (command, async) ->
     else
       command.replace(/\\/g, '\\\\')
 
-      console.log 'Building index'
-      exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " + command, (error, stdout, stderr) ->
-        console.log 'Build done'
-        return []
-      )
+      if not currentProcesses[command]?
+        console.log 'Building index'
+        currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) ->
+          delete currentProcesses[command]
+          console.log 'Build done'
+          return []
+        )
 
 ###*
  * Reads an index by its name (file in indexes/index.[name].json)
@@ -105,6 +116,7 @@ module.exports =
     data =
       error: false,
       statics: [],
+      autocomplete: [],
       methods: [],
       parent: [],
       composer: null
@@ -176,8 +188,13 @@ module.exports =
    * @return {array}
   ###
   autocomplete: (className, name) ->
-    res = execute(["--autocomplete", className, name], false)
-    return res
+    cacheKey = className + "." + name
+
+    if not data.autocomplete[cacheKey]?
+      res = execute(["--autocomplete", className, name], false)
+      data.autocomplete[cacheKey] = res
+
+    return data.autocomplete[cacheKey]
 
   autoloadClassMap: () ->
       res = execute("--autoloadClassMap", false)
