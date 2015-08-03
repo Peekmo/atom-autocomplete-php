@@ -29,13 +29,13 @@ class GotoFunction extends AbstractGoto
     gotoFromWord: (editor, term) ->
         proxy = require '../services/php-proxy.coffee'
         bufferPosition = editor.getCursorBufferPosition()
-        fullCall = @parser.getFullWordFromBufferPosition(editor, bufferPosition)
+        fullCall = @parser.getStackClasses(editor, bufferPosition)
         calledClass = ''
         splitter = '->'
-        if fullCall.indexOf('->') != -1
-            calledClass = @parser.parseElements(editor, bufferPosition, fullCall.split('->'))
+        if fullCall.length > 1
+            calledClass = @parser.parseElements(editor, bufferPosition, fullCall)
         else
-            parts = fullCall.split('::')
+            parts = fullCall[0].trim().split('::')
             splitter = '::'
             if parts[0] == 'parent'
                 calledClass = @parser.getParentClass(editor)
