@@ -246,8 +246,9 @@ module.exports =
   ###
   parseStackClass: (text) ->
     # Remove parenthesis content
-    regx = /\((?:[^\])\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
-    text = text.replace regx, ""
+    regx = /\((?:[^)\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
+    text = text.replace regx, (match) =>
+        return '()'
 
     # Get the full text
     return [] if not text
