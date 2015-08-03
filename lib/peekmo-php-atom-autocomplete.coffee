@@ -6,6 +6,8 @@ AutocompleteProvider = require "./providers/autocomplete-provider.coffee"
 ParentProvider = require "./providers/parent-provider.coffee"
 SelfProvider = require "./providers/self-provider.coffee"
 
+GotoManager = require "./goto/goto-manager.coffee"
+
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
 
@@ -47,11 +49,14 @@ module.exports =
 
   activate: ->
     @registerProviders()
+    @gotoManager = new GotoManager()
+    @gotoManager.init()
     config.init()
     proxy.init()
 
   deactivate: ->
     @providers = []
+    @gotoManager.deactivate()
 
   registerProviders: ->
     @providers.push new VariableProvider()

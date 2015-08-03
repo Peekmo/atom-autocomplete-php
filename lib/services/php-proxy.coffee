@@ -179,6 +179,9 @@ module.exports =
     res = execute(["--autocomplete", className, name], false)
     return res
 
+  autoloadClassMap: () ->
+      res = execute("--autoloadClassMap", false)
+      return res
   ###*
    * Returns params from the documentation of the given function
    *

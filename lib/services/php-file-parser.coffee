@@ -28,7 +28,6 @@ module.exports =
     # for each row
     while row != -1
       line = rows[row].trim()
-
       # Looking for a line starting with one of the allowed php declaration of
       # a class (see on top of the file)
       if name == ''
@@ -38,7 +37,8 @@ module.exports =
 
             name = line.split(' ')[0]
       else
-        if line.indexOf(namespaceDeclaration) == 0
+        if line.indexOf(namespaceDeclaration) != -1
+          line = line.replace('<?php', '').trim()
           line = line.substring(namespaceDeclaration.length, line.length).trim()
 
           namespaceEnd = line.indexOf(';')
@@ -385,4 +385,87 @@ module.exports =
     if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
       return className
 
+    return null
+
+  ###*
+   * Gets the full words from the buffer position given.
+   * E.g. Getting a class with its namespace.
+   * @param  {TextEditor}     editor   TextEditor to search.
+   * @param  {BufferPosition} position BufferPosition to start searching from.
+   * @return {string}  Returns a string of the class.
+  ###
+  getFullWordFromBufferPosition: (editor, position) ->
+    foundStart = false
+    foundEnd = false
+    startBufferPosition = []
+    endBufferPosition = []
+    regex = /\(|\s|\)|;|'|,|"|\|/
+    index = -1
+    previousText = ''
+
+    loop
+      index++
+      startBufferPosition = [position.row, position.column - index - 1]
+      range = [[position.row, position.column], [startBufferPosition[0], startBufferPosition[1]]]
+      currentText = editor.getTextInBufferRange(range)
+      if regex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
+          foundStart = true
+      previousText = editor.getTextInBufferRange(range)
+      break if foundStart
+    index = -1
+    loop
+      index++
+      endBufferPosition = [position.row, position.column + index + 1]
+      range = [[position.row, position.column], [endBufferPosition[0], endBufferPosition[1]]]
+      currentText = editor.getTextInBufferRange(range)
+      if regex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
+          foundEnd = true
+      previousText = editor.getTextInBufferRange(range)
+      break if foundEnd
+
+    startBufferPosition[1] += 1
+    endBufferPosition[1] -= 1
+    return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
+
+  ###*
+   * Gets the parent class of the current class opened in the editor
+   * @param  {TextEditor} editor Editor with the class in.
+   * @return {string}            The namespace and class of the parent
+  ###
+  getParentClass: (editor) ->
+    text = editor.getText()
+
+    lines = text.split('\n')
+    for line in lines
+      line = line.trim()
+
+      # If we found extends keyword, return the class
+      if line.indexOf('extends ') != -1
+        words = line.split(' ')
+        extendsIndex = words.indexOf('extends')
+        return @findUseForClass(editor, words[extendsIndex + 1])
+
+  ###*
+   * Finds the buffer position of the function name given
+   * @param  {TextEditor} editor TextEditor to search
+   * @param  {string}     term   The function name to search for
+   * @return {mixed}             Either null or the buffer position of the function.
+  ###
+  findBufferPositionOfFunction: (editor, term) ->
+    text = editor.getText()
+    row = 0
+    lines = text.split('\n')
+    for line in lines
+      regex = ///function\ +#{term}(\ +|\()///i
+      if regex.test(line)
+        words = line.split(' ')
+        functionIndex = 0
+        for element in words
+            if element.indexOf(term) != -1
+                break
+            functionIndex++;
+
+        reducedWords = words.slice(0, functionIndex).join(' ')
+        return [row, reducedWords.length + 1]
+      row += 1
     return null
