@@ -6,7 +6,7 @@ class GotoFunction extends AbstractGoto
 
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
-    gotoRegex: /^\$?\w+((->|::)\w+)+/
+    gotoRegex: /^(\$\w+)?((->|::)\w+)+/
 
     ###*
      * Initialisation of Gotos
