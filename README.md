@@ -12,6 +12,7 @@ This plugin provide those amazing features :
 - Writing namespace in top of the file (ctrl - alt - n)
 - Autocompletion on PHP internal functions
 - Autocompletion on ```self::``` and ```Class::``` (statics)
+- Goto with ```ctrl-alt-g``` on the method. Get back with ```ctrl-shift-z```. ```alt-click``` should work on Linux at least
 
 # How to make it works ?
 
