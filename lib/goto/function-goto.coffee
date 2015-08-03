@@ -52,7 +52,16 @@ class GotoFunction extends AbstractGoto
         methods = proxy.methods(calledClass)
         if methods.names.indexOf(term) == -1
             return
-        parentClass = methods.values[term].declaringClass;
+        value = methods.values[term]
+        parentClass = ''
+        if value instanceof Array
+            for val in value
+                if val.isMethod
+                    parentClass = val.declaringClass
+                    break
+        else
+            parentClass = value.declaringClass;
+
         classMap = proxy.autoloadClassMap()
 
         atom.workspace.open(classMap[parentClass], {
