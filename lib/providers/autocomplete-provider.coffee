@@ -58,6 +58,12 @@ class AutocompleteProvider extends AbstractProvider
 
     return suggestions
 
+  ###*
+   * Adds the suggestion the the suggestions array.
+   * @param {string} word        The word being currently typed.
+   * @param {object} element     The object returns from proxy.methods.
+   * @param {array} suggestions  An array of suggestions for the current word.
+  ###
   addSuggestion: (word, element, suggestions) ->
     returnValues = element.args.return.split('\\')
 
