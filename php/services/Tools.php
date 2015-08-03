@@ -121,14 +121,14 @@ abstract class Tools
         foreach ($attributes as $attribute) {
             if (!in_array($attribute->getName(), $data['names'])) {
                 $data['names'][] = $attribute->getName();
-                $data['values'][$attribute->getName()] = array();
+                $data['values'][$attribute->getName()] = null;
             }
 
             $parser = new DocParser();
             $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
             $descriptions = $parser->get($className, 'property', $attribute->getName(), array(DocParser::DESCRIPTION));
 
-            $data['values'][$attribute->getName()] = array(
+            $attributesValues = array(
                 'isMethod' => false,
                 'isPublic' => $attribute->isPublic(),
                 'args'     => array(
@@ -136,6 +136,15 @@ abstract class Tools
                     'descriptions' => $descriptions['descriptions']
                 )
             );
+
+            if (is_array($data['values'][$attribute->getName()])) {
+                $attributesValues = [
+                    $attributesValues,
+                    $data['values'][$attribute->getName()]
+                ];
+            }
+
+            $data['values'][$attribute->getName()] = $attributesValues;
         }
 
         return $data;
