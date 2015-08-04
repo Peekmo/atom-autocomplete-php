@@ -50,24 +50,38 @@ class AutocompleteProvider extends AbstractProvider
     suggestions = []
     for word in words
       element = @methods.values[word]
-
-      returnValues = element.args.return.split('\\')
-
-      # Methods
-      if element.isMethod
-        suggestions.push
-          text: word,
-          type: 'method',
-          snippet: @getFunctionSnippet(word, element.args),
-          leftLabel: returnValues[returnValues.length - 1]
-          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
-
-      # Constants and public properties
+      if element instanceof Array
+        for ele in element
+          suggestions = @addSuggestion(word, ele, suggestions)
       else
-        suggestions.push
-          text: word,
-          type: 'property'
-          leftLabel: returnValues[returnValues.length - 1]
-          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
+        suggestions = @addSuggestion(word, element, suggestions)
+
+    return suggestions
+
+  ###*
+   * Adds the suggestion the the suggestions array.
+   * @param {string} word        The word being currently typed.
+   * @param {object} element     The object returns from proxy.methods.
+   * @param {array} suggestions  An array of suggestions for the current word.
+  ###
+  addSuggestion: (word, element, suggestions) ->
+    returnValues = element.args.return.split('\\')
+
+    # Methods
+    if element.isMethod
+      suggestions.push
+        text: word,
+        type: 'method',
+        snippet: @getFunctionSnippet(word, element.args),
+        leftLabel: returnValues[returnValues.length - 1]
+        description: if element.args.descriptions.short? then element.args.descriptions.short else ''
+
+    # Constants and public properties
+    else
+      suggestions.push
+        text: word,
+        type: 'property'
+        leftLabel: returnValues[returnValues.length - 1]
+        description: if element.args.descriptions.short? then element.args.descriptions.short else ''
 
     return suggestions

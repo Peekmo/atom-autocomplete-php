@@ -6,7 +6,7 @@ class GotoFunction extends AbstractGoto
 
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
-    gotoRegex: /^\$?\w+((->|::)\w+)+/
+    gotoRegex: /^(\$\w+)?((->|::)\w+)+/
 
     ###*
      * Initialisation of Gotos
@@ -29,13 +29,13 @@ class GotoFunction extends AbstractGoto
     gotoFromWord: (editor, term) ->
         proxy = require '../services/php-proxy.coffee'
         bufferPosition = editor.getCursorBufferPosition()
-        fullCall = @parser.getFullWordFromBufferPosition(editor, bufferPosition)
+        fullCall = @parser.getStackClasses(editor, bufferPosition)
         calledClass = ''
         splitter = '->'
-        if fullCall.indexOf('->') != -1
-            calledClass = @parser.parseElements(editor, bufferPosition, fullCall.split('->'))
+        if fullCall.length > 1
+            calledClass = @parser.parseElements(editor, bufferPosition, fullCall)
         else
-            parts = fullCall.split('::')
+            parts = fullCall[0].trim().split('::')
             splitter = '::'
             if parts[0] == 'parent'
                 calledClass = @parser.getParentClass(editor)
@@ -52,7 +52,16 @@ class GotoFunction extends AbstractGoto
         methods = proxy.methods(calledClass)
         if methods.names.indexOf(term) == -1
             return
-        parentClass = methods.values[term].declaringClass;
+        value = methods.values[term]
+        parentClass = ''
+        if value instanceof Array
+            for val in value
+                if val.isMethod
+                    parentClass = val.declaringClass
+                    break
+        else
+            parentClass = value.declaringClass;
+
         classMap = proxy.autoloadClassMap()
 
         atom.workspace.open(classMap[parentClass], {
