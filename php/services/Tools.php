@@ -138,10 +138,10 @@ abstract class Tools
             );
 
             if (is_array($data['values'][$attribute->getName()])) {
-                $attributesValues = [
+                $attributesValues = array(
                     $attributesValues,
                     $data['values'][$attribute->getName()]
-                ];
+                );
             }
 
             $data['values'][$attribute->getName()] = $attributesValues;
