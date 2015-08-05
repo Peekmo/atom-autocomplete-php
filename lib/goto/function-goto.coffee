@@ -30,6 +30,10 @@ class GotoFunction extends AbstractGoto
         proxy = require '../services/php-proxy.coffee'
         bufferPosition = editor.getCursorBufferPosition()
         fullCall = @parser.getStackClasses(editor, bufferPosition)
+
+        if fullCall.length == 0 or !term
+          return
+
         calledClass = ''
         splitter = '->'
         if fullCall.length > 1
