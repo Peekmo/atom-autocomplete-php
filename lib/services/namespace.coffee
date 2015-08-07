@@ -13,6 +13,9 @@ module.exports =
     composer    = proxy.composer()
     autoloaders = []
 
+    if not composer
+      return
+
     # Get elements from composer.json
     for psr, autoload of composer.autoload
         for namespace, src of autoload
