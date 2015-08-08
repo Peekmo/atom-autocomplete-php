@@ -19,6 +19,9 @@ module.exports =
     # Get elements from composer.json
     for psr, autoload of composer.autoload
         for namespace, src of autoload
+            if namespace.endsWith("\\")
+              namespace = namespace.substr(0, namespace.length-1)
+              
             autoloaders[src] = namespace
 
     # Get the current path of the file
