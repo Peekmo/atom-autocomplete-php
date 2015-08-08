@@ -39,14 +39,30 @@ class GotoClass extends AbstractGoto
                 searchAllPanes: true
             })
         else
+            # if we found a file that end with the exact namespace given, we store it
+            bestMatch    = null
+            useBestMatch = true
+
             for key,value of matches
+                if value.endsWith(term)
+                  if bestMatch == null # if we don't have a previous match
+                    bestMatch = classMap[value]
+                  else # if we have a previous match, the name is not unique, so don't use it
+                    useBestMatch = false
+
                 listViewArray.push({
                     item: value,
                     file: classMap[value]
                 })
 
-            @selectView.setItems(listViewArray)
-            @selectView.show()
+            # if we found a unique match
+            if bestMatch and useBestMatch
+              atom.workspace.open(bestMatch, {
+                  searchAllPanes: true
+              })
+            else
+              @selectView.setItems(listViewArray)
+              @selectView.show()
 
     ###*
      * Gets the correct selector when a class or namespace is clicked.
