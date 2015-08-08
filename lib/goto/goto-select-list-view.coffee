@@ -30,12 +30,14 @@ class GotoSelectListView extends SelectListView
   * Hides the list view.
  ###
  cancelled: ->
+   @previouslyFocusedElement.focus()
    @panel.hide()
 
  ###*
   * Shows the list view.
  ###
  show: ->
+   @storeFocusedElement()
    @panel ?= atom.workspace.addModalPanel(item: this)
    @panel.show()
    @keyBindings = atom.keymaps.findKeyBindings(target: atom.views.getView(atom.workspace))
