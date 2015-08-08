@@ -16,7 +16,7 @@ class AbstractGoto
 
     ###*
      * Initialisation of Gotos
-     * @param  {GotoManager} manager The manager that stores this goto. 
+     * @param  {GotoManager} manager The manager that stores this goto.
      *                               Used mainly for backtrack registering.
     ###
     init: (manager) ->
@@ -109,6 +109,8 @@ class AbstractGoto
                     @gotoFromWord(editor, @$(selector).text())
                     event.handled = true
             editor.onDidChangeCursorPosition (event) =>
+                return # Temporary
+
                 if @isHovering == false
                     return
                 markerProperties =

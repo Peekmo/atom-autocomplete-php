@@ -3,9 +3,9 @@ AbstractGoto = require './abstract-goto'
 module.exports =
 class GotoClass extends AbstractGoto
 
-    hoverEventSelectors: '.entity.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
-    clickEventSelectors: '.entity.inherited-class, .support.namespace, .support.class'
-    gotoRegex: /^\\?[A-Z][A-za-z0-9]*(\\[A-Z][A-Za-z0-9])*$/
+    hoverEventSelectors: '.meta.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
+    clickEventSelectors: '.meta.inherited-class, .support.namespace, .support.class'
+    gotoRegex: /^\\?[A-Z][A-za-z0-9_]*(\\[A-Z][A-Za-z0-9_])*$/
 
     ###*
      * Goto the class from the term given.

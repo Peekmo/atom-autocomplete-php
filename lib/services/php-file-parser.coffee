@@ -75,6 +75,14 @@ module.exports =
    * @return string
   ###
   findUseForClass: (editor, className) ->
+    # remove first "\" if any
+    if className.indexOf("\\") == 0
+      className = className.substr(1)
+
+    # fix #51
+    classNameElements = className.split("\\")
+    className = classNameElements.shift()
+
     text = editor.getText()
 
     lines = text.split('\n')
@@ -83,7 +91,7 @@ module.exports =
 
       # If we found class keyword, we are not in namespace space, so return the className
       if line.indexOf('class ') != -1
-        return if className.indexOf("\\") != 0 then className else className.substr(1)
+        break
 
       # Use keyword
       if line.indexOf('use') == 0
@@ -94,13 +102,18 @@ module.exports =
         if matches[1]? and not matches[2]?
           splits = matches[1].split('\\')
           if splits[splits.length-1] == className
-            return matches[1]
+            className = matches[1]
+            break
 
         # use aliases
         else if matches[1]? and matches[2]? and matches[2] == className
-          return matches[1]
+          className = matches[1]
+          break
 
-    return if className.indexOf("\\") != 0 then className else className.substr(1)
+    if classNameElements.length > 0
+      return className + "\\" + classNameElements.join("\\")
+    else
+      return className
 
   ###*
    * Add the use for the given class if not already added
@@ -318,7 +331,7 @@ module.exports =
           return @findUseForClass(editor, matches[1])
 
       if chain.indexOf("function") != -1
-        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\s\\_]*\\#{element}).)*[,\\s]?([a-zA-Z\\_]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
+        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
         matches = regexFunction.exec(line)
 
         if null == matches
