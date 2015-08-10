@@ -109,7 +109,7 @@ class AbstractGoto
                     @gotoFromWord(editor, @$(selector).text())
                     event.handled = true
             editor.onDidChangeCursorPosition (event) =>
-                return # Temporary
+                # return # Temporary
 
                 if @isHovering == false
                     return
