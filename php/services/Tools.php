@@ -131,6 +131,7 @@ abstract class Tools
             $attributesValues = array(
                 'isMethod' => false,
                 'isPublic' => $attribute->isPublic(),
+                'declaringClass' => $attribute->class,
                 'args'     => array(
                     'return' => !empty($return) ? $return['var'] : '',
                     'descriptions' => $descriptions['descriptions']
