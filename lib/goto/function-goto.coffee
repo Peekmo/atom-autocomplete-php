@@ -6,7 +6,7 @@ class GotoFunction extends AbstractGoto
 
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
-    gotoRegex: /^(\$\w+)?((->|::)\w+)+/
+    gotoRegex: /^(\$\w+)?((->|::)\w+\()+/
 
     ###*
      * Initialisation of Gotos
@@ -48,7 +48,7 @@ class GotoFunction extends AbstractGoto
 
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
         termParts = term.split(splitter)
-        term = termParts.pop()
+        term = termParts.pop().replace('(', '')
         if currentClass == calledClass && @jumpToFunction(editor, term)
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
