@@ -413,7 +413,8 @@ module.exports =
     foundEnd = false
     startBufferPosition = []
     endBufferPosition = []
-    regex = /\(|\s|\)|;|'|,|"|\|/
+    forwardRegex = /-|(?:\()[\w\[\$\(\\]|\s|\)|;|'|,|"|\|/
+    backwardRegex = /\(|\s|\)|;|'|,|"|\|/
     index = -1
     previousText = ''
 
@@ -422,7 +423,7 @@ module.exports =
       startBufferPosition = [position.row, position.column - index - 1]
       range = [[position.row, position.column], [startBufferPosition[0], startBufferPosition[1]]]
       currentText = editor.getTextInBufferRange(range)
-      if regex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
+      if backwardRegex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
           foundStart = true
       previousText = editor.getTextInBufferRange(range)
       break if foundStart
@@ -432,7 +433,7 @@ module.exports =
       endBufferPosition = [position.row, position.column + index + 1]
       range = [[position.row, position.column], [endBufferPosition[0], endBufferPosition[1]]]
       currentText = editor.getTextInBufferRange(range)
-      if regex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
+      if forwardRegex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
           foundEnd = true
       previousText = editor.getTextInBufferRange(range)
       break if foundEnd
