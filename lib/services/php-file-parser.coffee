@@ -484,3 +484,28 @@ module.exports =
         return [row, reducedWords.length + 1]
       row += 1
     return null
+
+  ###*
+   * Finds the buffer position of the property name given
+   * @param  {TextEditor} editor TextEditor to search
+   * @param  {string}     term   The function name to search for
+   * @return {mixed}             Either null or the buffer position of the function.
+  ###
+  findBufferPositionOfProperty: (editor, term) ->
+    text = editor.getText()
+    row = 0
+    lines = text.split('\n')
+    for line in lines
+      regex = ///(protected|public|private|static)\ +\$#{term}///i
+      if regex.test(line)
+        words = line.split(' ')
+        propertyIndex = 0
+        for element in words
+            if element.indexOf('$' + term) != -1
+                break
+            propertyIndex++;
+
+        reducedWords = words.slice(0, propertyIndex).join(' ')
+        return [row, reducedWords.length + 1]
+      row += 1
+    return null
