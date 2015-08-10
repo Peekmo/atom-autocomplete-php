@@ -3,8 +3,8 @@ AbstractGoto = require './abstract-goto'
 module.exports =
 class GotoClass extends AbstractGoto
 
-    hoverEventSelectors: '.meta.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
-    clickEventSelectors: '.meta.inherited-class, .support.namespace, .support.class'
+    hoverEventSelectors: '.entity.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
+    clickEventSelectors: '.entity.inherited-class, .support.namespace, .support.class'
     gotoRegex: /^\\?[A-Z][A-za-z0-9_]*(\\[A-Z][A-Za-z0-9_])*$/
 
     ###*
@@ -42,6 +42,15 @@ class GotoClass extends AbstractGoto
             # if we found a file that end with the exact namespace given, we store it
             bestMatch    = null
             useBestMatch = true
+            currentClass = @parser.getCurrentClass(editor, editor.getCursorBufferPosition())
+
+            withCurrentNamespace = currentClass.replace(/(\w+)$/, term);
+            if matches.indexOf(withCurrentNamespace) != -1
+                atom.workspace.open(classMap[withCurrentNamespace], {
+                    searchAllPanes: true
+                })
+                return
+
 
             for key,value of matches
                 if value.endsWith(term)
@@ -79,6 +88,9 @@ class GotoClass extends AbstractGoto
            @$(selector).prev().hasClass('namespace') && @$(selector).hasClass('class') ||
            @$(selector).next().hasClass('class')
             return @$(selector).parent().children('.namespace, .class:not(.operator):not(.constant)')
+
+        if @$(selector).prev().hasClass('namespace') || @$(selector).next().hasClass('inherited-class')
+            return @$(selector).parent().children('.namespace, .inherited-class')
 
         return selector
 
