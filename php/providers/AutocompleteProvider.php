@@ -12,7 +12,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         $class = $args[0];
         $name  = $args[1];
         $isMethod = false;
-        if (strpos($class, '\\') == 0) {
+        if (strpos($class, '\\') === 0) {
             $class = substr($class, 1);
         }
         if (strpos($name, '()') > -1) {
