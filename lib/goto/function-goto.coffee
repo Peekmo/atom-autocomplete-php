@@ -54,6 +54,12 @@ class GotoFunction extends AbstractGoto
             return
 
         methods = proxy.methods(calledClass)
+        if methods.error? and methods.error != ''
+            atom.notifications.addError('Failed to get methods for ' + calledClass, {
+                'detail': methods.error.message
+            })
+            return
+
         if methods.names.indexOf(term) == -1
             return
         value = methods.values[term]
