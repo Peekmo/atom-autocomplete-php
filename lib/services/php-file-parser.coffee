@@ -280,6 +280,8 @@ module.exports =
       element = element.replace /^\s+|\s+$/g, ""
       if element[0] == '{' or element[0] == '(' or element[0] == '['
         element = element.substring(1)
+      else if element.indexOf('return ') == 0
+        element = element.substring('return '.length)
 
       elements[key] = element
 
