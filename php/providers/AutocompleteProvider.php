@@ -41,7 +41,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         }
 
         $returnValue = $values['args']['return'];
-        if ($returnValue == '$this' || $returnValue == 'self') {
+        if ($returnValue == '$this' || $returnValue == 'self' || $returnValue == 'static') {
             return $data;
         } elseif (ucfirst($returnValue) === $returnValue) {
             $parser = new FileParser($classMap[$class]);
