@@ -226,6 +226,7 @@ module.exports =
     lineIdx = 0
     parenthesisOpened = 0
     parenthesisClosed = 0
+    squiggleBracketOpened = false
     idx = 0
     end = false
 
@@ -241,14 +242,20 @@ module.exports =
           parenthesisOpened += 1
         else if text[len - idx] == ")"
           parenthesisClosed += 1
-        else if text[len - idx] == "{" # If curly brace, we failed.
+        else if text[len - idx] == "}"
+          # Not going to do the semi,equals,{ check (else if below) as we are probably in a callback.
+          squiggleBracketOpened = true
+        else if text[len - idx] == "{" and squiggleBracketOpened
+          squiggleBracketOpened = false
+        # Checking we haven't hit a semi or equals. As parent calls won't have a $ to end on.
+        else if (text[len - (idx + 1)] == ";" or text[len - (idx + 1)] == "=" or text[len - (idx + 1)] == "{") and !squiggleBracketOpened
           end = true
         if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
           end = true
 
         idx += 1
 
-    text = text.substr(text.length - idx + 1, text.length)
+    text = text.substr(text.length - idx + 1, text.length).trim()
 
     return @parseStackClass(text)
 
