@@ -9,19 +9,6 @@ class GotoFunction extends AbstractGoto
     gotoRegex: /^(\$\w+)?((->|::)\w+\()+/
 
     ###*
-     * Initialisation of Gotos
-     * @param  {GotoManager} manager The manager that stores this goto.
-     *                               Used mainly for backtrack registering.
-    ###
-    init: (manager) ->
-        super(manager)
-        @jumpToFunctionOnLoad = ''
-        atom.workspace.onDidChangeActivePaneItem (paneItem) =>
-            if paneItem instanceof TextEditor && @jumpToFunctionOnLoad != ''
-                @jumpToFunction(paneItem, @jumpToFunctionOnLoad)
-                @jumpToFunctionOnLoad = ''
-
-    ###*
      * Goto the class from the term given.
      * @param  {TextEditor} editor  TextEditor to search for namespace of term.
      * @param  {string}     term    Term to search for.
@@ -49,7 +36,7 @@ class GotoFunction extends AbstractGoto
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
         termParts = term.split(splitter)
         term = termParts.pop().replace('(', '')
-        if currentClass == calledClass && @jumpToFunction(editor, term)
+        if currentClass == calledClass && @jumpTo(editor, term)
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
 
@@ -68,6 +55,7 @@ class GotoFunction extends AbstractGoto
             for val in value
                 if val.isMethod
                     parentClass = val.declaringClass
+                    value = val
                     break
         else
             parentClass = value.declaringClass;
@@ -78,27 +66,13 @@ class GotoFunction extends AbstractGoto
             searchAllPanes: true
         })
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
-        @jumpToFunctionOnLoad = term
+        @jumpWord = term
+        @jumpLine = value.startLine - 1
 
     ###*
-     * Jumps to the function within the editor
-     * @param  {TextEditor} editor The editor that has the function in.
-     * @param  {string} method     The function to find and then jump to.
-     * @return {boolean}           Whether the finding was successful.
+     * Gets the regex used when looking for a word within the editor
+     * @param  {string} term Term being search.
+     * @return {regex}       Regex to be used.
     ###
-    jumpToFunction: (editor, method) ->
-        bufferPosition = @parser.findBufferPositionOfFunction(editor, method)
-        if bufferPosition == null
-            return false
-
-        # Small delay to wait for when a editor is being created.
-        setTimeout(() ->
-            editor.setCursorBufferPosition(bufferPosition, {
-                autoscroll: false
-            })
-            # Separated these as the autoscroll on setCursorBufferPosition
-            # didn't work as well.
-            editor.scrollToScreenPosition(editor.screenPositionForBufferPosition(bufferPosition), {
-                center: true
-            })
-        , 100)
+    getJumpToRegex: (term) ->
+        return ///function\ +#{term}(\ +|\()///i

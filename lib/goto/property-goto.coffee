@@ -9,19 +9,6 @@ class GotoProperty extends AbstractGoto
     gotoRegex: /^(\$\w+)?((->|::)\w+)+/
 
     ###*
-     * Initialisation of Gotos
-     * @param  {GotoManager} manager The manager that stores this goto.
-     *                               Used mainly for backtrack registering.
-    ###
-    init: (manager) ->
-        super(manager)
-        @jumpToPropertyOnLoad = ''
-        atom.workspace.onDidChangeActivePaneItem (paneItem) =>
-            if paneItem instanceof TextEditor && @jumpToPropertyOnLoad != ''
-                @jumpToProperty(paneItem, @jumpToPropertyOnLoad)
-                @jumpToPropertyOnLoad = ''
-
-    ###*
      * Goto the property from the term given.
      * @param  {TextEditor} editor  TextEditor to search for namespace of term.
      * @param  {string}     term    Term to search for.
@@ -49,7 +36,7 @@ class GotoProperty extends AbstractGoto
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
         termParts = term.split(splitter)
         term = termParts.pop()
-        if currentClass == calledClass && @jumpToProperty(editor, term)
+        if currentClass == calledClass && @jumpTo(editor, term)
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
 
@@ -62,6 +49,7 @@ class GotoProperty extends AbstractGoto
             for val in value
                 if !val.isMethod
                     parentClass = val.declaringClass
+                    value = val
                     break
         else
             parentClass = value.declaringClass;
@@ -72,27 +60,12 @@ class GotoProperty extends AbstractGoto
             searchAllPanes: true
         })
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
-        @jumpToPropertyOnLoad = term
+        @jumpWord = term
 
     ###*
-     * Jumps to the property within the editor
-     * @param  {TextEditor} editor The editor that has the function in.
-     * @param  {string} method     The function to find and then jump to.
-     * @return {boolean}           Whether the finding was successful.
+     * Gets the regex used when looking for a word within the editor
+     * @param  {string} term Term being search.
+     * @return {regex}       Regex to be used.
     ###
-    jumpToProperty: (editor, property) ->
-        bufferPosition = @parser.findBufferPositionOfProperty(editor, property)
-        if bufferPosition == null
-            return false
-
-        # Small delay to wait for when a editor is being created.
-        setTimeout(() ->
-            editor.setCursorBufferPosition(bufferPosition, {
-                autoscroll: false
-            })
-            # Separated these as the autoscroll on setCursorBufferPosition
-            # didn't work as well.
-            editor.scrollToScreenPosition(editor.screenPositionForBufferPosition(bufferPosition), {
-                center: true
-            })
-        , 100)
+    getJumpToRegex: (term) ->
+        return ///(protected|public|private|static)\ +\$#{term}///i
