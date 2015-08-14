@@ -113,7 +113,8 @@ abstract class Tools
                 'isPublic'       => $method->isPublic(),
                 'isProtected'    => $method->isProtected(),
                 'args'           => $args,
-                'declaringClass' => $method->getDeclaringClass()->name
+                'declaringClass' => $method->getDeclaringClass()->name,
+                'startLine'      => $method->getStartLine()
             );
         }
 
