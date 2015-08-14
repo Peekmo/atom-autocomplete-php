@@ -13,6 +13,8 @@ class AbstractGoto
     clickEventSelectors: ''
     manager: {}
     gotoRegex: ''
+    jumpLine: null
+    jumpWord: ''
 
     ###*
      * Initialisation of Gotos
@@ -28,6 +30,12 @@ class AbstractGoto
         atom.workspace.observeTextEditors (editor) =>
             @registerMarkers editor
             @registerEvents editor
+
+        atom.workspace.onDidChangeActivePaneItem (paneItem) =>
+            if paneItem instanceof TextEditor && @jumpWord != '' && @jumpWord != undefined
+                @jumpTo(paneItem, @jumpWord, @jumpLine)
+                @jumpLine = null
+                @jumpWord = ''
 
         # When you go back to only have 1 pane the events are lost, so need
         # to re-register.
@@ -143,3 +151,33 @@ class AbstractGoto
     ###
     canGoto: (term) ->
         return term.match(@gotoRegex)?.length > 0
+
+    ###*
+     * Gets the regex used when looking for a word within the editor
+     * @param  {string} term Term being search.
+     * @return {regex}       Regex to be used.
+    ###
+    getJumpToRegex: (term) ->
+
+    ###*
+     * Jumps to a word within the editor
+     * @param  {TextEditor} editor The editor that has the function in.
+     * @param  {string} word       The word to find and then jump to.
+     * @return {boolean}           Whether the finding was successful.
+    ###
+    jumpTo: (editor, word, line) ->
+        bufferPosition = @parser.findBufferPositionOfWord(editor, word, @getJumpToRegex(word), line)
+        if bufferPosition == null
+            return false
+
+        # Small delay to wait for when a editor is being created.
+        setTimeout(() ->
+            editor.setCursorBufferPosition(bufferPosition, {
+                autoscroll: false
+            })
+            # Separated these as the autoscroll on setCursorBufferPosition
+            # didn't work as well.
+            editor.scrollToScreenPosition(editor.screenPositionForBufferPosition(bufferPosition), {
+                center: true
+            })
+        , 100)
