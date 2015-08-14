@@ -35,6 +35,7 @@ class GotoClass extends AbstractGoto
 
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
         if matches[0] == term || matches.length == 1
+            @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
             atom.workspace.open(classMap[matches[0]], {
                 searchAllPanes: true
             })
@@ -46,6 +47,7 @@ class GotoClass extends AbstractGoto
 
             withCurrentNamespace = currentClass.replace(/(\w+)$/, term);
             if matches.indexOf(withCurrentNamespace) != -1
+                @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
                 atom.workspace.open(classMap[withCurrentNamespace], {
                     searchAllPanes: true
                 })
@@ -66,9 +68,10 @@ class GotoClass extends AbstractGoto
 
             # if we found a unique match
             if bestMatch and useBestMatch
-              atom.workspace.open(bestMatch, {
+                @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
+                atom.workspace.open(bestMatch, {
                   searchAllPanes: true
-              })
+                })
             else
               @selectView.setItems(listViewArray)
               @selectView.show()
@@ -141,3 +144,11 @@ class GotoClass extends AbstractGoto
                 if shouldBreak == true
                     break
             currentIndex += value.length;
+
+    ###*
+     * Gets the regex used when looking for a word within the editor
+     * @param  {string} term Term being search.
+     * @return {regex}       Regex to be used.
+    ###
+    getJumpToRegex: (term) ->
+        return ///^(class|interface|abstract class|trait)\ +#{term}///i
