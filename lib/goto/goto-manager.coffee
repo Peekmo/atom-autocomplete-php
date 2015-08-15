@@ -1,5 +1,6 @@
 GotoClass = require './class-goto.coffee'
 GotoFunction = require './function-goto.coffee'
+GotoProperty = require './property-goto.coffee'
 {TextEditor} = require 'atom'
 parser = require '../services/php-file-parser.coffee'
 
@@ -14,6 +15,7 @@ class GotoManager
     init: () ->
         @gotos.push new GotoClass()
         @gotos.push new GotoFunction()
+        @gotos.push new GotoProperty()
         for goto in @gotos
             goto.init(@)
 

@@ -226,6 +226,7 @@ module.exports =
     lineIdx = 0
     parenthesisOpened = 0
     parenthesisClosed = 0
+    squiggleBracketOpened = false
     idx = 0
     end = false
 
@@ -241,14 +242,20 @@ module.exports =
           parenthesisOpened += 1
         else if text[len - idx] == ")"
           parenthesisClosed += 1
-        else if text[len - idx] == "{" # If curly brace, we failed.
+        else if text[len - idx] == "}"
+          # Not going to do the semi,equals,{ check (else if below) as we are probably in a callback.
+          squiggleBracketOpened = true
+        else if text[len - idx] == "{" and squiggleBracketOpened
+          squiggleBracketOpened = false
+        # Checking we haven't hit a semi or equals. As parent calls won't have a $ to end on.
+        else if (text[len - (idx + 1)] == ";" or text[len - (idx + 1)] == "=" or text[len - (idx + 1)] == "{") and !squiggleBracketOpened
           end = true
         if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
           end = true
 
         idx += 1
 
-    text = text.substr(text.length - idx + 1, text.length)
+    text = text.substr(text.length - idx + 1, text.length).trim()
 
     return @parseStackClass(text)
 
@@ -273,6 +280,8 @@ module.exports =
       element = element.replace /^\s+|\s+$/g, ""
       if element[0] == '{' or element[0] == '(' or element[0] == '['
         element = element.substring(1)
+      else if element.indexOf('return ') == 0
+        element = element.substring('return '.length)
 
       elements[key] = element
 
@@ -413,7 +422,8 @@ module.exports =
     foundEnd = false
     startBufferPosition = []
     endBufferPosition = []
-    regex = /\(|\s|\)|;|'|,|"|\|/
+    forwardRegex = /-|(?:\()[\w\[\$\(\\]|\s|\)|;|'|,|"|\|/
+    backwardRegex = /\(|\s|\)|;|'|,|"|\|/
     index = -1
     previousText = ''
 
@@ -422,7 +432,7 @@ module.exports =
       startBufferPosition = [position.row, position.column - index - 1]
       range = [[position.row, position.column], [startBufferPosition[0], startBufferPosition[1]]]
       currentText = editor.getTextInBufferRange(range)
-      if regex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
+      if backwardRegex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
           foundStart = true
       previousText = editor.getTextInBufferRange(range)
       break if foundStart
@@ -432,7 +442,7 @@ module.exports =
       endBufferPosition = [position.row, position.column + index + 1]
       range = [[position.row, position.column], [endBufferPosition[0], endBufferPosition[1]]]
       currentText = editor.getTextInBufferRange(range)
-      if regex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
+      if forwardRegex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
           foundEnd = true
       previousText = editor.getTextInBufferRange(range)
       break if foundEnd
@@ -460,26 +470,45 @@ module.exports =
         return @findUseForClass(editor, words[extendsIndex + 1])
 
   ###*
-   * Finds the buffer position of the function name given
+   * Finds the buffer position of the word given
    * @param  {TextEditor} editor TextEditor to search
    * @param  {string}     term   The function name to search for
    * @return {mixed}             Either null or the buffer position of the function.
   ###
-  findBufferPositionOfFunction: (editor, term) ->
-    text = editor.getText()
-    row = 0
-    lines = text.split('\n')
-    for line in lines
-      regex = ///function\ +#{term}(\ +|\()///i
-      if regex.test(line)
-        words = line.split(' ')
-        functionIndex = 0
-        for element in words
-            if element.indexOf(term) != -1
-                break
-            functionIndex++;
+  findBufferPositionOfWord: (editor, term, regex, line = null) ->
+    if line != null
+      lineText = editor.lineTextForBufferRow(line)
+      result = @checkLineForWord(lineText, term, regex)
+      if result != null
+        return [line, result]
+    else
+      text = editor.getText()
+      row = 0
+      lines = text.split('\n')
+      for line in lines
+        result = @checkLineForWord(line, term, regex)
+        if result != null
+          return [row, result]
+        row++
+    return null;
 
-        reducedWords = words.slice(0, functionIndex).join(' ')
-        return [row, reducedWords.length + 1]
-      row += 1
+  ###*
+   * Checks the lineText for the term and regex matches
+   * @param  {string}   lineText The line of text to check.
+   * @param  {string}   term     Term to look for.
+   * @param  {regex}    regex    Regex to run on the line to make sure it's valid
+   * @return {null|int}          Returns null if nothing was found or an
+   *                             int of the column the term is on.
+  ###
+  checkLineForWord: (lineText, term, regex) ->
+    if regex.test(lineText)
+      words = lineText.split(' ')
+      propertyIndex = 0
+      for element in words
+        if element.indexOf(term) != -1
+          break
+        propertyIndex++;
+
+      reducedWords = words.slice(0, propertyIndex).join(' ')
+      return reducedWords.length + 1
     return null

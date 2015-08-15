@@ -12,7 +12,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         $class = $args[0];
         $name  = $args[1];
         $isMethod = false;
-        if (strpos($class, '\\') == 0) {
+        if (strpos($class, '\\') === 0) {
             $class = substr($class, 1);
         }
         if (strpos($name, '()') > -1) {
@@ -41,7 +41,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         }
 
         $returnValue = $values['args']['return'];
-        if ($returnValue == '$this' || $returnValue == 'self') {
+        if ($returnValue == '$this' || $returnValue == 'self' || $returnValue == 'static') {
             return $data;
         } elseif (ucfirst($returnValue) === $returnValue) {
             $parser = new FileParser($classMap[$class]);
