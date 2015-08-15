@@ -26,5 +26,10 @@
     "sub-atom": "~1.0.0",
     "jquery": "~2.1.4",
     "atom-space-pen-views": "~2.0.5"
-  }
+  },
+  "keywords": [
+    "php",
+    "composer",
+    "autocomplete"
+  ]
 }
