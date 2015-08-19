@@ -41,6 +41,9 @@ class GotoProperty extends AbstractGoto
             return
 
         methods = proxy.methods(calledClass)
+        if not methods.names?
+            return
+
         if methods.names.indexOf(term) == -1
             return
         value = methods.values[term]
