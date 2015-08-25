@@ -101,6 +101,10 @@ abstract class Tools
 
         $methods    = $reflection->getMethods();
         $attributes = $reflection->getProperties();
+        $traits     = $reflection->getTraits();
+        foreach ($traits as $trait) {
+            $methods = array_merge($methods, $trait->getMethods());
+        }
 
         // Methods
         foreach ($methods as $method) {
