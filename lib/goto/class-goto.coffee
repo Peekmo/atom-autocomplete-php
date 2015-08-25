@@ -93,7 +93,7 @@ class GotoClass extends AbstractGoto
 
         if @$(selector).parent().hasClass('function argument') ||
            @$(selector).prev().hasClass('namespace') && @$(selector).hasClass('class') ||
-           @$(selector).next().hasClass('class')
+           @$(selector).next().hasClass('class') && @$(selector).hasClass('namespace')
             return @$(selector).parent().children('.namespace, .class:not(.operator):not(.constant)')
 
         if @$(selector).prev().hasClass('namespace') || @$(selector).next().hasClass('inherited-class')
