@@ -35,7 +35,11 @@ class GotoClass extends AbstractGoto
 
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
         if matches[0] == term || matches.length == 1
-            @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
+            regexMatches = /(?:\\)(\w+)$/i.exec(matches[0])
+            if regexMatches == null || regexMatches.length == 0
+                @jumpWord = matches[0]
+            else
+                @jumpWord = regexMatches[1]
             atom.workspace.open(classMap[matches[0]], {
                 searchAllPanes: true
             })
@@ -47,7 +51,7 @@ class GotoClass extends AbstractGoto
 
             withCurrentNamespace = currentClass.replace(/(\w+)$/, term);
             if matches.indexOf(withCurrentNamespace) != -1
-                @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
+                @jumpWord = /(?:\\)(\w+)$/i.exec(withCurrentNamespace)[1]
                 atom.workspace.open(classMap[withCurrentNamespace], {
                     searchAllPanes: true
                 })
@@ -89,7 +93,7 @@ class GotoClass extends AbstractGoto
 
         if @$(selector).parent().hasClass('function argument') ||
            @$(selector).prev().hasClass('namespace') && @$(selector).hasClass('class') ||
-           @$(selector).next().hasClass('class')
+           @$(selector).next().hasClass('class') && @$(selector).hasClass('namespace')
             return @$(selector).parent().children('.namespace, .class:not(.operator):not(.constant)')
 
         if @$(selector).prev().hasClass('namespace') || @$(selector).next().hasClass('inherited-class')
