@@ -30,6 +30,9 @@ class GotoProperty extends AbstractGoto
 
         value = @getPropertyForTerm(editor, term, bufferPosition, calledClassInfo)
 
+        if not value
+            return
+
         parentClass = value.declaringClass
 
         proxy = require '../services/php-proxy.coffee'

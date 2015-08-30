@@ -30,6 +30,9 @@ class GotoFunction extends AbstractGoto
 
         value = @getMethodForTerm(editor, term, bufferPosition, calledClassInfo)
 
+        if not value
+            return
+
         parentClass = value.declaringClass
 
         proxy = require '../services/php-proxy.coffee'
