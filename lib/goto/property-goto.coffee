@@ -50,6 +50,9 @@ class GotoProperty extends AbstractGoto
     getTooltipForWord: (editor, term, bufferPosition) ->
         value = @getPropertyForTerm(editor, term, bufferPosition)
 
+        if not value
+            return
+
         # Create a useful description to show in the tooltip.
         returnType = if value.args.return then value.args.return else 'mixed'
 

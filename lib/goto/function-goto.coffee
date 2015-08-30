@@ -51,6 +51,9 @@ class GotoFunction extends AbstractGoto
     getTooltipForWord: (editor, term, bufferPosition) ->
         value = @getMethodForTerm(editor, term, bufferPosition)
 
+        if not value
+            return
+
         # Create a useful description to show in the tooltip.
         returnType = if value.args.return then value.args.return else 'void'
 
