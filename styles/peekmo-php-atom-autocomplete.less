@@ -3,6 +3,7 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
+@import "octicon-mixins";
 
 .peekmo-php-atom-autocomplete {
 }
@@ -20,4 +21,14 @@ atom-text-editor .clickable .region,
 atom-text-editor::shadow .comment-clickable .region {
     pointer-events: all;
     z-index: 9999;
+}
+
+atom-text-editor .php-atom-autocomplete-override,
+atom-text-editor::shadow .php-atom-autocomplete-override {
+    background-color: @ui-site-color-1;
+}
+
+atom-text-editor .php-atom-autocomplete-implementation,
+atom-text-editor::shadow .php-atom-autocomplete-implementation {
+    background-color: @ui-site-color-2;
 }

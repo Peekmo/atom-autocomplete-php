@@ -1,5 +1,7 @@
 AbstractGoto = require './abstract-goto'
 {TextEditor} = require 'atom'
+{Point} = require 'atom'
+{Range} = require 'atom'
 
 module.exports =
 class GotoFunction extends AbstractGoto
@@ -137,6 +139,55 @@ class GotoFunction extends AbstractGoto
                     break
 
         return value
+
+    ###*
+     * Register any markers that you need.
+     * @param  {TextEditor} editor The editor to search through
+    ###
+    registerMarkers: (editor) ->
+        text = editor.getText()
+        rows = text.split('\n')
+
+        for rowNum,row of rows
+            regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
+
+            while (match = matches = regex.exec(row))
+                bufferPosition = new Point(parseInt(rowNum), match[1].length + match.index)
+                currentClass = @parser.getCurrentClass(editor, bufferPosition)
+
+                value = @getMethodForTerm(editor, match[2], null, {
+                    calledClass: currentClass,
+                    splitter: '->'
+                })
+
+                if not value
+                    continue
+
+                if value.isOverride or value.isImplementation
+                    rangeEnd = new Point(parseInt(rowNum), match[1].length + match.index + match[2].length)
+
+                    range = new Range(bufferPosition, rangeEnd)
+
+                    marker = editor.markBufferRange(range, {
+                        maintainHistory: true,
+                        invalidate: 'touch'
+                    })
+
+                    decoration = editor.decorateMarker(marker, {
+                        type: 'line',
+                        class: if value.isOverride then 'php-atom-autocomplete-override' else 'php-atom-autocomplete-implementation'
+                    })
+
+                    # TODO: Need something more stylish. The following problems exist:
+                    #   - Can't align icons in the standard gutter right of the line numbers.
+                    #   - With a custom gutter, the background can't be made transparent and looks ugly.
+                    #   - Background colors are ugly.
+                    #   - We can't attach code or fetch a HTMLElement from decorations, so we can't make it clickable
+                    #     to navigate to the method being overridden (base class) or implemented (interface). (use
+                    #     isOverrideOf and isImplementationOf).
+
+                    console.log("Found override/implementation", match[2], 'with', currentClass, 'value', value)
+
 
     ###*
      * Gets the regex used when looking for a word within the editor

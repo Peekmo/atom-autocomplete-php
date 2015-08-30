@@ -48,10 +48,10 @@ module.exports =
   providers: []
 
   activate: ->
+    config.init()
     @registerProviders()
     @gotoManager = new GotoManager()
     @gotoManager.init()
-    config.init()
     proxy.init()
 
   deactivate: ->

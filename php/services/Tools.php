@@ -119,6 +119,7 @@ abstract class Tools
         $methods    = $reflection->getMethods();
         $attributes = $reflection->getProperties();
         $traits     = $reflection->getTraits();
+        $interfaces = $reflection->getInterfaces();
         foreach ($traits as $trait) {
             $methods = array_merge($methods, $trait->getMethods());
         }
@@ -129,13 +130,47 @@ abstract class Tools
 
             $args = $this->getMethodArguments($method, $className);
 
-            $data['values'][$method->getName()] = array(
-                'isMethod'       => true,
-                'isPublic'       => $method->isPublic(),
-                'isProtected'    => $method->isProtected(),
-                'args'           => $args,
-                'declaringClass' => $method->getDeclaringClass()->name,
-                'startLine'      => $method->getStartLine()
+            $methodName = $method->getName();
+
+            // Check if this method overrides a base class method.
+            $isOverride = false;
+            $isOverrideOf = null;
+
+            $baseClass = $reflection;
+
+            if ($method->getDeclaringClass() == $reflection) {
+                while ($baseClass = $baseClass->getParentClass()) {
+                    if ($baseClass->hasMethod($methodName)) {
+                        $isOverride = true;
+                        $isOverrideOf = $baseClass->getName();
+                        break;
+                    }
+                }
+            }
+
+            // Check if this method implements an interface method.
+            $isImplementation = false;
+            $isImplementationOf = null;
+
+            foreach ($interfaces as $interface) {
+                if ($interface->hasMethod($methodName)) {
+                    $isImplementation = true;
+                    $isImplementationOf = $interface->getName();
+                    break;
+                }
+            }
+
+            $data['values'][$methodName] = array(
+                'isMethod'           => true,
+                'isPublic'           => $method->isPublic(),
+                'isProtected'        => $method->isProtected(),
+                'isOverride'         => $isOverride,
+                'isOverrideOf'       => $isOverrideOf,
+                'isImplementation'   => $isImplementation,
+                'isImplementationOf' => $isImplementationOf,
+                'args'               => $args,
+                'declaringClass'     => $method->getDeclaringClass()->name,
+                'startLine'          => $method->getStartLine()
             );
         }
 
