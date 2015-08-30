@@ -66,36 +66,6 @@ class GotoProperty extends AbstractGoto
         return description
 
     ###*
-     * Retrieves the called class and the splitter used.
-     * @param  {TextEditor} editor         TextEditor to search for namespace of term.
-     * @param  {string}     term           Term to search for.
-     * @param  {Point}      bufferPosition The cursor location the term is at.
-    ###
-    getCalledClassInfo: (editor, term, bufferPosition) ->
-        proxy = require '../services/php-proxy.coffee'
-        fullCall = @parser.getStackClasses(editor, bufferPosition)
-
-        if fullCall.length == 0 or !term
-          return
-
-        calledClass = ''
-        splitter = '->'
-        if fullCall.length > 1
-            calledClass = @parser.parseElements(editor, bufferPosition, fullCall)
-        else
-            parts = fullCall[0].trim().split('::')
-            splitter = '::'
-            if parts[0] == 'parent'
-                calledClass = @parser.getParentClass(editor)
-            else
-                calledClass = @parser.findUseForClass(editor, parts[0])
-
-        return {
-            calledClass : calledClass,
-            splitter    : splitter
-        }
-
-    ###*
      * Retrieves information about the property described by the specified term.
      * @param  {TextEditor} editor          TextEditor to search for namespace of term.
      * @param  {string}     term            Term to search for.
