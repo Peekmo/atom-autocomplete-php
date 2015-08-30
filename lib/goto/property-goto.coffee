@@ -53,8 +53,18 @@ class GotoProperty extends AbstractGoto
         # Create a useful description to show in the tooltip.
         returnType = if value.args.return then value.args.return else 'mixed'
 
-        description = (if value.isPublic then 'public' else ' protected|private') + ' ' + returnType + ' $' + term;
+        description = ''
 
+        if value.isPublic
+            description += 'public'
+
+        else if value.isProtected
+            description += 'protected'
+
+        else
+            description += 'private'
+
+        description += ' ' + returnType + ' $' + term;
         description += "<br/><br/>"
 
         if value.args.descriptions.short

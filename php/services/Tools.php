@@ -136,6 +136,7 @@ abstract class Tools
             $attributesValues = array(
                 'isMethod' => false,
                 'isPublic' => $attribute->isPublic(),
+                'isProtected'    => $attribute->isProtected(),
                 'declaringClass' => $attribute->class,
                 'args'     => array(
                     'return' => !empty($return) ? $return['var'] : '',
