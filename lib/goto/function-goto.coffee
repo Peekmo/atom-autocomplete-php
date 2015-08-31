@@ -148,6 +148,11 @@ class GotoFunction extends AbstractGoto
         text = editor.getText()
         rows = text.split('\n')
 
+        gutter = editor.addGutter({
+            name: 'atom-autocomplete-php-symbol-gutter',
+            priority: -1
+        });
+
         for rowNum,row of rows
             regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
 
@@ -173,9 +178,9 @@ class GotoFunction extends AbstractGoto
                         invalidate: 'touch'
                     })
 
-                    decoration = editor.decorateMarker(marker, {
-                        type: 'line',
-                        class: if value.isOverride then 'php-atom-autocomplete-override' else 'php-atom-autocomplete-implementation'
+                    decoration = gutter.decorateMarker(marker, {
+                        type: 'line-number',
+                        class: if value.isOverride then 'override' else 'implementation'
                     })
 
                     # TODO: Need something more stylish. The following problems exist:

@@ -3,7 +3,7 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
-@import "octicon-mixins";
+@import "octicon-utf-codes";
 
 .peekmo-php-atom-autocomplete {
 }
@@ -17,18 +17,50 @@
     margin-left: -50%;
 }
 
-atom-text-editor .clickable .region,
-atom-text-editor::shadow .comment-clickable .region {
-    pointer-events: all;
-    z-index: 9999;
-}
+atom-text-editor, atom-text-editor::shadow {
+    .comment-clickable .region {
+        pointer-events: all;
+        z-index: 9999;
+    }
 
-atom-text-editor .php-atom-autocomplete-override,
-atom-text-editor::shadow .php-atom-autocomplete-override {
-    background-color: @ui-site-color-1;
-}
+    .gutter[gutter-name="atom-autocomplete-php-symbol-gutter"] {
+        margin-left: 0.25em;
+        margin-right: 0.25em;;
 
-atom-text-editor .php-atom-autocomplete-implementation,
-atom-text-editor::shadow .php-atom-autocomplete-implementation {
-    background-color: @ui-site-color-2;
+        .decoration {
+            &:before {
+                font-family: 'Octicons Regular';
+                font-weight: normal;
+                font-style: normal;
+                display: inline-block;
+                line-height: 1;
+                -webkit-font-smoothing: antialiased;
+                text-decoration: none;
+                font-size:1em;
+                width:1em;
+                height:1em;
+            }
+
+            &.override {
+                visibility: visible;
+
+                &:before {
+                    content: @link;
+                    color: @ui-site-color-2;
+
+                    z-index: 1;
+                }
+            }
+
+            &.implementation {
+                visibility: visible;
+
+                &:before {
+                    content: @link;
+                    color: @ui-site-color-3;
+                    z-index: 1;
+                }
+            }
+        }
+    }
 }
