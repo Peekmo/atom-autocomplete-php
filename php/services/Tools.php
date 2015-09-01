@@ -67,17 +67,20 @@ abstract class Tools
             }
         }
 
+        $deprecated['deprecated'] = false;
         if ($className) {
             $parser = new DocParser();
             $return = $parser->get($className, 'method', $method->getName(), array(DocParser::RETURN_VALUE));
             $descriptions = $parser->get($className, 'method', $method->getName(), array(DocParser::DESCRIPTION));
+            $deprecated = $parser->get($className, 'method', $method->getName(), array(DocParser::DEPRECATED));
         }
 
         return array(
             'parameters' => $parameters,
             'optionals' => $optionals,
             'return'    => ($className && !empty($return)) ? $return['return'] : '',
-            'descriptions' => ($className && $descriptions) ? $descriptions['descriptions'] : array()
+            'descriptions' => ($className && $descriptions) ? $descriptions['descriptions'] : array(),
+            'deprecated' => $deprecated['deprecated']
         );
     }
 
@@ -132,6 +135,7 @@ abstract class Tools
             $parser = new DocParser();
             $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
             $descriptions = $parser->get($className, 'property', $attribute->getName(), array(DocParser::DESCRIPTION));
+            $deprecated = $parser->get($className, 'property', $attribute->getName(), array(DocParser::DEPRECATED));
 
             $attributesValues = array(
                 'isMethod' => false,
@@ -140,7 +144,8 @@ abstract class Tools
                 'declaringClass' => $attribute->class,
                 'args'     => array(
                     'return' => !empty($return) ? $return['var'] : '',
-                    'descriptions' => $descriptions['descriptions']
+                    'descriptions' => $descriptions['descriptions'],
+                    'deprecated' => $deprecated['deprecated']
                 )
             );
 

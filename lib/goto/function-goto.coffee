@@ -96,6 +96,9 @@ class GotoFunction extends AbstractGoto
         if not calledClassInfo
             calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
 
+        if not calledClassInfo
+            return    
+
         calledClass = calledClassInfo.calledClass
         splitter = calledClassInfo.splitter
 

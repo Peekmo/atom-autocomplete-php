@@ -8,6 +8,7 @@ class DocParser
     const RETURN_VALUE = '@return';
     const PARAM_TYPE = '@param';
     const VAR_TYPE = '@var';
+    const DEPRECATED = '@deprecated';
     const DESCRIPTION = 'description';
 
     /**
@@ -78,6 +79,10 @@ class DocParser
                     $result['descriptions'] = $desc;
 
                     break;
+                case self::DEPRECATED:
+                    $result['deprecated'] = (false !== strpos($escapedComment, self::DEPRECATED));
+                    break;
+
                 default:
                     break;
             }

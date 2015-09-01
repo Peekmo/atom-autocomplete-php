@@ -72,6 +72,7 @@ class AutocompleteProvider extends AbstractProvider
       suggestions.push
         text: word,
         type: 'method',
+        className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
         snippet: @getFunctionSnippet(word, element.args),
         leftLabel: returnValues[returnValues.length - 1]
         description: if element.args.descriptions.short? then element.args.descriptions.short else ''
@@ -83,5 +84,6 @@ class AutocompleteProvider extends AbstractProvider
         type: 'property'
         leftLabel: returnValues[returnValues.length - 1]
         description: if element.args.descriptions.short? then element.args.descriptions.short else ''
+        className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
 
     return suggestions
