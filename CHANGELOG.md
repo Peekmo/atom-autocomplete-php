@@ -1,3 +1,7 @@
+## 0.8.0
+* Tooltips on methods and attributes
+* Strikethrough style to deprecated methods
+
 ## 0.7.0
 * Goto class properties
 * Goto bugfixes
