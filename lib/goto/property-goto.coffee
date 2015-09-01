@@ -70,7 +70,7 @@ class GotoProperty extends AbstractGoto
         else
             description += 'private'
 
-        description += ' ' + returnType + ' $' + term;
+        description += ' ' + returnType + '<strong>' + ' $' + term + '</strong>';
         description += "<br/><br/>"
 
         if value.args.descriptions.short

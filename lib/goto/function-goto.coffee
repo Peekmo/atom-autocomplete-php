@@ -60,7 +60,7 @@ class GotoFunction extends AbstractGoto
         # Show the method's signature.
         returnType = if value.args.return then value.args.return else 'void'
 
-        description = returnType + ' ' + term + '('
+        description = returnType + ' <strong>' + term + '</strong>' + '('
 
         if value.args.parameters.length > 0
             description += value.args.parameters.join(', ');
@@ -78,23 +78,18 @@ class GotoFunction extends AbstractGoto
 
         # Show a description of the method.
         description += "<br/><br/>"
-
-        if value.args.descriptions.short
-            description += value.args.descriptions.short
-
-        else
-            description += '(No documentation available)'
+        description += (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)');
 
         # Show an overview of the exceptions the method can throw.
         throwsDescription = "";
 
         for exceptionType,thrownWhenDescription of value.args.throws
-            throwsDescription += "<li>" + "<strong>" + exceptionType + ' ' + thrownWhenDescription + "</strong>" + "</li>"
+            throwsDescription += "<div style='margin-left: 1em;'>• " + "<strong>" + exceptionType + "</strong>" + ' ' + thrownWhenDescription + "</div>"
 
         if throwsDescription.length > 0
             description += "<br/><br/>"
-            description += "Throws:"
-            description += "<ul>" + throwsDescription + "</ul>"
+            description += "Throws:<br/>"
+            description += throwsDescription
 
         return description
 
