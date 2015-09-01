@@ -270,6 +270,18 @@ module.exports =
     text = text.replace regx, (match) =>
         return '()'
 
+    # Remove singe line comments
+    regx = /\/\/.*\n/g
+    text = text.replace regx, (match) =>
+        return ''
+
+    # Remove multi line comments
+    regx = /\/\*[^(\*\/)]*\*\//g
+    text = text.replace regx, (match) =>
+        return ''
+
+    debugger
+
     # Get the full text
     return [] if not text
 
