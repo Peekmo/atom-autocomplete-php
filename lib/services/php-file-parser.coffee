@@ -280,8 +280,6 @@ module.exports =
     text = text.replace regx, (match) =>
         return ''
 
-    debugger
-
     # Get the full text
     return [] if not text
 
