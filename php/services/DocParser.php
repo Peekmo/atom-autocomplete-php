@@ -9,6 +9,7 @@ class DocParser
     const PARAM_TYPE = '@param';
     const VAR_TYPE = '@var';
     const DEPRECATED = '@deprecated';
+    const THROWS = '@throws';
     const DESCRIPTION = 'description';
 
     /**
@@ -74,11 +75,21 @@ class DocParser
                     }
 
                     break;
+                case self::THROWS:
+                    $res = $escapedComment;
+                    $result['throws'] = array();
+
+                    while (null !== $ret = $this->parseThrows($res)) {
+                        $res = $ret['string'];
+                        $result['throws'][$ret['type']] = $ret['description'];
+                    }
+
+                    break;
                 case self::DESCRIPTION:
                     $desc = $this->parseDescription($linedComment);
                     $result['descriptions'] = $desc;
-
                     break;
+
                 case self::DEPRECATED:
                     $result['deprecated'] = (false !== strpos($escapedComment, self::DEPRECATED));
                     break;
@@ -111,6 +122,7 @@ class DocParser
         foreach ($lines as $line) {
             if (
                 false !== strpos($line, self::VAR_TYPE)
+                || false !== strpos($line, self::THROWS)
                 || false !== strpos($line, self::PARAM_TYPE)
                 || false !== strpos($line, self::RETURN_VALUE)
             ) {
@@ -195,6 +207,46 @@ class DocParser
             'name' => $elements[1],
             'type' => $elements[0],
             'string' => $paramSubstring
+        );
+    }
+
+    /**
+     * Search all @throws annotations in the given string
+     * @param string $string String comment to search
+     * @return string
+     */
+    private function parseThrows($string)
+    {
+        if (false === $pos = strpos($string, self::THROWS)) {
+            return null;
+        }
+
+        $throwsSubstring = substr(
+            $string,
+            $pos + strlen(self::THROWS),
+            strlen($string)-1
+        );
+        $throwsSubstring = trim($throwsSubstring);
+
+        if (empty($throwsSubstring)) {
+            return null;
+        }
+
+        // Make sure we don't use the rest of the docblock as description of the exception type.
+        // NOTE: The next tag detection can probably be improved at a later stage.
+        $substringToExplode = $throwsSubstring;
+        $nextTag = strpos($throwsSubstring, '@');
+
+        if ($nextTag !== false) {
+            $substringToExplode = substr($throwsSubstring, 0, $nextTag);
+        }
+
+        $elements = explode(' ', $substringToExplode);
+
+        return array(
+            'type' => trim(array_shift($elements)),
+            'description' => !empty($elements) ? trim(implode(' ', $elements)) : null,
+            'string' => $throwsSubstring
         );
     }
 }
