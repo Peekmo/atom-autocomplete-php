@@ -115,6 +115,10 @@ class GotoFunction extends AbstractGoto
 
         proxy = require '../services/php-proxy.coffee'
         methods = proxy.methods(calledClass)
+
+        if not methods
+            return
+
         if methods.error? and methods.error != ''
             atom.notifications.addError('Failed to get methods for ' + calledClass, {
                 'detail': methods.error.message
