@@ -67,7 +67,19 @@ abstract class Tools
             }
         }
 
+        // For variadic methods, append three dots to the last argument (if any) to indicate this to the user.
+        if (!empty($args) && $method->isVariadic()) {
+            $lastArgument = $args[count($args) - 1];
+
+            if ($lastArgument->isOptional()) {
+                $optionals[count($optionals) - 1] .= '...';
+            } else {
+                $parameters[count($parameters) - 1] .= '...';
+            }
+        }
+
         $deprecated['deprecated'] = false;
+
         if ($className) {
             $parser = new DocParser();
             $return = $parser->get($className, 'method', $method->getName(), array(DocParser::RETURN_VALUE));
