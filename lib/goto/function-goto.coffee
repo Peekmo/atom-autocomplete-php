@@ -57,10 +57,10 @@ class GotoFunction extends AbstractGoto
         if not value
             return
 
-        # Create a useful description to show in the tooltip.
+        # Show the method's signature.
         returnType = if value.args.return then value.args.return else 'void'
 
-        description = returnType + ' ' + term + '('
+        description = returnType + ' <strong>' + term + '</strong>' + '('
 
         if value.args.parameters.length > 0
             description += value.args.parameters.join(', ');
@@ -75,13 +75,21 @@ class GotoFunction extends AbstractGoto
             description += ']'
 
         description += ')'
+
+        # Show a description of the method.
         description += "<br/><br/>"
+        description += (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)');
 
-        if value.args.descriptions.short
-            description += value.args.descriptions.short
+        # Show an overview of the exceptions the method can throw.
+        throwsDescription = "";
 
-        else
-            description += '(No documentation available)'
+        for exceptionType,thrownWhenDescription of value.args.throws
+            throwsDescription += "<div style='margin-left: 1em;'>• " + "<strong>" + exceptionType + "</strong>" + ' ' + thrownWhenDescription + "</div>"
+
+        if throwsDescription.length > 0
+            description += "<br/><br/>"
+            description += "Throws:<br/>"
+            description += throwsDescription
 
         return description
 
@@ -97,7 +105,7 @@ class GotoFunction extends AbstractGoto
             calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
 
         if not calledClassInfo
-            return    
+            return
 
         calledClass = calledClassInfo.calledClass
         splitter = calledClassInfo.splitter

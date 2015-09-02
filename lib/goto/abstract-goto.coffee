@@ -116,7 +116,7 @@ class AbstractGoto
                     tooltipText = @getTooltipForWord(editor, @$(selector).text(), cursorPosition)
 
                     @subscriptions.add atom.tooltips.add(event.target, {
-                        title: tooltipText
+                        title: '<div style="text-align: left;">' + tooltipText + '</div>'
                         html: true
                         placement: 'bottom'
                         delay:
