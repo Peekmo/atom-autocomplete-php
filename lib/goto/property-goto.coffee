@@ -92,6 +92,9 @@ class GotoProperty extends AbstractGoto
         if not calledClassInfo
             calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
 
+        if not calledClassInfo
+            return
+
         calledClass = calledClassInfo.calledClass
 
         proxy = require '../services/php-proxy.coffee'
