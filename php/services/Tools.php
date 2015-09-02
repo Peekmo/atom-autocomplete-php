@@ -68,7 +68,7 @@ abstract class Tools
         }
 
         // For variadic methods, append three dots to the last argument (if any) to indicate this to the user.
-        if (!empty($args) && $method->isVariadic()) {
+        if (!empty($args) && method_exists($method, 'isVariadic') && $method->isVariadic()) {
             $lastArgument = $args[count($args) - 1];
 
             if ($lastArgument->isOptional()) {
