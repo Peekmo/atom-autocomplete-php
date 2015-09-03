@@ -11,18 +11,23 @@ class DocParser
     const DEPRECATED = '@deprecated';
     const THROWS = '@throws';
     const DESCRIPTION = 'description';
+    const INHERITDOC = '{@inheritDoc}';
 
     /**
      * Get data for the given class
-     * @param  string $className Full class namespace
-     * @param  string $type      Type searched (method, property)
-     * @param  string $name      Name of the method or property
-     * @param  array  $filters   Fields to get
+     * @param  string|null $className Full class namespace, required for methods and properties
+     * @param  string      $type      Type searched (method, property)
+     * @param  string      $name      Name of the method or property
+     * @param  array       $filters   Fields to get
      * @return array
      */
     public function get($className, $type, $name, $filters)
     {
         switch($type) {
+            case 'function':
+                $reflection = new ReflectionFunction($name);
+                break;
+
             case 'method':
                 $reflection = new ReflectionMethod($className, $name);
                 break;
@@ -56,15 +61,11 @@ class DocParser
             switch ($filter) {
                 case self::VAR_TYPE:
                     $var = $this->parseVar($escapedComment);
-                    if ($var) {
-                        $result['var'] = $var;
-                    }
+                    $result['var'] = $var ?: null;
                     break;
                 case self::RETURN_VALUE:
                     $return = $this->parseVar($escapedComment, self::RETURN_VALUE);
-                    if ($return) {
-                        $result['return'] = $return;
-                    }
+                    $result['return'] = $return ?: null;
                     break;
                 case self::PARAM_TYPE:
                     $res = $escapedComment;

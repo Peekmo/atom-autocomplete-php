@@ -76,15 +76,21 @@ class GotoFunction extends AbstractGoto
 
         description += ')'
 
-        # Show a description of the method.
+        # Show the summary (short description) of the method.
         description += "<br/><br/>"
-        description += (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)');
+        description += '<span>' + (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)') + '</span>';
+
+        # Show the (long) description of the method.
+        if value.args.descriptions.long?.length > 0
+            description += "<br/><br/>"
+            description += "Description:<br/>"
+            description += "<span style='margin-left: 1em;'>" + value.args.descriptions.long + "</span>"
 
         # Show an overview of the exceptions the method can throw.
         throwsDescription = "";
 
         for exceptionType,thrownWhenDescription of value.args.throws
-            throwsDescription += "<div style='margin-left: 1em;'>• " + "<strong>" + exceptionType + "</strong>" + ' ' + thrownWhenDescription + "</div>"
+            throwsDescription += "<span style='margin-left: 1em;'>• " + "<strong>" + exceptionType + "</strong>" + ' ' + thrownWhenDescription + "</span><br/>"
 
         if throwsDescription.length > 0
             description += "<br/><br/>"
