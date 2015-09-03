@@ -152,12 +152,33 @@ abstract class Tools
     protected function getPropertyArguments(ReflectionProperty $property)
     {
         $parser = new DocParser();
+        $docComment = $property->getDocComment() ?: '';
 
-        $docParseResult = $parser->parse($property->getDocComment() ?: '', array(
+        $docParseResult = $parser->parse($docComment, array(
             DocParser::VAR_TYPE,
             DocParser::DEPRECATED,
             DocParser::DESCRIPTION
         ));
+
+        if (!$docComment) {
+            $classIterator = new ReflectionClass($property->class);
+            $classIterator = $classIterator->getParentClass();
+
+            // Walk up base classes to see if any of them have additional info about this property.
+            while ($classIterator) {
+                if ($classIterator->hasProperty($property->getName())) {
+                    $baseClassProperty = $classIterator->getProperty($property->getName());
+
+                    if ($baseClassProperty->getDocComment()) {
+                        $baseClassPropertyArgs = $this->getPropertyArguments($baseClassProperty);
+
+                        return $baseClassPropertyArgs; // Fall back to parent docblock.
+                    }
+                }
+
+                $classIterator = $classIterator->getParentClass();
+            }
+        }
 
         return array(
            'return'       => $docParseResult['var'],
@@ -212,32 +233,12 @@ abstract class Tools
                 $data['values'][$attribute->getName()] = null;
             }
 
-            $args = $this->getPropertyArguments($attribute);
-
-            if (!$attribute->getDocComment()) {
-                // Walk up base classes to see if any of them have a description for this property.
-                $baseClassProperty = $attribute;
-                $classIterator = $reflection;
-
-                while ($baseClassProperty && !$baseClassProperty->getDocComment()) {
-                    $classIterator = $classIterator->getParentClass();
-
-                    if ($classIterator->hasProperty($attribute->getName())) {
-                        $baseClassProperty = $classIterator->getProperty($attribute->getName());
-                    }
-                }
-
-                if ($baseClassProperty) {
-                    $args = $this->getPropertyArguments($baseClassProperty);
-                }
-            }
-
             $attributesValues = array(
                 'isMethod'       => false,
                 'isPublic'       => $attribute->isPublic(),
                 'isProtected'    => $attribute->isProtected(),
                 'declaringClass' => $attribute->class,
-                'args'           => $args
+                'args'           => $this->getPropertyArguments($attribute)
             );
 
             if (is_array($data['values'][$attribute->getName()])) {
