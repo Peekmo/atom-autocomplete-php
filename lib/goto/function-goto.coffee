@@ -84,7 +84,14 @@ class GotoFunction extends AbstractGoto
         throwsDescription = "";
 
         for exceptionType,thrownWhenDescription of value.args.throws
-            throwsDescription += "<div style='margin-left: 1em;'>• " + "<strong>" + exceptionType + "</strong>" + ' ' + thrownWhenDescription + "</div>"
+            throwsDescription +=
+                "<div style='margin-left: 1em;'>• " +
+                "<strong>" + exceptionType + "</strong>"
+
+            if thrownWhenDescription
+                throwsDescription += ' ' + thrownWhenDescription
+
+            throwsDescription += "</div>"
 
         if throwsDescription.length > 0
             description += "<br/><br/>"
