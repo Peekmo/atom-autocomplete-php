@@ -5,6 +5,8 @@ proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
 
+config = require "../config.coffee"
+
 module.exports =
 # Autocomplete for internal PHP functions
 class FunctionProvider extends AbstractProvider
@@ -45,6 +47,8 @@ class FunctionProvider extends AbstractProvider
         suggestions.push
           text: word,
           type: 'function',
+          description: 'Built-in PHP function.' # Needed or the 'More' button won't show up.
+          descriptionMoreURL: config.config.php_function_documentation_base_url + word
           className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
           snippet: @getFunctionSnippet(word, element.args),
           replacementPrefix: prefix
