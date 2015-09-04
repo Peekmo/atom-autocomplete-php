@@ -45,6 +45,7 @@ class FunctionProvider extends AbstractProvider
         suggestions.push
           text: word,
           type: 'function',
+          className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
           snippet: @getFunctionSnippet(word, element.args),
           replacementPrefix: prefix
 
