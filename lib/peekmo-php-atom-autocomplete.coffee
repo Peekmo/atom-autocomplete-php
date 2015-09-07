@@ -48,6 +48,9 @@ module.exports =
   providers: []
 
   activate: ->
+    if not config.testConfig()
+      return
+
     @registerProviders()
     @gotoManager = new GotoManager()
     @gotoManager.init()

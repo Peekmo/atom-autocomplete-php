@@ -42,6 +42,34 @@ module.exports =
     fs.writeFileSync(@config.packagePath + '/php/tmp.php', text)
 
   ###*
+   * Tests the user's PHP and Composer configuration.
+   * @return {bool}
+  ###
+  testConfig: () ->
+    @getConfig()
+
+    exec = require "child_process"
+    testResult = exec.spawnSync(@config.php, ["-v"])
+
+    errorTitle = 'atom-autocomplete-php - Incorrect setup!'
+    errorMessage = 'Either PHP or Composer is not correctly set up and as a result PHP autocompletion will not work. ' +
+      'Please visit the settings screen to correct this error. If you are not specifying an absolute path for PHP or ' +
+      'Composer, make sure they are in your PATH.'
+
+    if testResult.status = null or testResult.status != 0
+      atom.notifications.addError(errorTitle, {'detail': errorMessage})
+      return false
+
+    # Test Composer.
+    testResult = exec.spawnSync(@config.composer, ["--version"])
+
+    if testResult.status = null or testResult.status != 0
+      atom.notifications.addError(errorTitle, {'detail': errorMessage})
+      return false
+
+    return true
+
+  ###*
    * Init function called on package activation
    * Register config events and write the first config
   ###
