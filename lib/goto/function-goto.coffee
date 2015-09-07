@@ -17,6 +17,10 @@ class GotoFunction extends AbstractGoto
         bufferPosition = editor.getCursorBufferPosition()
 
         calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
+
+        if not calledClassInfo?.calledClass
+            return
+
         calledClass = calledClassInfo.calledClass
         splitter = calledClassInfo.splitter
 
@@ -110,7 +114,7 @@ class GotoFunction extends AbstractGoto
         if not calledClassInfo
             calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
 
-        if not calledClassInfo
+        if not calledClassInfo?.calledClass
             return
 
         calledClass = calledClassInfo.calledClass
