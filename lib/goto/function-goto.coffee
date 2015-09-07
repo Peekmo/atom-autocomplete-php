@@ -101,7 +101,7 @@ class GotoFunction extends AbstractGoto
             if thrownWhenDescription
                 throwsDescription += ' ' + thrownWhenDescription
 
-            throwsDescription += "</span>"
+            throwsDescription += "</span><br/>"
 
         if throwsDescription.length > 0
             description += "<br/><br/>"
