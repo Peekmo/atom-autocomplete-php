@@ -289,16 +289,45 @@ module.exports =
     return @parseStackClass(text)
 
   ###*
+   * Removes content inside parantheses (including nested parantheses).
+   * @param {string} text String to analyze.
+   * @return String
+  ###
+  stripParanthesesContent: (text) ->
+    i = 0
+    openCount = 0
+    closeCount = 0
+    startIndex = -1
+
+    while i < text.length
+      if text[i] == '('
+        ++openCount
+
+        if openCount == 1
+          startIndex = i
+
+      else if text[i] == ')'
+        ++closeCount
+
+        if closeCount == openCount
+          originalLength = text.length
+          text = text.substr(0, startIndex + 1) + text.substr(i, text.length);
+
+          i -= (originalLength - text.length)
+
+          openCount = 0
+          closeCount = 0
+
+      ++i
+
+    return text
+
+  ###*
    * Parse stack class elements
    * @param {string} text String of the stack class
    * @return Array
   ###
   parseStackClass: (text) ->
-    # Remove parenthesis content
-    regx = /\((?:[^)\(\)]+|(?:[^\(\)\])]*\([^\(\)\])]*\)[^\)]*))*\)*/g
-    text = text.replace regx, (match) =>
-        return '()'
-
     # Remove singe line comments
     regx = /\/\/.*\n/g
     text = text.replace regx, (match) =>
@@ -308,6 +337,9 @@ module.exports =
     regx = /\/\*[^(\*\/)]*\*\//g
     text = text.replace regx, (match) =>
         return ''
+
+    # Remove content inside parantheses (including nested parantheses).
+    text = @stripParanthesesContent(text)
 
     # Get the full text
     return [] if not text
