@@ -188,28 +188,57 @@ module.exports =
     closedBlocks = 0
 
     result = false
+    isInClosure = false
 
     # for each row
     while row != -1
       line = rows[row]
 
+      character = 0
+      lineLength = line.length
+      lastChain = null
+
+      # Scan the entire line, fetching the scope for each character position as one line can contain both a scope start
+      # and end such as "} elseif (true) {". Here the scope descriptor will differ for different character positions on
+      # the line.
+      while character <= line.length
+        # Get chain of all scopes
+        chain = editor.scopeDescriptorForBufferPosition([row, character]).getScopeChain()
+
+        # NOTE: Atom quirk: both line.length and line.length - 1 return the same scope descriptor, BUT you can't skip
+        # scanning line.length as sometimes line.length - 1 does not return a scope descriptor at all.
+        if not (character == line.length and chain == lastChain)
+          # }
+          if chain.indexOf("scope.end") != -1
+            closedBlocks++
+          # {
+          else if chain.indexOf("scope.begin") != -1
+            openedBlocks++
+
+        # NOTE: atom/language-php quirk, when you open a closure definition, it's opening brace does NOT have the
+        # 'scope.begin' class. See also https://github.com/atom/language-php/issues/98 .
+        if chain.indexOf('.meta.function.closure.php') != -1
+          if not isInClosure
+            isInClosure = true
+            openedBlocks++
+
+        else
+          isInClosure = false
+
+        lastChain = chain
+        character++
+
       # Get chain of all scopes
       chain = editor.scopeDescriptorForBufferPosition([row, line.length]).getScopeChain()
 
-      # }
-      if chain.indexOf("scope.end") != -1
-        closedBlocks++
-      # {
-      else if chain.indexOf("scope.begin") != -1
-        openedBlocks++
       # function
-      else if chain.indexOf("function") != -1
-        # If more openedblocks than closedblocks, we are in a function
+      if chain.indexOf("function") != -1
+        # If more openedblocks than closedblocks, we are in a function. Otherwise, could be a closure, continue looking.
         if openedBlocks > closedBlocks
           result = true
           @cache["functionPosition"] = [row, 0]
 
-        break
+          break
 
       row--
 
