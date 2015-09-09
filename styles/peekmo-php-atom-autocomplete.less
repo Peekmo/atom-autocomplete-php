@@ -23,42 +23,29 @@ atom-text-editor, atom-text-editor::shadow {
         z-index: 9999;
     }
 
-    .gutter[gutter-name="atom-autocomplete-php-symbol-gutter"] {
-        margin-left: 0.25em;
-        margin-right: 0.25em;;
-
-        .decoration {
-            &:before {
-                font-family: 'Octicons Regular';
-                font-weight: normal;
-                font-style: normal;
-                display: inline-block;
-                line-height: 1;
-                -webkit-font-smoothing: antialiased;
-                text-decoration: none;
-                font-size:1em;
-                width:1em;
-                height:1em;
-            }
-
+    .gutter {
+        .line-number {
             &.override {
-                visibility: visible;
+                .icon-right {
+                    opacity: 1.0;
+                    visibility: visible;
 
-                &:before {
-                    content: @link;
-                    color: @ui-site-color-2;
-
-                    z-index: 1;
+                    &:before {
+                        content: @link;
+                        color: @ui-site-color-2;
+                    }
                 }
             }
 
             &.implementation {
-                visibility: visible;
+                .icon-right {
+                    opacity: 1.0;
+                    visibility: visible;
 
-                &:before {
-                    content: @link;
-                    color: @ui-site-color-3;
-                    z-index: 1;
+                    &:before {
+                        content: @link;
+                        color: @ui-site-color-3;
+                    }
                 }
             }
         }

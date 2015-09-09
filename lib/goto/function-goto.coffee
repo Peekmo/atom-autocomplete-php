@@ -149,16 +149,6 @@ class GotoFunction extends AbstractGoto
         text = editor.getText()
         rows = text.split('\n')
 
-        gutterName = 'atom-autocomplete-php-symbol-gutter'
-
-        gutter = editor.gutterWithName(gutterName)
-
-        if not gutter
-            gutter = editor.addGutter({
-                name: gutterName,
-                priority: -1
-            });
-
         for rowNum,row of rows
             regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
 
@@ -184,24 +174,15 @@ class GotoFunction extends AbstractGoto
                         invalidate: 'touch'
                     })
 
-                    decoration = gutter.decorateMarker(marker, {
+                    decoration = editor.decorateMarker(marker, {
                         type: 'line-number',
                         class: if value.isOverride then 'override' else 'implementation'
                     })
 
                     if @annotationMarkers[editor.getLongTitle()] == undefined
                         @annotationMarkers[editor.getLongTitle()] = []
+
                     @annotationMarkers[editor.getLongTitle()].push(marker)
-
-                    # TODO: Need something more stylish. The following problems exist:
-                    #   - Can't align icons in the standard gutter right of the line numbers.
-                    #   - With a custom gutter, the background can't be made transparent and looks ugly.
-                    #   - Background colors are ugly.
-                    #   - We can't attach code or fetch a HTMLElement from decorations, so we can't make it clickable
-                    #     to navigate to the method being overridden (base class) or implemented (interface). (use
-                    #     isOverrideOf and isImplementationOf).
-
-                    console.log("Found override/implementation", match[2], 'with', currentClass, 'value', value)
 
 
     ###*
