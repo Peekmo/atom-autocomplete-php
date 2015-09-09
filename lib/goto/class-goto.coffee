@@ -124,6 +124,16 @@ class GotoClass extends AbstractGoto
                 @addMarkerToCommentLine row.split(' '), parseInt(key), editor, true
 
     ###*
+     * Removes any markers previously created by registerMarkers.
+     * @param  {TextEditor} editor The editor to search through
+    ###
+    cleanMarkers: (editor) ->
+        for i,marker of @allMarkers[editor.getLongTitle()]
+            marker.destroy()
+
+        @allMarkers = []
+
+    ###*
      * Analyses the words array given for any classes and then creates a marker
      * for them.
      * @param {array} words             The array of words to check.

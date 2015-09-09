@@ -30,6 +30,11 @@ class AbstractGoto
         @subscriptions = new CompositeDisposable
         @manager = manager
         atom.workspace.observeTextEditors (editor) =>
+            editor.onDidSave (event) =>
+                # On save, rescan for markers and annotations.
+                @cleanMarkers editor
+                @registerMarkers editor
+
             @registerMarkers editor
             @registerEvents editor
 
@@ -169,6 +174,12 @@ class AbstractGoto
      * @param  {TextEditor} editor The editor to search through
     ###
     registerMarkers: (editor) ->
+
+    ###*
+     * Removes any markers previously created by registerMarkers.
+     * @param  {TextEditor} editor The editor to search through
+    ###
+    cleanMarkers: (editor) ->
 
     ###*
      * Gets the correct selector when a selector is clicked.
