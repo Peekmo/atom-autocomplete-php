@@ -45,7 +45,7 @@ module.exports =
    * Tests the user's PHP and Composer configuration.
    * @return {bool}
   ###
-  testConfig: () ->
+  testConfig: (interactive) ->
     @getConfig()
 
     exec = require "child_process"
@@ -66,6 +66,9 @@ module.exports =
     if testResult.status = null or testResult.status != 0
       atom.notifications.addError(errorTitle, {'detail': errorMessage})
       return false
+    else if interactive
+      atom.notifications.addSuccess('atom-autocomplete-php - Success', {'detail': 'Configuration OK !'})
+      return false
 
     return true
 
@@ -77,6 +80,10 @@ module.exports =
     # Command for namespaces
     atom.commands.add 'atom-workspace', 'atom-autocomplete-php:namespace': =>
         namespace.createNamespace(atom.workspace.getActivePaneItem())
+
+    # Command to test configuration
+    atom.commands.add 'atom-workspace', 'atom-autocomplete-php:configuration': =>
+        @testConfig(true)
 
     @writeConfig()
 
