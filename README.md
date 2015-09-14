@@ -33,7 +33,7 @@ To configure the plugin, click on "package" in your preferences, and select "set
 - **Autoload file** : Write here, a coma separated list of all the different path to the autoload files. By default, it's "vendor/autoload.php" for composer projects ;)
 - **Classmap files** : All paths to PHP files that returns an array of "className" => "fullPath to the file where the class is located". The default one for composer is vendor/composer/autoload_classmap.php
 
-You can test your configuration by using a command (cmd - shift - p) : ```Atom Autocomplete Php : Configuration``
+You can test your configuration by using a command (cmd - shift - p) : ```Atom Autocomplete Php : Configuration```
 
 # Autocompletion
 
