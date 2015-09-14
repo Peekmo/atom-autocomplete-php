@@ -65,7 +65,7 @@ class AutocompleteProvider extends AbstractProvider
    * @param {array} suggestions  An array of suggestions for the current word.
   ###
   addSuggestion: (word, element, suggestions) ->
-    returnValues = element.args.return.split('\\')
+    returnValues = if element.args.return then element.args.return.split('\\') else []
 
     # Methods
     if element.isMethod

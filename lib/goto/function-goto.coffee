@@ -1,5 +1,7 @@
 AbstractGoto = require './abstract-goto'
 {TextEditor} = require 'atom'
+{Point} = require 'atom'
+{Range} = require 'atom'
 
 module.exports =
 class GotoFunction extends AbstractGoto
@@ -7,6 +9,7 @@ class GotoFunction extends AbstractGoto
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
     gotoRegex: /^(\$\w+)?((->|::)\w+\()+/
+    annotationMarkers: []
 
     ###*
      * Goto the class from the term given.
@@ -17,6 +20,10 @@ class GotoFunction extends AbstractGoto
         bufferPosition = editor.getCursorBufferPosition()
 
         calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
+
+        if not calledClassInfo?.calledClass
+            return
+
         calledClass = calledClassInfo.calledClass
         splitter = calledClassInfo.splitter
 
@@ -76,15 +83,28 @@ class GotoFunction extends AbstractGoto
 
         description += ')'
 
-        # Show a description of the method.
+        # Show the summary (short description) of the method.
         description += "<br/><br/>"
-        description += (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)');
+        description += '<span>' + (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)') + '</span>';
+
+        # Show the (long) description of the method.
+        if value.args.descriptions.long?.length > 0
+            description += "<br/><br/>"
+            description += "Description:<br/>"
+            description += "<span style='margin-left: 1em;'>" + value.args.descriptions.long + "</span>"
 
         # Show an overview of the exceptions the method can throw.
         throwsDescription = "";
 
         for exceptionType,thrownWhenDescription of value.args.throws
-            throwsDescription += "<div style='margin-left: 1em;'>• " + "<strong>" + exceptionType + "</strong>" + ' ' + thrownWhenDescription + "</div>"
+            throwsDescription +=
+                "<span style='margin-left: 1em;'>• " +
+                "<strong>" + exceptionType + "</strong>"
+
+            if thrownWhenDescription
+                throwsDescription += ' ' + thrownWhenDescription
+
+            throwsDescription += "</span><br/>"
 
         if throwsDescription.length > 0
             description += "<br/><br/>"
@@ -104,7 +124,7 @@ class GotoFunction extends AbstractGoto
         if not calledClassInfo
             calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
 
-        if not calledClassInfo
+        if not calledClassInfo?.calledClass
             return
 
         calledClass = calledClassInfo.calledClass
@@ -137,6 +157,62 @@ class GotoFunction extends AbstractGoto
                     break
 
         return value
+
+    ###*
+     * Register any markers that you need.
+     * @param  {TextEditor} editor The editor to search through
+    ###
+    registerMarkers: (editor) ->
+        text = editor.getText()
+        rows = text.split('\n')
+
+        for rowNum,row of rows
+            regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
+
+            while (match = matches = regex.exec(row))
+                bufferPosition = new Point(parseInt(rowNum), match[1].length + match.index)
+                currentClass = @parser.getCurrentClass(editor, bufferPosition)
+
+                value = @getMethodForTerm(editor, match[2], null, {
+                    calledClass: currentClass,
+                    splitter: '->'
+                })
+
+                if not value
+                    continue
+
+                if value.isOverride or value.isImplementation
+                    rangeEnd = new Point(parseInt(rowNum), match[1].length + match.index + match[2].length)
+
+                    range = new Range(bufferPosition, rangeEnd)
+
+                    marker = editor.markBufferRange(range, {
+                        maintainHistory: true,
+                        invalidate: 'touch'
+                    })
+
+                    decoration = editor.decorateMarker(marker, {
+                        type: 'line-number',
+                        class: if value.isOverride then 'override' else 'implementation'
+                    })
+
+                    if @annotationMarkers[editor.getLongTitle()] == undefined
+                        @annotationMarkers[editor.getLongTitle()] = []
+
+                    @annotationMarkers[editor.getLongTitle()].push(marker)
+
+
+    ###*
+     * Removes any markers previously created by registerMarkers.
+     * @param  {TextEditor} editor The editor to search through
+    ###
+    cleanMarkers: (editor) ->
+        for i,marker of @annotationMarkers[editor.getLongTitle()]
+            marker.destroy()
+
+        @annotationMarkers = []
+
+
 
     ###*
      * Gets the regex used when looking for a word within the editor
