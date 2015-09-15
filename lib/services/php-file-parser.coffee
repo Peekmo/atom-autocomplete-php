@@ -315,9 +315,15 @@ module.exports =
 
     # Regex variable definition
     regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
+    regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([A-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
     while bufferPosition.row - idx > 0
       # Get the line
       line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
+
+      # Check for $x = new XXXXX()
+      matchesNew = regexNewInstance.exec(line)
+      if null != matchesNew
+        return @findUseForClass(editor, matchesNew[1])
 
       # Get chain of all scopes
       chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
