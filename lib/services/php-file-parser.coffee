@@ -193,6 +193,10 @@ module.exports =
     while row != -1
       line = rows[row]
 
+      # issue #61
+      if not line
+        continue
+
       # Get chain of all scopes
       chain = editor.scopeDescriptorForBufferPosition([row, line.length]).getScopeChain()
 
