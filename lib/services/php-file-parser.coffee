@@ -196,6 +196,7 @@ module.exports =
 
       # issue #61
       if not line
+        row--
         continue
 
       character = 0
