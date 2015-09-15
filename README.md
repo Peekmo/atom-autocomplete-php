@@ -99,10 +99,6 @@ $x->{fail}
 
 The solution ? If you really need it, use the annotation **var**
 ```php
-/** @var DateTime */
-$x = new DateTime();
-$x->{YEAAAAH}
-
 /** @var MyIdClass */
 $x = self::getId();
 $x->{YEAAAAH}
