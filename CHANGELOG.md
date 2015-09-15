@@ -1,9 +1,13 @@
 ## 0.10.0
 * Autocomplete in catch() {} #91
+* Comments "@var $var Class" now supported for completion
 
 ## 0.9.0
 * Many bugfixes and improvements for tooltips (from @hotoiledgoblinsack)
-* Basic autocomplete on "new" keyword
+* Basic autocomplete on "new" keyword (e.g :
+    $x = new \DateTime();
+    $x->{autocomplete}
+)
 
 ## 0.8.0
 * Tooltips on methods and attributes
