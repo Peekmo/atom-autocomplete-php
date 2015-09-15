@@ -42,14 +42,17 @@ abstract class Tools
     }
 
     /**
-     * Format parameters for the autocomplete plugin
-     * @param ReflectionMethod $method    Method to get arguments from
-     * @param string           $className Class name to use (optional for the moment)
+     * Fetches information about the specified method or function, such as its parameters, a description from the
+     * docblock (if available), the return type, ...
+     *
+     * @param ReflectionFunctionAbstract $function The function or method to analyze.
+     *
      * @return array
      */
-    protected function getMethodArguments($method, $className = null)
+    protected function getMethodArguments(ReflectionFunctionAbstract $function)
     {
-        $args = $method->getParameters();
+        $args = $function->getParameters();
+
         $optionals = array();
         $parameters = array();
 
@@ -67,8 +70,9 @@ abstract class Tools
             }
         }
 
-        // For variadic methods, append three dots to the last argument (if any) to indicate this to the user.
-        if (!empty($args) && method_exists($method, 'isVariadic') && $method->isVariadic()) {
+        // For variadic methods, append three dots to the last argument (if any) to indicate this to the user. This
+        // requires PHP >= 5.6.
+        if (!empty($args) && method_exists($function, 'isVariadic') && $function->isVariadic()) {
             $lastArgument = $args[count($args) - 1];
 
             if ($lastArgument->isOptional()) {
@@ -78,24 +82,109 @@ abstract class Tools
             }
         }
 
-        $deprecated['deprecated'] = false;
+        $parser = new DocParser();
+        $docComment = $function->getDocComment() ?: '';
 
-        if ($className) {
-            $parser = new DocParser();
-            $return = $parser->get($className, 'method', $method->getName(), array(DocParser::RETURN_VALUE));
-            $descriptions = $parser->get($className, 'method', $method->getName(), array(DocParser::DESCRIPTION));
-            $throws = $parser->get($className, 'method', $method->getName(), array(DocParser::THROWS));
-            $deprecated = $parser->get($className, 'method', $method->getName(), array(DocParser::DEPRECATED));
+        $docParseResult = $parser->parse($docComment, array(
+            DocParser::THROWS,
+            DocParser::DEPRECATED,
+            DocParser::DESCRIPTION,
+            DocParser::RETURN_VALUE
+        ));
+
+        $docblockInheritsLongDescription = false;
+
+        if (strpos($docParseResult['descriptions']['long'], DocParser::INHERITDOC) !== false) {
+            // The parent docblock is embedded, which we'll need to parse. Note that according to phpDocumentor this
+            // only works for the long description (not the so-called 'summary' or short description).
+            $docblockInheritsLongDescription = true;
+        }
+
+        // No immediate docblock available or we need to scan the parent docblock?
+        if ((!$docComment || $docblockInheritsLongDescription) && $function instanceof ReflectionMethod) {
+            $classIterator = new ReflectionClass($function->class);
+            $classIterator = $classIterator->getParentClass();
+
+            // Walk up base classes to see if any of them have additional info about this method.
+            while ($classIterator) {
+                if ($classIterator->hasMethod($function->getName())) {
+                    $baseClassMethod = $classIterator->getMethod($function->getName());
+
+                    if ($baseClassMethod->getDocComment()) {
+                        $baseClassMethodArgs = $this->getMethodArguments($baseClassMethod);
+
+                        if (!$docComment) {
+                            return $baseClassMethodArgs; // Fall back to parent docblock.
+                        } elseif ($docblockInheritsLongDescription) {
+
+                            $docParseResult['descriptions']['long'] = str_replace(
+                                DocParser::INHERITDOC,
+                                $baseClassMethodArgs['descriptions']['long'],
+                                $docParseResult['descriptions']['long']
+                            );
+                        }
+
+                        break;
+                    }
+                }
+
+                $classIterator = $classIterator->getParentClass();
+            }
         }
 
         return array(
             'parameters'   => $parameters,
             'optionals'    => $optionals,
-            'throws'       => ($className && $throws) ? $throws['throws'] : array(),
-            'return'       => ($className && !empty($return)) ? $return['return'] : '',
-            'descriptions' => ($className && $descriptions) ? $descriptions['descriptions'] : array(),
-            'deprecated'   => $deprecated['deprecated']
+            'throws'       => $docParseResult['throws'],
+            'return'       => $docParseResult['return'],
+            'descriptions' => $docParseResult['descriptions'],
+            'deprecated'   => $function->isDeprecated() || $docParseResult['deprecated']
         );
+    }
+
+     /**
+      * Fetches information about the specified class property, such as its type, description, ...
+      *
+      * @param ReflectionProperty $property The property to analyze.
+      *
+      * @return array
+      */
+    protected function getPropertyArguments(ReflectionProperty $property)
+    {
+        $parser = new DocParser();
+        $docComment = $property->getDocComment() ?: '';
+
+        $docParseResult = $parser->parse($docComment, array(
+            DocParser::VAR_TYPE,
+            DocParser::DEPRECATED,
+            DocParser::DESCRIPTION
+        ));
+
+        if (!$docComment) {
+            $classIterator = new ReflectionClass($property->class);
+            $classIterator = $classIterator->getParentClass();
+
+            // Walk up base classes to see if any of them have additional info about this property.
+            while ($classIterator) {
+                if ($classIterator->hasProperty($property->getName())) {
+                    $baseClassProperty = $classIterator->getProperty($property->getName());
+
+                    if ($baseClassProperty->getDocComment()) {
+                        $baseClassPropertyArgs = $this->getPropertyArguments($baseClassProperty);
+
+                        return $baseClassPropertyArgs; // Fall back to parent docblock.
+                    }
+                }
+
+                $classIterator = $classIterator->getParentClass();
+            }
+        }
+
+        return array(
+           'return'       => $docParseResult['var'],
+           'descriptions' => $docParseResult['descriptions'],
+           'deprecated'   => $docParseResult['deprecated']
+       );
     }
 
     /**
@@ -119,6 +208,7 @@ abstract class Tools
         $methods    = $reflection->getMethods();
         $attributes = $reflection->getProperties();
         $traits     = $reflection->getTraits();
+        $interfaces = $reflection->getInterfaces();
         foreach ($traits as $trait) {
             $methods = array_merge($methods, $trait->getMethods());
         }
@@ -127,15 +217,47 @@ abstract class Tools
         foreach ($methods as $method) {
             $data['names'][] = $method->getName();
 
-            $args = $this->getMethodArguments($method, $className);
+            $methodName = $method->getName();
 
-            $data['values'][$method->getName()] = array(
-                'isMethod'       => true,
-                'isPublic'       => $method->isPublic(),
-                'isProtected'    => $method->isProtected(),
-                'args'           => $args,
-                'declaringClass' => $method->getDeclaringClass()->name,
-                'startLine'      => $method->getStartLine()
+            // Check if this method overrides a base class method.
+            $isOverride = false;
+            $isOverrideOf = null;
+
+            $baseClass = $reflection;
+
+            if ($method->getDeclaringClass() == $reflection) {
+                while ($baseClass = $baseClass->getParentClass()) {
+                    if ($baseClass->hasMethod($methodName)) {
+                        $isOverride = true;
+                        $isOverrideOf = $baseClass->getName();
+                        break;
+                    }
+                }
+            }
+
+            // Check if this method implements an interface method.
+            $isImplementation = false;
+            $isImplementationOf = null;
+
+            foreach ($interfaces as $interface) {
+                if ($interface->hasMethod($methodName)) {
+                    $isImplementation = true;
+                    $isImplementationOf = $interface->getName();
+                    break;
+                }
+            }
+
+            $data['values'][$methodName] = array(
+                'isMethod'           => true,
+                'isPublic'           => $method->isPublic(),
+                'isProtected'        => $method->isProtected(),
+                'isOverride'         => $isOverride,
+                'isOverrideOf'       => $isOverrideOf,
+                'isImplementation'   => $isImplementation,
+                'isImplementationOf' => $isImplementationOf,
+                'args'               => $this->getMethodArguments($method),
+                'declaringClass'     => $method->getDeclaringClass()->name,
+                'startLine'          => $method->getStartLine()
             );
         }
 
@@ -146,21 +268,12 @@ abstract class Tools
                 $data['values'][$attribute->getName()] = null;
             }
 
-            $parser = new DocParser();
-            $return = $parser->get($className, 'property', $attribute->getName(), array(DocParser::VAR_TYPE));
-            $descriptions = $parser->get($className, 'property', $attribute->getName(), array(DocParser::DESCRIPTION));
-            $deprecated = $parser->get($className, 'property', $attribute->getName(), array(DocParser::DEPRECATED));
-
             $attributesValues = array(
-                'isMethod' => false,
-                'isPublic' => $attribute->isPublic(),
+                'isMethod'       => false,
+                'isPublic'       => $attribute->isPublic(),
                 'isProtected'    => $attribute->isProtected(),
                 'declaringClass' => $attribute->class,
-                'args'     => array(
-                    'return' => !empty($return) ? $return['var'] : '',
-                    'descriptions' => $descriptions['descriptions'],
-                    'deprecated' => $deprecated['deprecated']
-                )
+                'args'           => $this->getPropertyArguments($attribute)
             );
 
             if (is_array($data['values'][$attribute->getName()])) {

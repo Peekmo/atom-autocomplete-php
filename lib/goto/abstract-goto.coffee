@@ -30,6 +30,11 @@ class AbstractGoto
         @subscriptions = new CompositeDisposable
         @manager = manager
         atom.workspace.observeTextEditors (editor) =>
+            editor.onDidSave (event) =>
+                # On save, rescan for markers and annotations.
+                @cleanMarkers editor
+                @registerMarkers editor
+
             @registerMarkers editor
             @registerEvents editor
 
@@ -115,15 +120,16 @@ class AbstractGoto
 
                     tooltipText = @getTooltipForWord(editor, @$(selector).text(), cursorPosition)
 
-                    @subscriptions.add atom.tooltips.add(event.target, {
-                        title: '<div style="text-align: left;">' + tooltipText + '</div>'
-                        html: true
-                        placement: 'bottom'
-                        delay:
-                            show: 500
-                    })
+                    if tooltipText?.length > 0
+                        @subscriptions.add atom.tooltips.add(event.target, {
+                            title: '<div style="text-align: left;">' + tooltipText + '</div>'
+                            html: true
+                            placement: 'bottom'
+                            delay:
+                                show: 500
+                        })
 
-                    @showingDocumentationTooltip = true
+                        @showingDocumentationTooltip = true
 
                 if event.altKey == false
                     return
@@ -168,6 +174,12 @@ class AbstractGoto
      * @param  {TextEditor} editor The editor to search through
     ###
     registerMarkers: (editor) ->
+
+    ###*
+     * Removes any markers previously created by registerMarkers.
+     * @param  {TextEditor} editor The editor to search through
+    ###
+    cleanMarkers: (editor) ->
 
     ###*
      * Gets the correct selector when a selector is clicked.
