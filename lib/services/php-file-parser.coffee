@@ -255,7 +255,10 @@ module.exports =
 
         idx += 1
 
-    text = text.substr(text.length - idx + 1, text.length).trim()
+    if text
+      text = text.substr(text.length - idx + 1, text.length).trim()
+    else
+      text = ""
 
     return @parseStackClass(text)
 
