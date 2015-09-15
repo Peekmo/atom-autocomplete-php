@@ -79,9 +79,13 @@ public function generate(Report $report)
 - on **$this->**
 - on variables that are documented with @var in the code or @param in function declaration
 - if you assigned the value of a variable with one of the previous things, it will work too :
+- on variables setted with "new X()"
 
 ```php
 $x = $this->getRequest();
+$x->{autocompletion}
+
+$x = new DateTime();
 $x->{autocompletion}
 ```
 
@@ -89,9 +93,6 @@ $x->{autocompletion}
 
 For the moment, everything else does not work e.g :
 ```php
-$x = new DateTime();
-$x->{fail}
-
 $x = self::getId();
 $x->{fail}
 ```
