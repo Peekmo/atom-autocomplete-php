@@ -1,3 +1,7 @@
+## 0.9.0
+* Many bugfixes and improvements for tooltips (from @hotoiledgoblinsack)
+* Basic autocomplete on "new" keyword
+
 ## 0.8.0
 * Tooltips on methods and attributes
 * Strikethrough style to deprecated methods
