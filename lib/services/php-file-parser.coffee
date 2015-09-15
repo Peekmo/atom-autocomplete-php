@@ -427,7 +427,7 @@ module.exports =
 
           if null == matches
             return className
-
+            
           return @findUseForClass(editor, matches[1])
 
       # /* @var $var Class (like intelliJ) */
@@ -435,10 +435,8 @@ module.exports =
         regexVarWithVarName = new RegExp("\\@var[\\s]+\\#{element}[\\s]+([a-zA-Z_\\\\]+)", "g")
         matches = regexVarWithVarName.exec(line)
 
-        if null == matches
-          return className
-
-        return @findUseForClass(editor, matches[1])
+        if null != matches
+          return @findUseForClass(editor, matches[1])
 
       if chain.indexOf("function") != -1
         regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
