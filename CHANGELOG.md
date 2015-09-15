@@ -1,3 +1,6 @@
+## 0.10.0
+* Autocomplete in catch() {} #91
+
 ## 0.9.0
 * Many bugfixes and improvements for tooltips (from @hotoiledgoblinsack)
 * Basic autocomplete on "new" keyword

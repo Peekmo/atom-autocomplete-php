@@ -385,6 +385,7 @@ module.exports =
     # Regex variable definition
     regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
     regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([A-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
+    regexCatch = new RegExp("catch[\\s]*\\([\\s]*([A-Za-z0-9_\\\\]+)[\\s]+\\#{element}[\\s]*\\)", "g")
     while bufferPosition.row - idx > 0
       # Get the line
       line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
@@ -393,6 +394,11 @@ module.exports =
       matchesNew = regexNewInstance.exec(line)
       if null != matchesNew
         return @findUseForClass(editor, matchesNew[1])
+
+      # Check for catch(XXX $xxx)
+      matchesCatch = regexCatch.exec(line)
+      if null != matchesCatch
+        return @findUseForClass(editor, matchesCatch[1])
 
       # Get chain of all scopes
       chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
@@ -416,13 +422,14 @@ module.exports =
         chain = editor.scopeDescriptorForBufferPosition([newPosition.row - 1, line.length]).getScopeChain()
 
         if chain.indexOf("comment") != -1
-          regexVar = /\@var[\s]([a-zA-Z_\\]+)/g
+          regexVar = /\@var[\s]+([a-zA-Z_\\]+)/g
           matches = regexVar.exec(line)
 
           if null == matches
             return className
 
           return @findUseForClass(editor, matches[1])
+
 
       if chain.indexOf("function") != -1
         regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
