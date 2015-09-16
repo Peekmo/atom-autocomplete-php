@@ -2,6 +2,7 @@ AbstractGoto = require './abstract-goto'
 {TextEditor} = require 'atom'
 {Point} = require 'atom'
 {Range} = require 'atom'
+SubAtom = require 'sub-atom'
 
 module.exports =
 class GotoFunction extends AbstractGoto
@@ -10,6 +11,7 @@ class GotoFunction extends AbstractGoto
     clickEventSelectors: '.function-call'
     gotoRegex: /^(\$\w+)?((->|::)\w+\()+/
     annotationMarkers: []
+    annotationSubAtoms: []
 
     ###*
      * Goto the class from the term given.
@@ -165,6 +167,7 @@ class GotoFunction extends AbstractGoto
     registerMarkers: (editor) ->
         text = editor.getText()
         rows = text.split('\n')
+        @annotationSubAtoms[editor.getLongTitle()] = new SubAtom
 
         for rowNum,row of rows
             regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
@@ -209,10 +212,10 @@ class GotoFunction extends AbstractGoto
                     textEditorElement = atom.views.getView(editor)
                     gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
 
-                    do (gutterContainerElement, term, value) =>
+                    do (gutterContainerElement, term, value, editor) =>
                         selector = '.line-number-' + rowNum + '.' + annotationClass + ' .icon-right'
 
-                        @subAtom.add gutterContainerElement, 'mouseover', selector, (event) =>
+                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
                             if event.target.hasTooltipRegistered
                                 return
 
@@ -234,7 +237,7 @@ class GotoFunction extends AbstractGoto
                                     show: 0
                             })
 
-                        @subAtom.add gutterContainerElement, 'click', selector, (event) =>
+                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'click', selector, (event) =>
                             parentClass = value.declaringClass
 
                             proxy = require '../services/php-proxy.coffee'
@@ -258,9 +261,8 @@ class GotoFunction extends AbstractGoto
         for i,marker of @annotationMarkers[editor.getLongTitle()]
             marker.destroy()
 
-        @annotationMarkers = []
-
-
+        @annotationMarkers[editor.getLongTitle()] = []
+        @annotationSubAtoms[editor.getLongTitle()].dispose()
 
     ###*
      * Gets the regex used when looking for a word within the editor
