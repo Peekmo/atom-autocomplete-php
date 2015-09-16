@@ -191,15 +191,57 @@ class GotoFunction extends AbstractGoto
                         invalidate: 'touch'
                     })
 
+                    annotationClass = if value.isOverride then 'override' else 'implementation'
+
                     decoration = editor.decorateMarker(marker, {
                         type: 'line-number',
-                        class: if value.isOverride then 'override' else 'implementation'
+                        class: annotationClass
                     })
 
                     if @annotationMarkers[editor.getLongTitle()] == undefined
                         @annotationMarkers[editor.getLongTitle()] = []
 
                     @annotationMarkers[editor.getLongTitle()].push(marker)
+
+
+
+
+
+                    # Add tooltips and click handlers to the annotations.
+
+                    # TODO: This was duplicated from abstract-goto, refactor later. Also stop fetching this in the loop.
+
+                    textEditorElement = atom.views.getView(editor)
+                    gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
+
+                    selector = '.line-number-' + rowNum + '.' + annotationClass
+
+                    # TODO: Also do/test implementations.
+                    # TODO: Register a click handler that navigates to the parent method or interface method (using
+                    #       isOverrideOf and isImplementationOf).
+                    # TODO: Register mouse out and remove disposables (or somehow do this on load), must these also be
+                    # removed on cleanMarkers?
+                    # TODO: Find a way to do this on load, tooltips can permanently be attached to a node, we don't want
+                    # to have to attach them on mouse over and then dispose them on mouse out as this is completely
+                    # unnecessary.
+                    # TODO:    -> The same applies to the tooltips used for methods and functions, but we must make sure
+                    #             that if this is indeed changed for those tooltips, that they are also reconnected on
+                    #             save, like these markers, or changes to docblocks will not propagate to tooltips.
+
+                    @subAtom.add gutterContainerElement, 'dom-ready', selector, (event) =>
+                        debugger
+                        tooltipText = (if value.isOverride then 'Override' else 'Implementation') + ' of ' + '?'
+
+                        @subscriptions.add atom.tooltips.add(event.target, {
+                            title: '<div style="text-align: left;">' + tooltipText + '</div>'
+                            html: true
+                            placement: 'bottom'
+                            delay:
+                                show: 0
+                        })
+
+
+
 
 
     ###*
