@@ -25,6 +25,13 @@ class GotoManager
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:goto': =>
             @goto(atom.workspace.getActivePaneItem())
 
+        atom.commands.add 'atom-workspace', 'atom-autocomplete-php:docblock': =>
+            editor = atom.workspace.getActivePaneItem()
+
+            position = editor.getCursorBufferPosition()
+            text = @gotos[1].getTooltipForWord(editor, parser.getFullWordFromBufferPosition(editor, editor.getCursorBufferPosition()), position)
+            @gotos[1].showTooltip(text, document.elementFromPoint(position.x, position.y))
+
     ###*
      * Deactivates the goto functionaility
     ###

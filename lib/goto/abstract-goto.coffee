@@ -119,17 +119,7 @@ class AbstractGoto
                     cursorPosition = atom.views.getView(editor).component.screenPositionForMouseEvent(event)
 
                     tooltipText = @getTooltipForWord(editor, @$(selector).text(), cursorPosition)
-
-                    if tooltipText?.length > 0
-                        @subscriptions.add atom.tooltips.add(event.target, {
-                            title: '<div style="text-align: left;">' + tooltipText + '</div>'
-                            html: true
-                            placement: 'bottom'
-                            delay:
-                                show: 500
-                        })
-
-                        @showingDocumentationTooltip = true
+                    @showTooltip(tooltipText, event.target)
 
                 if event.altKey == false
                     return
@@ -256,3 +246,22 @@ class AbstractGoto
                 center: true
             })
         , 100)
+
+    ###*
+     * Show a tooltip below the given target
+     * Nothing shown if a tooltip is already printed
+     *
+     * @param  {string}     tooltipText Text to print in the tooltip
+     * @param  {DOMElement} target      Element below which we add the tooltip
+    ###
+    showTooltip: (tooltipText, target) =>
+        if tooltipText?.length > 0
+            @subscriptions.add atom.tooltips.add(target, {
+                title: '<div style="text-align: left;">' + tooltipText + '</div>'
+                html: true
+                placement: 'bottom'
+                delay:
+                    show: 500
+            })
+
+            @showingDocumentationTooltip = true
