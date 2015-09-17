@@ -262,7 +262,7 @@ class GotoFunction extends AbstractGoto
             marker.destroy()
 
         @annotationMarkers[editor.getLongTitle()] = []
-        @annotationSubAtoms[editor.getLongTitle()].dispose()
+        @annotationSubAtoms[editor.getLongTitle()]?.dispose()
 
     ###*
      * Gets the regex used when looking for a word within the editor
