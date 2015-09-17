@@ -48,8 +48,8 @@ module.exports =
   providers: []
 
   activate: ->
-    if not config.testConfig()
-      return
+    # if not config.testConfig()
+    #   return
 
     config.init()
     @registerProviders()
