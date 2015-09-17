@@ -2,6 +2,7 @@ AbstractGoto = require './abstract-goto'
 {TextEditor} = require 'atom'
 {Point} = require 'atom'
 {Range} = require 'atom'
+SubAtom = require 'sub-atom'
 
 module.exports =
 class GotoFunction extends AbstractGoto
@@ -10,6 +11,7 @@ class GotoFunction extends AbstractGoto
     clickEventSelectors: '.function-call'
     gotoRegex: /^(\$\w+)?((->|::)\w+\()+/
     annotationMarkers: []
+    annotationSubAtoms: []
 
     ###*
      * Goto the class from the term given.
@@ -165,15 +167,18 @@ class GotoFunction extends AbstractGoto
     registerMarkers: (editor) ->
         text = editor.getText()
         rows = text.split('\n')
+        @annotationSubAtoms[editor.getLongTitle()] = new SubAtom
 
         for rowNum,row of rows
             regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
 
-            while (match = matches = regex.exec(row))
+            while (match = regex.exec(row))
                 bufferPosition = new Point(parseInt(rowNum), match[1].length + match.index)
                 currentClass = @parser.getCurrentClass(editor, bufferPosition)
 
-                value = @getMethodForTerm(editor, match[2], null, {
+                term = match[2]
+
+                value = @getMethodForTerm(editor, term, null, {
                     calledClass: currentClass,
                     splitter: '->'
                 })
@@ -182,7 +187,7 @@ class GotoFunction extends AbstractGoto
                     continue
 
                 if value.isOverride or value.isImplementation
-                    rangeEnd = new Point(parseInt(rowNum), match[1].length + match.index + match[2].length)
+                    rangeEnd = new Point(parseInt(rowNum), match[1].length + match.index + term.length)
 
                     range = new Range(bufferPosition, rangeEnd)
 
@@ -191,9 +196,11 @@ class GotoFunction extends AbstractGoto
                         invalidate: 'touch'
                     })
 
+                    annotationClass = if value.isOverride then 'override' else 'implementation'
+
                     decoration = editor.decorateMarker(marker, {
                         type: 'line-number',
-                        class: if value.isOverride then 'override' else 'implementation'
+                        class: annotationClass
                     })
 
                     if @annotationMarkers[editor.getLongTitle()] == undefined
@@ -201,6 +208,50 @@ class GotoFunction extends AbstractGoto
 
                     @annotationMarkers[editor.getLongTitle()].push(marker)
 
+                    # Add tooltips and click handlers to the annotations.
+                    textEditorElement = atom.views.getView(editor)
+                    gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
+
+                    do (gutterContainerElement, term, value, editor) =>
+                        selector = '.line-number-' + rowNum + '.' + annotationClass + ' .icon-right'
+
+                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
+                            if event.target.hasTooltipRegistered
+                                return
+
+                            event.target.hasTooltipRegistered = true;
+
+                            tooltipText = ''
+
+                            if value.isOverride
+                                tooltipText += 'Overrides method from ' + value.isOverrideOf
+
+                            else
+                                tooltipText += 'Implements method from ' + value.isImplementationOf
+
+                            atom.tooltips.add(event.target, {
+                                title: '<div style="text-align: left;">' + tooltipText + '</div>'
+                                html: true
+                                placement: 'bottom'
+                                delay:
+                                    show: 0
+                            })
+
+                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'click', selector, (event) =>
+                            parentClass = value.declaringClass
+
+                            proxy = require '../services/php-proxy.coffee'
+                            classMap = proxy.autoloadClassMap()
+
+                            referencedClass = if value.isOverride then value.isOverrideOf else value.isImplementationOf
+
+                            atom.workspace.open(classMap[referencedClass], {
+                                searchAllPanes: true
+                            })
+
+                            # Just search for the term using the jump to regex after opening the file.
+                            @jumpWord = term
+                            @jumpLine = null
 
     ###*
      * Removes any markers previously created by registerMarkers.
@@ -210,9 +261,8 @@ class GotoFunction extends AbstractGoto
         for i,marker of @annotationMarkers[editor.getLongTitle()]
             marker.destroy()
 
-        @annotationMarkers = []
-
-
+        @annotationMarkers[editor.getLongTitle()] = []
+        @annotationSubAtoms[editor.getLongTitle()].dispose()
 
     ###*
      * Gets the regex used when looking for a word within the editor
