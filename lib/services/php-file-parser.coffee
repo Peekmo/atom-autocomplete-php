@@ -188,7 +188,6 @@ module.exports =
     closedBlocks = 0
 
     result = false
-    isInClosure = false
 
     # for each row
     while row != -1
@@ -219,16 +218,6 @@ module.exports =
           # {
           else if chain.indexOf("scope.begin") != -1
             openedBlocks++
-
-        # NOTE: atom/language-php quirk, when you open a closure definition, it's opening brace does NOT have the
-        # 'scope.begin' class. See also https://github.com/atom/language-php/issues/98 .
-        if chain.indexOf('.meta.function.closure.php') != -1
-          if not isInClosure
-            isInClosure = true
-            openedBlocks++
-
-        else
-          isInClosure = false
 
         lastChain = chain
         character++
@@ -427,7 +416,7 @@ module.exports =
 
           if null == matches
             return className
-            
+
           return @findUseForClass(editor, matches[1])
 
       # /* @var $var Class (like intelliJ) */
