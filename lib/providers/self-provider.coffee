@@ -7,7 +7,7 @@ AbstractProvider = require "./abstract-provider.coffee"
 
 module.exports =
 # Autocomplete for static methods and constants inside a class
-# (keyword self::)
+# (keyword self:: and static::)
 class SelfProvider extends AbstractProvider
   statics: []
   functionOnly: true
@@ -17,7 +17,7 @@ class SelfProvider extends AbstractProvider
    * @return array
   ###
   fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-    @regex = /(\bself::([a-zA-Z_]*))/g
+    @regex = /(\b(self|static)::([a-zA-Z_]*))/g
 
     prefix = @getPrefix(editor, bufferPosition)
     return unless prefix.length
