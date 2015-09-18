@@ -189,9 +189,14 @@ abstract class Tools
 
     /**
      * Returns methods and properties of the given className
-     * @param string $className Full namespace of the parsed class
+     *
+     * @param string   $className      Full namespace of the parsed class.
+     * @param int|null $methodFilter   The filter to apply when fetching methods.
+     * @param int|null $propertyFilter The filter to apply when fetching properties.
+     *
+     * @return array
      */
-    protected function getClassMetadata($className)
+    protected function getClassMetadata($className, $methodFilter = null, $propertyFilter = null)
     {
         $data = array(
             'class'  => $className,
@@ -205,12 +210,13 @@ abstract class Tools
             return $data;
         }
 
-        $methods    = $reflection->getMethods();
-        $attributes = $reflection->getProperties();
+        $methods    = $methodFilter ? $reflection->getMethods($methodFilter) : $reflection->getMethods();
+        $constants  = $reflection->getConstants();
+        $attributes = $propertyFilter ? $reflection->getProperties($propertyFilter) : $reflection->getProperties();
         $traits     = $reflection->getTraits();
         $interfaces = $reflection->getInterfaces();
         foreach ($traits as $trait) {
-            $methods = array_merge($methods, $trait->getMethods());
+            $methods = array_merge($methods, $methodFilter ? $trait->getMethods($methodFilter) : $trait->getMethods());
         }
 
         // Methods
@@ -249,6 +255,7 @@ abstract class Tools
 
             $data['values'][$methodName] = array(
                 'isMethod'           => true,
+                'isProperty'         => false,
                 'isPublic'           => $method->isPublic(),
                 'isProtected'        => $method->isProtected(),
                 'isOverride'         => $isOverride,
@@ -270,6 +277,7 @@ abstract class Tools
 
             $attributesValues = array(
                 'isMethod'       => false,
+                'isProperty'     => true,
                 'isPublic'       => $attribute->isPublic(),
                 'isProtected'    => $attribute->isProtected(),
                 'declaringClass' => $attribute->class,
@@ -284,6 +292,34 @@ abstract class Tools
             }
 
             $data['values'][$attribute->getName()] = $attributesValues;
+        }
+
+        // Constants
+        foreach ($constants as $constant => $value) {
+            if (!in_array($constant, $data['names'])) {
+                $data['names'][] = $constant;
+                $data['values'][$constant] = null;
+            }
+
+            // TODO: There is no direct way to know where the constant originated from (the current class, a base class,
+            // an interface of a base class, a trait, ...). This could be done by looping up the chain of base classes
+            // to the last class that also has the same property and then checking if any of that class' traits or
+            // interfaces define the constant.
+            $data['values'][$constant][] = array(
+                'isMethod'       => false,
+                'isProperty'     => false,
+                'isPublic'       => true,
+                'isProtected'    => false,
+                'declaringClass' => $reflection->name,
+
+                // TODO: It is not possible to directly fetch the docblock of the constant through reflection, manual
+                // file parsing is required.
+                'args'           => array(
+                    'return'       => null,
+                    'descriptions' => array(),
+                    'deprecated'   => false
+                )
+            );
         }
 
         return $data;

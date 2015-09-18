@@ -81,7 +81,7 @@ class AutocompleteProvider extends AbstractProvider
     else
       suggestions.push
         text: word,
-        type: 'property'
+        type: if element.isProperty then 'property' else 'constant'
         leftLabel: returnValues[returnValues.length - 1]
         description: if element.args.descriptions.short? then element.args.descriptions.short else ''
         className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
