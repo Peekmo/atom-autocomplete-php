@@ -13,7 +13,6 @@ class AbstractGoto
     clickEventSelectors: ''
     manager: {}
     gotoRegex: ''
-    jumpLine: null
     jumpWord: ''
 
     ###*
@@ -40,8 +39,7 @@ class AbstractGoto
 
         atom.workspace.onDidChangeActivePaneItem (paneItem) =>
             if paneItem instanceof TextEditor && @jumpWord != '' && @jumpWord != undefined
-                @jumpTo(paneItem, @jumpWord, @jumpLine)
-                @jumpLine = null
+                @jumpTo(paneItem, @jumpWord)
                 @jumpWord = ''
 
         # When you go back to only have 1 pane the events are lost, so need
@@ -240,8 +238,8 @@ class AbstractGoto
      * @param  {string} word       The word to find and then jump to.
      * @return {boolean}           Whether the finding was successful.
     ###
-    jumpTo: (editor, word, line) ->
-        bufferPosition = @parser.findBufferPositionOfWord(editor, word, @getJumpToRegex(word), line)
+    jumpTo: (editor, word) ->
+        bufferPosition = @parser.findBufferPositionOfWord(editor, word, @getJumpToRegex(word))
         if bufferPosition == null
             return false
 

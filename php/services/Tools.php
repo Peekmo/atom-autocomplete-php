@@ -220,29 +220,33 @@ abstract class Tools
             $methodName = $method->getName();
 
             // Check if this method overrides a base class method.
-            $isOverride = false;
-            $isOverrideOf = null;
+            $overrideData = null;
 
             $baseClass = $reflection;
 
             if ($method->getDeclaringClass() == $reflection) {
                 while ($baseClass = $baseClass->getParentClass()) {
                     if ($baseClass->hasMethod($methodName)) {
-                        $isOverride = true;
-                        $isOverrideOf = $baseClass->getName();
+                        $overrideData = array(
+                            'baseClass'           => $baseClass->getName(),
+                            'baseMethodStartLine' => $baseClass->getMethod($methodName)->getStartLine()
+                        );
+
                         break;
                     }
                 }
             }
 
             // Check if this method implements an interface method.
-            $isImplementation = false;
-            $isImplementationOf = null;
+            $implementationData = null;
 
             foreach ($interfaces as $interface) {
                 if ($interface->hasMethod($methodName)) {
-                    $isImplementation = true;
-                    $isImplementationOf = $interface->getName();
+                    $implementationData = array(
+                        'interfaceName'            => $interface->getName(),
+                        'interfaceMethodStartLine' => $interface->getMethod($methodName)->getStartLine()
+                    );
+
                     break;
                 }
             }
@@ -251,10 +255,10 @@ abstract class Tools
                 'isMethod'           => true,
                 'isPublic'           => $method->isPublic(),
                 'isProtected'        => $method->isProtected(),
-                'isOverride'         => $isOverride,
-                'isOverrideOf'       => $isOverrideOf,
-                'isImplementation'   => $isImplementation,
-                'isImplementationOf' => $isImplementationOf,
+
+                'override'           => $overrideData,
+                'implementation'     => $implementationData,
+
                 'args'               => $this->getMethodArguments($method),
                 'declaringClass'     => $method->getDeclaringClass()->name,
                 'startLine'          => $method->getStartLine()
