@@ -48,11 +48,11 @@ class GotoFunction extends AbstractGoto
         classMap = proxy.autoloadClassMap()
 
         atom.workspace.open(classMap[parentClass], {
-            searchAllPanes: true
+            initialLine    : (value.startLine - 1),
+            searchAllPanes : true
         })
+
         @manager.addBackTrack(editor.getPath(), bufferPosition)
-        @jumpWord = term
-        @jumpLine = value.startLine - 1
 
     ###*
      * Retrieves a tooltip for the word given.
@@ -186,7 +186,7 @@ class GotoFunction extends AbstractGoto
                 if not value
                     continue
 
-                if value.isOverride or value.isImplementation
+                if value.override or value.implementation
                     rangeEnd = new Point(parseInt(rowNum), match[1].length + match.index + term.length)
 
                     range = new Range(bufferPosition, rangeEnd)
@@ -196,7 +196,7 @@ class GotoFunction extends AbstractGoto
                         invalidate: 'touch'
                     })
 
-                    annotationClass = if value.isOverride then 'override' else 'implementation'
+                    annotationClass = if value.override then 'override' else 'implementation'
 
                     decoration = editor.decorateMarker(marker, {
                         type: 'line-number',
@@ -213,7 +213,7 @@ class GotoFunction extends AbstractGoto
                     gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
 
                     do (gutterContainerElement, term, value, editor) =>
-                        selector = '.line-number-' + rowNum + '.' + annotationClass + ' .icon-right'
+                        selector = '.line-number' + '.' + annotationClass + '[data-buffer-row=' + rowNum + '] .icon-right'
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
                             if event.target.hasTooltipRegistered
@@ -223,11 +223,11 @@ class GotoFunction extends AbstractGoto
 
                             tooltipText = ''
 
-                            if value.isOverride
-                                tooltipText += 'Overrides method from ' + value.isOverrideOf
+                            if value.override
+                                tooltipText += 'Overrides method from ' + value.override.baseClass
 
                             else
-                                tooltipText += 'Implements method from ' + value.isImplementationOf
+                                tooltipText += 'Implements method from ' + value.implementation.interfaceName
 
                             atom.tooltips.add(event.target, {
                                 title: '<div style="text-align: left;">' + tooltipText + '</div>'
@@ -243,15 +243,18 @@ class GotoFunction extends AbstractGoto
                             proxy = require '../services/php-proxy.coffee'
                             classMap = proxy.autoloadClassMap()
 
-                            referencedClass = if value.isOverride then value.isOverrideOf else value.isImplementationOf
+                            if value.override
+                                referencedClass = value.override.baseClass
+                                referencedLine = value.override.baseMethodStartLine
+
+                            else
+                                referencedClass = value.implementation.interfaceName
+                                referencedLine = value.implementation.interfaceMethodStartLine
 
                             atom.workspace.open(classMap[referencedClass], {
-                                searchAllPanes: true
+                                initialLine    : referencedLine - 1,
+                                searchAllPanes : true
                             })
-
-                            # Just search for the term using the jump to regex after opening the file.
-                            @jumpWord = term
-                            @jumpLine = null
 
     ###*
      * Removes any markers previously created by registerMarkers.
