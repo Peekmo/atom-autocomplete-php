@@ -86,12 +86,17 @@ module.exports =
     text = editor.getText()
 
     lines = text.split('\n')
-    for line in lines
+    for line,i in lines
       line = line.trim()
 
       # If we found class keyword, we are not in namespace space, so return the className
-      if line.indexOf('class ') != -1
-        break
+      classIndex = line.indexOf('class ')
+
+      if classIndex != -1
+        chain = editor.scopeDescriptorForBufferPosition([i, classIndex]).getScopeChain()
+
+        if chain.indexOf('.comment') == -1
+          break
 
       # Use keyword
       if line.indexOf('use') == 0
