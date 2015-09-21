@@ -120,7 +120,7 @@ class AbstractGoto
 
                     if tooltipText?.length > 0
                         @subscriptions.add atom.tooltips.add(event.target, {
-                            title: '<div style="text-align: left;">' + tooltipText + '</div>'
+                            title: '<div style="text-align: left;">' + tooltipText.replace(/\n/g, '<br/>') + '</div>'
                             html: true
                             placement: 'bottom'
                             delay:
