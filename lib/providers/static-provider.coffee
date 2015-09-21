@@ -41,28 +41,47 @@ class StaticProvider extends AbstractProvider
     # Builds suggestions for the words
     suggestions = []
     for word in words
-      for element in @statics.values[word]
-        if element.isPublic
-          # Methods
-          if element.isMethod
-            suggestions.push
-              text: word,
-              type: 'method',
-              snippet: @getFunctionSnippet(word, element.args),
-              replacementPrefix: prefix,
-              leftLabel: element.args.return,
-              description: if element.args.descriptions.short? then element.args.descriptions.short else ''
-              data:
-                prefix: prefix,
-                args: element.args
+      element = @statics.values[word]
+      if element instanceof Array
+        for ele in element
+          suggestions = @addSuggestion(word, ele, suggestions, prefix)
+      else
+        suggestions = @addSuggestion(word, element, suggestions, prefix)
 
-          # Constants and public properties
-          else
-            suggestions.push
-              text: word,
-              type: 'constant',
-              replacementPrefix: prefix,
-              data:
-                prefix: prefix
+    return suggestions
+
+  ###*
+   * Adds the suggestion the the suggestions array.
+   * @param {string} word        The word being currently typed.
+   * @param {object} element     The object returns from proxy.methods.
+   * @param {array} suggestions  An array of suggestions for the current word.
+   * @param {string} word        The prefix to insert for the suggestion.
+  ###
+  addSuggestion: (word, element, suggestions, prefix) ->
+    if element.isPublic
+      # Methods
+      if element.isMethod
+        suggestions.push
+          text: word,
+          type: 'method',
+          snippet: @getFunctionSnippet(word, element.args),
+          replacementPrefix: prefix,
+          leftLabel: element.args.return,
+          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
+          data:
+            prefix: prefix,
+            args: element.args
+
+      # Constants and public static properties
+      else
+        suggestions.push
+          text: word,
+          type: if element.isProperty then 'property' else 'constant'
+          leftLabel: element.args.return
+          description: if element.args.descriptions.short? then element.args.descriptions.short else ''
+          className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
+          replacementPrefix: prefix,
+          data:
+            prefix: prefix
 
     return suggestions
