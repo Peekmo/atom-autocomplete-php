@@ -121,6 +121,12 @@ class GotoFunction extends AbstractGoto
             description +=     "<div style='padding-left: 1em;'>" + parametersDescription + "</div>"
             description += "</p>"
 
+        if value.args.return
+            description += "<p>"
+            description +=     "<div>Returns:</div>"
+            description +=     "<div style='padding-left: 1em;'>" + value.args.return + "</div>"
+            description += "</p>"
+
         # Show an overview of the exceptions the method can throw.
         throwsDescription = ""
 
