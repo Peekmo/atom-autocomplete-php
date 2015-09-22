@@ -25,12 +25,15 @@ class DocParser
      */
     public function get($className, $type, $name, $filters)
     {
+        $isConstructor = false;
+
         switch($type) {
             case 'function':
                 $reflection = new ReflectionFunction($name);
                 break;
 
             case 'method':
+                $isConstructor = ($name === '__construct');
                 $reflection = new ReflectionMethod($className, $name);
                 break;
 
@@ -43,19 +46,20 @@ class DocParser
         }
 
         $comment = $reflection->getDocComment();
-        return $this->parse($comment, $filters);
+        return $this->parse($comment, $filters, $isConstructor);
     }
 
     /**
      * Parse the comment string to get its elements
      *
-     * @param string|false|null $comment The docblock to parse. If null, the return array will be filled up with the
-     *                                   correct keys, but they will be empty.
-     * @param array             $filters Elements to search (see constants).
+     * @param string|false|null $comment       The docblock to parse. If null, the return array will be filled up with the
+     *                                         correct keys, but they will be empty.
+     * @param array             $filters       Elements to search (see constants).
+     * @param bool              $isConstructor Whether or not the method the docblock is for is a constructor.
      *
      * @return array
      */
-    public function parse($comment, array $filters)
+    public function parse($comment, array $filters, $isConstructor)
     {
         $comment = is_string($comment) ? $comment : null;
 
@@ -83,7 +87,15 @@ class DocParser
 
                     if ($comment) {
                         $return = $this->parseVar($escapedComment, self::RETURN_VALUE);
-                        $result['return'] = $return ?: null;
+
+                        if ($return) {
+                            $result['return'] = $return;
+                        } else {
+                            // According to http://www.phpdoc.org/docs/latest/guides/docblocks.html, a method that does
+                            // have a docblock, but no explicit return type returns void. Constructors, however, must
+                            // return self. If there is no docblock at all, we can't assume either of these types.
+                            $result['return'] = $isConstructor ? 'self' : 'void';
+                        }
                     }
 
                     break;

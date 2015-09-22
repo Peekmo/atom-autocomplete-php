@@ -70,7 +70,7 @@ class GotoFunction extends AbstractGoto
 
         # Show the method's signature.
         description += '<div style="margin-top: -1em; margin-bottom: -1em;">'
-        returnType = (if value.args.return then value.args.return else 'void')
+        returnType = (if value.args.return then value.args.return else '')
 
         description += "<p><div>"
         description += returnType + ' <strong>' + term + '</strong>' + '('

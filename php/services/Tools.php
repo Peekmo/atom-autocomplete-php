@@ -83,14 +83,14 @@ abstract class Tools
         }
 
         $parser = new DocParser();
-        $docComment = $function->getDocComment() ?: '';
+        $docComment = $function->getDocComment();
 
         $docParseResult = $parser->parse($docComment, array(
             DocParser::THROWS,
             DocParser::DEPRECATED,
             DocParser::DESCRIPTION,
             DocParser::RETURN_VALUE
-        ));
+        ), ($function->name === '__construct'));
 
         $docblockInheritsLongDescription = false;
 
@@ -158,7 +158,7 @@ abstract class Tools
             DocParser::VAR_TYPE,
             DocParser::DEPRECATED,
             DocParser::DESCRIPTION
-        ));
+        ), false);
 
         if (!$docComment) {
             $classIterator = new ReflectionClass($property->class);
