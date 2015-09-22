@@ -13,6 +13,8 @@ class DocParser
     const DESCRIPTION = 'description';
     const INHERITDOC = '{@inheritDoc}';
 
+    const TAG_START_REGEX = '/^\s*\*\s*\@[^@]+$/';
+
     /**
      * Get data for the given class
      * @param  string|null $className Full class namespace, required for methods and properties
@@ -46,61 +48,126 @@ class DocParser
 
     /**
      * Parse the comment string to get its elements
-     * @param  string $comment Comment to parse
-     * @param  array  $filters Elements to search (@see consts)
+     *
+     * @param string|false|null $comment The docblock to parse. If null, the return array will be filled up with the
+     *                                   correct keys, but they will be empty.
+     * @param array             $filters Elements to search (see constants).
+     *
      * @return array
      */
-    public function parse($comment, $filters)
+    public function parse($comment, array $filters)
     {
-        $comment = str_replace(array('*', '/'), '', $comment);
-        $escapedComment = str_replace(array('\n', '\r\n', PHP_EOL), ' ', $comment);
-        $linedComment = str_replace(array('\n', '\r\n', PHP_EOL), '$@$', $comment);
+        $comment = is_string($comment) ? $comment : null;
+
+        if ($comment) {
+            $strippedComment = str_replace(array('*', '/'), '', $comment);
+            $escapedComment = $this->replaceNewlines($strippedComment, ' ');
+        }
 
         $result = array();
+
         foreach($filters as $filter) {
             switch ($filter) {
                 case self::VAR_TYPE:
-                    $var = $this->parseVar($escapedComment);
-                    $result['var'] = $var ?: null;
-                    break;
-                case self::RETURN_VALUE:
-                    $return = $this->parseVar($escapedComment, self::RETURN_VALUE);
-                    $result['return'] = $return ?: null;
-                    break;
-                case self::PARAM_TYPE:
-                    $res = $escapedComment;
-                    $result['params'] = array();
-                    while (null !== $ret = $this->parseParams($res)) {
-                        $result['params'][$ret['name']] = $ret['type'];
-                        $res = $ret['string'];
+                    $result['var'] = null;
+
+                    if ($comment) {
+                        $var = $this->parseVar($escapedComment);
+                        $result['var'] = $var ?: null;
                     }
 
                     break;
+
+                case self::RETURN_VALUE:
+                    $result['return'] = null;
+
+                    if ($comment) {
+                        $return = $this->parseVar($escapedComment, self::RETURN_VALUE);
+                        $result['return'] = $return ?: null;
+                    }
+
+                    break;
+
+                case self::PARAM_TYPE:
+                    $result['params'] = array();
+
+                    if ($comment) {
+                        $res = $escapedComment;
+
+                        while (null !== $ret = $this->parseParams($res)) {
+                            $result['params'][$ret['name']] = $ret['type'];
+                            $res = $ret['string'];
+                        }
+                    }
+
+                    break;
+
                 case self::THROWS:
-                    $res = $escapedComment;
                     $result['throws'] = array();
 
-                    while (null !== $ret = $this->parseThrows($res)) {
-                        $res = $ret['string'];
-                        $result['throws'][$ret['type']] = $ret['description'];
+                    if ($comment) {
+                        $res = $escapedComment;
+
+                        while (null !== $ret = $this->parseThrows($res)) {
+                            $res = $ret['string'];
+                            $result['throws'][$ret['type']] = $ret['description'];
+                        }
                     }
 
                     break;
+
                 case self::DESCRIPTION:
-                    $desc = $this->parseDescription($linedComment);
-                    $result['descriptions'] = $desc;
+                    $result['descriptions'] = array(
+                        'short' => '',
+                        'long'  => ''
+                    );
+
+                    if ($comment) {
+                        list($summary, $description) = $this->parseDescription($comment);
+
+                        $result['descriptions']['short'] = $summary;
+                        $result['descriptions']['long']  = $description;
+                    }
+
                     break;
 
                 case self::DEPRECATED:
-                    $result['deprecated'] = (false !== strpos($escapedComment, self::DEPRECATED));
-                    break;
+                    $result['deprecated'] = false;
 
-                default:
+                    if ($comment) {
+                        $result['deprecated'] = (false !== strpos($escapedComment, self::DEPRECATED));
+                    }
+
                     break;
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Retrieves the specified string with its line separators replaced with the specifed separator.
+     *
+     * @param  string $string
+     * @param  string $replacement
+     *
+     * @return string
+     */
+    private function replaceNewlines($string, $replacement)
+    {
+        return str_replace(array('\n', '\r\n', PHP_EOL), $replacement, $string);
+    }
+
+    /**
+     * Normalizes all types of newlines to the "\n" separator.
+     *
+     * @param  string $string
+     *
+     * @return string
+     */
+    private function normalizeNewlines($string)
+    {
+        return $this->replaceNewlines($string, "\n");
     }
 
     /**
@@ -112,42 +179,39 @@ class DocParser
      */
     private function parseDescription($comment)
     {
-        $result = array(
-            'short' => '',
-            'long'  => ''
-        );
+        $summary = '';
+        $description = '';
 
-        $lines = explode('$@$', $comment);
+        $collapsedComment = $this->normalizeNewlines($comment);
 
-        $short = true;
-        foreach ($lines as $line) {
-            if (
-                false !== strpos($line, self::VAR_TYPE)
-                || false !== strpos($line, self::THROWS)
-                || false !== strpos($line, self::PARAM_TYPE)
-                || false !== strpos($line, self::RETURN_VALUE)
-            ) {
-                return $result;
+        $lines = explode("\n", $collapsedComment);
+
+        $isReadingSummary = true;
+
+        foreach ($lines as $i => $line) {
+            if (preg_match(self::TAG_START_REGEX, $line) === 1) {
+                break; // Found the start of a tag, the summary and description are finished.
             }
 
-            if (trim($line) == '' && $result['short'] != '') {
-                $short = false;
+            // Remove the opening and closing tags.
+            $line = preg_replace('/^\s*(?:\/)?\*+(?:\/)?/', '', $line);
+            $line = preg_replace('/\s*\*+\/$/', '', $line);
+
+            $line = trim($line);
+
+            if ($isReadingSummary && empty($line) && !empty($summary)) {
+                $isReadingSummary = false;
+            } elseif ($isReadingSummary) {
+                $summary = empty($summary) ? $line : ($summary . "\n" . $line);
             } else {
-                if ($short) {
-                    $result['short'] = $result['short'] != ''
-                        ? $result['short'] . PHP_EOL . trim($line)
-                        : trim($line)
-                    ;
-                } else {
-                    $result['long'] = $result['long'] != ''
-                        ? $result['long'] . PHP_EOL . trim($line)
-                        : trim($line)
-                    ;
-                }
+                $description = empty($description) ? $line : ($description . "\n" . $line);
             }
         }
 
-        return $result;
+        return array(
+            trim($summary),
+            trim($description)
+        );
     }
 
     /**
