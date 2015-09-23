@@ -66,10 +66,14 @@ class GotoFunction extends AbstractGoto
         if not value
             return
 
-        # Show the method's signature.
-        returnType = if value.args.return then value.args.return else 'void'
+        description = ""
 
-        description = returnType + ' <strong>' + term + '</strong>' + '('
+        # Show the method's signature.
+        description += '<div style="margin-top: -1em; margin-bottom: -1em;">'
+        returnType = (if value.args.return then value.args.return else '')
+
+        description += "<p><div>"
+        description += returnType + ' <strong>' + term + '</strong>' + '('
 
         if value.args.parameters.length > 0
             description += value.args.parameters.join(', ');
@@ -84,34 +88,64 @@ class GotoFunction extends AbstractGoto
             description += ']'
 
         description += ')'
+        description += '</div></p>'
 
         # Show the summary (short description) of the method.
-        description += "<br/><br/>"
-        description += '<span>' + (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)') + '</span>';
+        description += '<p><div>'
+        description +=     (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)')
+        description += '</p></div>'
 
         # Show the (long) description of the method.
         if value.args.descriptions.long?.length > 0
-            description += "<br/><br/>"
-            description += "Description:<br/>"
-            description += "<span style='margin-left: 1em;'>" + value.args.descriptions.long + "</span>"
+            description += "<p>"
+            description +=     "<div>Description:</div>"
+            description +=     "<div style='padding-left: 1em;'>" + value.args.descriptions.long + "</div>"
+            description += "</p>"
+
+        # Show the parameters the method has.
+        parametersDescription = ""
+
+        for param in value.args.parameters
+            parametersDescription += "<div>"
+            parametersDescription += "• <strong>" + param + "</strong>"
+            parametersDescription += "</div>"
+
+        for param in value.args.optionals
+            parametersDescription += "<div>"
+            parametersDescription += "• <strong>" + param + "</strong>"
+            parametersDescription += "</div>"
+
+        if value.args.parameters.length > 0 or value.args.optionals.length > 0
+            description += "<p>"
+            description +=     "<div>Parameters:</div>"
+            description +=     "<div style='padding-left: 1em;'>" + parametersDescription + "</div>"
+            description += "</p>"
+
+        if value.args.return
+            description += "<p>"
+            description +=     "<div>Returns:</div>"
+            description +=     "<div style='padding-left: 1em;'>" + value.args.return + "</div>"
+            description += "</p>"
 
         # Show an overview of the exceptions the method can throw.
-        throwsDescription = "";
+        throwsDescription = ""
 
         for exceptionType,thrownWhenDescription of value.args.throws
-            throwsDescription +=
-                "<span style='margin-left: 1em;'>• " +
-                "<strong>" + exceptionType + "</strong>"
+            throwsDescription += "<div>"
+            throwsDescription += "• <strong>" + exceptionType + "</strong>"
 
             if thrownWhenDescription
                 throwsDescription += ' ' + thrownWhenDescription
 
-            throwsDescription += "</span><br/>"
+            throwsDescription += "</div>"
 
         if throwsDescription.length > 0
-            description += "<br/><br/>"
-            description += "Throws:<br/>"
-            description += throwsDescription
+            description += "<p>"
+            description +=     "<div>Throws:</div>"
+            description +=     "<div style='margin-left: 1em;'>" + throwsDescription + "</div>"
+            description += "</p>"
+
+        description += "</div>"
 
         return description
 
