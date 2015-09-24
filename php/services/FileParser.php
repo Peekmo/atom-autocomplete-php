@@ -59,9 +59,23 @@ class FileParser
                 if (isset($matches[2]) && $matches[2] == $className) {
                     $found = true;
                     return $matches[1];
-                } else if (substr($matches[1], strlen($matches[1]) - strlen($className)) == $className) {
-                    $found = true;
-                    return $matches[1];
+                } elseif (substr($matches[1], -strlen($className)) === $className) {
+                    $isOnlyPartOfClassName = false;
+
+                    // If we're looking for the class name 'Mailer', a use statement such as "use \My_Mailer" should not
+                    // pass the check.
+                    if (strlen($matches[1]) > strlen($className)) {
+                        $characterBeforeClassName = substr($matches[1], -strlen($className) - 1, 1);
+
+                        if ($characterBeforeClassName !== "\\" && $characterBeforeClassName !== ' ') {
+                            $isOnlyPartOfClassName = true;
+                        }
+                    }
+
+                    if (!$isOnlyPartOfClassName) {
+                        $found = true;
+                        return $matches[1];
+                    }
                 }
             }
 
