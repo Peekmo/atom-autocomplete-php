@@ -6,6 +6,10 @@
  * This script returns all functions, classes & methods in the given directory.
  * Internals and user's one
  **/
+
+use Peekmo\AtomAutocompletePhp\ErrorHandler;
+use Peekmo\AtomAutocompletePhp\Config;
+
 require_once(__DIR__ . '/ErrorHandler.php');
 ErrorHandler::register();
 
@@ -27,16 +31,16 @@ require_once(__DIR__ . '/providers/ParentProvider.php');
 require_once(__DIR__ . '/providers/DocParamProvider.php');
 
 $commands = array(
-    '--classes'          => 'ClassesProvider',
-    '--class'            => 'ClassProvider',
-    '--statics'          => 'StaticsProvider',
-    '--methods'          => 'MethodsProvider',
-    '--functions'        => 'FunctionsProvider',
-    '--refresh'          => 'ClassMapRefresh',
-    '--autocomplete'     => 'AutocompleteProvider',
-    '--autoloadClassMap' => 'AutoloadClassMap',
-    '--parent'           => 'ParentProvider',
-    '--doc-params'       => 'DocParamProvider'
+    '--classes'          => 'Peekmo\AtomAutocompletePhp\ClassesProvider',
+    '--class'            => 'Peekmo\AtomAutocompletePhp\ClassProvider',
+    '--statics'          => 'Peekmo\AtomAutocompletePhp\StaticsProvider',
+    '--methods'          => 'Peekmo\AtomAutocompletePhp\MethodsProvider',
+    '--functions'        => 'Peekmo\AtomAutocompletePhp\FunctionsProvider',
+    '--refresh'          => 'Peekmo\AtomAutocompletePhp\ClassMapRefresh',
+    '--autocomplete'     => 'Peekmo\AtomAutocompletePhp\AutocompleteProvider',
+    '--autoloadClassMap' => 'Peekmo\AtomAutocompletePhp\AutoloadClassMap',
+    '--parent'           => 'Peekmo\AtomAutocompletePhp\ParentProvider',
+    '--doc-params'       => 'Peekmo\AtomAutocompletePhp\DocParamProvider'
 );
 
 /**

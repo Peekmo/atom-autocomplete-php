@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 interface ProviderInterface
 {
     /**

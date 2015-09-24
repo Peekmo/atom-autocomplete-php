@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class AutoloadClassMap extends Tools implements ProviderInterface
 {
     /**

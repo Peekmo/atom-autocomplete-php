@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 /**
  * Parser for PHP documentation
  */
@@ -29,16 +31,16 @@ class DocParser
 
         switch($type) {
             case 'function':
-                $reflection = new ReflectionFunction($name);
+                $reflection = new \ReflectionFunction($name);
                 break;
 
             case 'method':
                 $isConstructor = ($name === '__construct');
-                $reflection = new ReflectionMethod($className, $name);
+                $reflection = new \ReflectionMethod($className, $name);
                 break;
 
             case 'property':
-                $reflection = new ReflectionProperty($className, $name);
+                $reflection = new \ReflectionProperty($className, $name);
                 break;
 
             default:

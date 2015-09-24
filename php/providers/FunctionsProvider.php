@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class FunctionsProvider extends Tools implements ProviderInterface
 {
     /**
@@ -18,14 +20,14 @@ class FunctionsProvider extends Tools implements ProviderInterface
 
         foreach ($functions['internal'] as $functionName) {
             try {
-                $function = new ReflectionFunction($functionName);
-            } catch (Exception $e) {
+                $function = new \ReflectionFunction($functionName);
+            } catch (\Exception $e) {
                 continue;
             }
 
             $functions['names'][] = $function->getName();
 
-            $args = $this->getMethodArguments($function); 
+            $args = $this->getMethodArguments($function);
 
             $functions['values'][$function->getName()] = array(
                 array(

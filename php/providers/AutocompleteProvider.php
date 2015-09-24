@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class AutocompleteProvider extends Tools implements ProviderInterface
 {
     /**
@@ -52,8 +54,8 @@ class AutocompleteProvider extends Tools implements ProviderInterface
             // Look into its parents if use not found
             if (!$found) {
                 try {
-                    $reflection = new ReflectionClass($class);
-                } catch (Exception $e) {
+                    $reflection = new \ReflectionClass($class);
+                } catch (\Exception $e) {
                     return $className;
                 }
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class ClassProvider extends Tools implements ProviderInterface
 {
     /**
@@ -12,8 +14,8 @@ class ClassProvider extends Tools implements ProviderInterface
         $class = $args[0];
 
         try {
-            $reflection = new ReflectionClass($class);
-        } catch (Exception $e) {
+            $reflection = new \ReflectionClass($class);
+        } catch (\Exception $e) {
             return array('error' => $e->getMessage());
         }
 
