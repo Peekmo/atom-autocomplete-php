@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class DocParamProvider extends Tools implements ProviderInterface
 {
     /**

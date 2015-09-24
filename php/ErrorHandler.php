@@ -5,6 +5,8 @@
  * Output PHP errors and exceptions in JSON.
  **/
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class ErrorHandler
 {
     static private $reserve;

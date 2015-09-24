@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 /**
  * Autocompletion for "parent"
  */
@@ -16,8 +18,8 @@ class ParentProvider extends Tools implements ProviderInterface
 
          // Get the reflection to find the parent
         try {
-            $reflection = new ReflectionClass($class);
-        } catch (Exception $e) {
+            $reflection = new \ReflectionClass($class);
+        } catch (\Exception $e) {
             return $this->getClassMetadata('WhatTheHeeeeeeeeell');
         }
 

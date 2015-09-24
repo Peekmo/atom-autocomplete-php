@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class ClassMapRefresh extends Tools implements ProviderInterface
 {
     /**

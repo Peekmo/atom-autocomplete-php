@@ -1,5 +1,7 @@
 <?php
 
+namespace Peekmo\AtomAutocompletePhp;
+
 class StaticsProvider extends Tools implements ProviderInterface
 {
     /**
@@ -11,6 +13,6 @@ class StaticsProvider extends Tools implements ProviderInterface
     {
         $class = $args[0];
 
-        return $this->getClassMetadata($class, ReflectionMethod::IS_STATIC, ReflectionProperty::IS_STATIC);
+        return $this->getClassMetadata($class, \ReflectionMethod::IS_STATIC, \ReflectionProperty::IS_STATIC);
     }
 }
