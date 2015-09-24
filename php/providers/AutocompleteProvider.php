@@ -43,8 +43,17 @@ class AutocompleteProvider extends Tools implements ProviderInterface
         }
 
         $returnValue = $values['args']['return'];
-        if ($returnValue == '$this' || $returnValue == 'self' || $returnValue == 'static') {
+        if ($returnValue == '$this' || $returnValue == 'static') {
             return $data;
+        } elseif ($returnValue === 'self') {
+            // Is the method returning self declared in the class itself or in a parent class? Self refers to the class
+            // declaring the method and will not point to child classes on inheritance, unless they redefine the method
+            // and its docblock.
+            if ($values['declaringClass'] === $class) {
+                return $data;
+            } else {
+                return $this->getClassMetadata($values['declaringClass']);
+            }
         } elseif (ucfirst($returnValue) === $returnValue) {
             $parser = new FileParser($classMap[$class]);
 
