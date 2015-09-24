@@ -217,15 +217,8 @@ class AbstractGoto
 
         calledClass = ''
         splitter = '->'
-        if fullCall.length > 1
-            calledClass = @parser.parseElements(editor, bufferPosition, fullCall)
-        else
-            parts = fullCall[0].trim().split('::')
-            splitter = '::'
-            if parts[0] == 'parent'
-                calledClass = @parser.getParentClass(editor)
-            else
-                calledClass = @parser.findUseForClass(editor, parts[0])
+
+        calledClass = @parser.parseElements(editor, bufferPosition, fullCall)
 
         return {
             calledClass : calledClass,
