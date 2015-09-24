@@ -1,7 +1,7 @@
 exec = require "child_process"
 process = require "process"
 config = require "../config.coffee"
-md5 = require 'MD5'
+md5 = require 'md5'
 fs = require 'fs'
 
 data =
