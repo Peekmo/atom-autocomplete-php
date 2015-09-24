@@ -21,23 +21,18 @@ class GotoFunction extends AbstractGoto
     gotoFromWord: (editor, term) ->
         bufferPosition = editor.getCursorBufferPosition()
 
-        calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
+        calledClass = @getCalledClass(editor, term, bufferPosition)
 
-        if not calledClassInfo?.calledClass
+        if not calledClass
             return
-
-        calledClass = calledClassInfo.calledClass
-        splitter = calledClassInfo.splitter
 
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
 
-        termParts = term.split(splitter)
-        term = termParts.pop().replace('(', '')
         if currentClass == calledClass && @jumpTo(editor, term)
             @manager.addBackTrack(editor.getPath(), bufferPosition)
             return
 
-        value = @getMethodForTerm(editor, term, bufferPosition, calledClassInfo)
+        value = @getMethodForTerm(editor, term, bufferPosition, calledClass)
 
         if not value
             return
@@ -154,20 +149,14 @@ class GotoFunction extends AbstractGoto
      * @param  {TextEditor} editor          TextEditor to search for namespace of term.
      * @param  {string}     term            Term to search for.
      * @param  {Point}      bufferPosition  The cursor location the term is at.
-     * @param  {Object}     calledClassInfo Information about the called class (optional).
+     * @param  {Object}     calledClass     Information about the called class (optional).
     ###
-    getMethodForTerm: (editor, term, bufferPosition, calledClassInfo) ->
-        if not calledClassInfo
-            calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
+    getMethodForTerm: (editor, term, bufferPosition, calledClass) ->
+        if not calledClass
+            calledClass = @getCalledClass(editor, term, bufferPosition)
 
-        if not calledClassInfo?.calledClass
+        if not calledClass
             return
-
-        calledClass = calledClassInfo.calledClass
-        splitter = calledClassInfo.splitter
-
-        termParts = term.split(splitter)
-        term = termParts.pop().replace('(', '')
 
         proxy = require '../services/php-proxy.coffee'
         methods = proxy.methods(calledClass)
@@ -212,10 +201,7 @@ class GotoFunction extends AbstractGoto
 
                 term = match[2]
 
-                value = @getMethodForTerm(editor, term, null, {
-                    calledClass: currentClass,
-                    splitter: '->'
-                })
+                value = @getMethodForTerm(editor, term, null, currentClass)
 
                 if not value
                     continue
