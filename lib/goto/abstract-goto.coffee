@@ -100,36 +100,41 @@ class AbstractGoto
             scrollViewElement = @$(textEditorElement.shadowRoot).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mousemove', @hoverEventSelectors, (event) =>
-                selector = @getSelector(event)
+                selector = @getSelectorFromEvent(event)
+
                 if selector == null or event.altKey == false
                     return
 
                 @$(selector).css('border-bottom', '1px solid ' + @$(selector).css('color'))
                 @$(selector).css('cursor', 'pointer')
                 @isHovering = true
+
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
-                selector = @getSelector(event)
+                selector = @getSelectorFromEvent(event)
                 if selector == null
                     return
 
                 @$(selector).css('border-bottom', '')
                 @$(selector).css('cursor', '')
                 @isHovering = false
+
             @subAtom.add scrollViewElement, 'click', @clickEventSelectors, (event) =>
-                selector = @getSelector(event)
+                selector = @getSelectorFromEvent(event)
                 if selector == null || event.altKey == false
                     return
                 if event.handled != true
                     @gotoFromWord(editor, @$(selector).text())
                     event.handled = true
-            editor.onDidChangeCursorPosition (event) =>
-                # return # Temporary
 
+            editor.onDidChangeCursorPosition (event) =>
                 if @isHovering == false
                     return
+
                 markerProperties =
                     containsBufferPosition: event.newBufferPosition
+
                 markers = event.cursor.editor.findMarkers markerProperties
+
                 for key,marker of markers
                     for allKey,allMarker of @allMarkers[editor.getLongTitle()]
                         if marker.id == allMarker.id
@@ -153,7 +158,7 @@ class AbstractGoto
      * @param  {jQuery.Event}  event  A jQuery event.
      * @return {object|null}          A selector to be used with jQuery.
     ###
-    getSelector: (event) ->
+    getSelectorFromEvent: (event) ->
         return event.currentTarget
 
     ###*
@@ -170,26 +175,6 @@ class AbstractGoto
      * @return {regex}       Regex to be used.
     ###
     getJumpToRegex: (term) ->
-
-    ###*
-     * Retrieves the class the specified term (method or property) is being invoked on.
-     *
-     * @param  {TextEditor} editor         TextEditor to search for namespace of term.
-     * @param  {string}     term           Term to search for.
-     * @param  {Point}      bufferPosition The cursor location the term is at.
-     *
-     * @return {string}
-     *
-     * @example Invoking it on MyMethod::foo()->bar() will ask what class 'bar' is invoked on, which will whatever type
-     *          foo returns.
-    ###
-    getCalledClass: (editor, term, bufferPosition) ->
-        fullCall = @parser.getStackClasses(editor, bufferPosition)
-
-        if fullCall.length == 0 or !term
-          return
-
-        return @parser.parseElements(editor, bufferPosition, fullCall)
 
     ###*
      * Jumps to a word within the editor

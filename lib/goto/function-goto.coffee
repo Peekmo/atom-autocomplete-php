@@ -21,7 +21,7 @@ class GotoFunction extends AbstractGoto
     gotoFromWord: (editor, term) ->
         bufferPosition = editor.getCursorBufferPosition()
 
-        calledClass = @getCalledClass(editor, term, bufferPosition)
+        calledClass = @parser.getCalledClass(editor, term, bufferPosition)
 
         if not calledClass
             return
@@ -32,7 +32,7 @@ class GotoFunction extends AbstractGoto
             @manager.addBackTrack(editor.getPath(), bufferPosition)
             return
 
-        value = @getMethodForTerm(editor, term, bufferPosition, calledClass)
+        value = @parser.getMethodContext(editor, term, bufferPosition, calledClass)
 
         if not value
             return
@@ -48,45 +48,6 @@ class GotoFunction extends AbstractGoto
         })
 
         @manager.addBackTrack(editor.getPath(), bufferPosition)
-
-    ###*
-     * Retrieves information about the method described by the specified term.
-     * @param  {TextEditor} editor          TextEditor to search for namespace of term.
-     * @param  {string}     term            Term to search for.
-     * @param  {Point}      bufferPosition  The cursor location the term is at.
-     * @param  {Object}     calledClass     Information about the called class (optional).
-    ###
-    getMethodForTerm: (editor, term, bufferPosition, calledClass) ->
-        if not calledClass
-            calledClass = @getCalledClass(editor, term, bufferPosition)
-
-        if not calledClass
-            return
-
-        proxy = require '../services/php-proxy.coffee'
-        methods = proxy.methods(calledClass)
-
-        if not methods
-            return
-
-        if methods.error? and methods.error != ''
-            atom.notifications.addError('Failed to get methods for ' + calledClass, {
-                'detail': methods.error.message
-            })
-            return
-
-        if methods.names.indexOf(term) == -1
-            return
-        value = methods.values[term]
-
-        # If there are multiple matches, just select the first method.
-        if value instanceof Array
-            for val in value
-                if val.isMethod
-                    value = val
-                    break
-
-        return value
 
     ###*
      * Register any markers that you need.
@@ -106,7 +67,7 @@ class GotoFunction extends AbstractGoto
 
                 term = match[2]
 
-                value = @getMethodForTerm(editor, term, null, currentClass)
+                value = @parser.getMethodContext(editor, term, null, currentClass)
 
                 if not value
                     continue

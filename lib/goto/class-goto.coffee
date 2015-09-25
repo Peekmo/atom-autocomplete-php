@@ -94,7 +94,7 @@ class GotoClass extends AbstractGoto
      * @param  {jQuery.Event}  event  A jQuery event.
      * @return {object|null}          A selector to be used with jQuery.
     ###
-    getSelector: (event) ->
+    getSelectorFromEvent: (event) ->
         selector = event.currentTarget
 
         if @$(selector).hasClass('builtin') || @$(selector).children('.builtin').length > 0
