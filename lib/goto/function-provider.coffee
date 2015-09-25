@@ -16,8 +16,9 @@ class FunctionProvider extends AbstractProvider
 
     ###*
      * Goto the class from the term given.
-     * @param  {TextEditor} editor  TextEditor to search for namespace of term.
-     * @param  {string}     term    Term to search for.
+     *
+     * @param {TextEditor} editor  TextEditor to search for namespace of term.
+     * @param {string}     term    Term to search for.
     ###
     gotoFromWord: (editor, term) ->
         bufferPosition = editor.getCursorBufferPosition()
@@ -52,7 +53,8 @@ class FunctionProvider extends AbstractProvider
 
     ###*
      * Register any markers that you need.
-     * @param  {TextEditor} editor The editor to search through
+     *
+     * @param {TextEditor} editor The editor to search through
     ###
     registerMarkers: (editor) ->
         text = editor.getText()
@@ -145,7 +147,8 @@ class FunctionProvider extends AbstractProvider
 
     ###*
      * Removes any markers previously created by registerMarkers.
-     * @param  {TextEditor} editor The editor to search through
+     *
+     * @param {TextEditor} editor The editor to search through
     ###
     cleanMarkers: (editor) ->
         for i,marker of @annotationMarkers[editor.getLongTitle()]
@@ -156,8 +159,10 @@ class FunctionProvider extends AbstractProvider
 
     ###*
      * Gets the regex used when looking for a word within the editor
-     * @param  {string} term Term being search.
-     * @return {regex}       Regex to be used.
+     *
+     * @param {string} term Term being search.
+     *
+     * @return {regex} Regex to be used.
     ###
     getJumpToRegex: (term) ->
         return ///function\ +#{term}(\ +|\()///i

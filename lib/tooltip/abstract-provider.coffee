@@ -14,7 +14,7 @@ class AbstractProvider
     init: () ->
         @$ = require 'jquery'
         @parser = require '../services/php-file-parser'
-        
+
         @subAtom = new SubAtom
         @subscriptions = new CompositeDisposable
 
