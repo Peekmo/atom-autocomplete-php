@@ -1,12 +1,13 @@
-AbstractGoto = require './abstract-goto'
-{TextEditor} = require 'atom'
-{Point} = require 'atom'
 {Range} = require 'atom'
+{Point} = require 'atom'
+{TextEditor} = require 'atom'
+
 SubAtom = require 'sub-atom'
+AbstractProvider = require './abstract-provider'
 
 module.exports =
-class GotoFunction extends AbstractGoto
 
+class FunctionProvider extends AbstractProvider
     hoverEventSelectors: '.function-call'
     clickEventSelectors: '.function-call'
     gotoRegex: /^(\$\w+)?((->|::)\w+\()+/

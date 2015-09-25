@@ -1,8 +1,8 @@
-AbstractGoto = require './abstract-goto'
+AbstractProvider = require './abstract-provider'
 
 module.exports =
-class GotoClass extends AbstractGoto
 
+class ClassProvider extends AbstractProvider
     hoverEventSelectors: '.entity.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
     clickEventSelectors: '.entity.inherited-class, .support.namespace, .support.class'
     gotoRegex: /^\\?[A-Z][A-za-z0-9_]*(\\[A-Z][A-Za-z0-9_])*$/

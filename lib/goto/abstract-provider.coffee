@@ -7,7 +7,7 @@ GotoSelectView = require './goto-select-list-view.coffee'
 
 module.exports =
 
-class AbstractGoto
+class AbstractProvider
     allMarkers: []
     hoverEventSelectors: ''
     clickEventSelectors: ''

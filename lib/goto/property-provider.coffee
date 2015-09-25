@@ -1,9 +1,10 @@
-AbstractGoto = require './abstract-goto'
 {TextEditor} = require 'atom'
 
-module.exports =
-class GotoProperty extends AbstractGoto
+AbstractProvider = require './abstract-provider'
 
+module.exports =
+
+class PropertyProvider extends AbstractProvider
     hoverEventSelectors: '.property'
     clickEventSelectors: '.property'
     gotoRegex: /^(\$\w+)?((->|::)\w+)+/
@@ -16,7 +17,7 @@ class GotoProperty extends AbstractGoto
     gotoFromWord: (editor, term) ->
         bufferPosition = editor.getCursorBufferPosition()
 
-        calledClass = @getCalledClass(editor, term, bufferPosition)
+        calledClass = @parser.getCalledClass(editor, term, bufferPosition)
 
         if not calledClass
             return
@@ -27,7 +28,7 @@ class GotoProperty extends AbstractGoto
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
 
-        value = @parser.getPropertyForTerm(editor, term, bufferPosition, calledClass)
+        value = @parser.getPropertyContext(editor, term, bufferPosition, calledClass)
 
         if not value
             return
