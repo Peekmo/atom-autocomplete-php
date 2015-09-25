@@ -14,63 +14,43 @@ class PropertyProvider extends AbstractProvider
      * @param  {Point}      bufferPosition The cursor location the term is at.
     ###
     getTooltipForWord: (editor, term, bufferPosition) ->
-        value = @getPropertyForTerm(editor, term, bufferPosition)
+        value = @parser.getPropertyContext(editor, term, bufferPosition)
 
         if not value
             return
 
-        # Create a useful description to show in the tooltip.
+        accessModifier = ''
         returnType = if value.args.return then value.args.return else 'mixed'
 
-        description = ''
-
         if value.isPublic
-            description += 'public'
+            accessModifier = 'public'
 
         else if value.isProtected
-            description += 'protected'
+            accessModifier = 'protected'
 
         else
-            description += 'private'
+            accessModifier = 'private'
 
-        description += ' ' + returnType + '<strong>' + ' $' + term + '</strong>';
-        description += "<br/><br/>"
+        # Create a useful description to show in the tooltip.
+        description = ''
+        description += '<div style="margin-top: -1em; margin-bottom: -1em;">'
 
-        if value.args.descriptions.short
-            description += value.args.descriptions.short
+        description += "<p><div>"
+        description += accessModifier + ' ' + returnType + '<strong>' + ' $' + term + '</strong>'
+        description += '</div></p>'
 
-        else
-            description += '(No documentation available)'
+        # Show the summary (short description).
+        description += '<p><div>'
+        description +=     (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)')
+        description += '</p></div>'
+
+        # Show the (long) description.
+        if value.args.descriptions.long?.length > 0
+            description += "<p>"
+            description +=     "<div>Description:</div>"
+            description +=     "<div style='padding-left: 1em;'>" + value.args.descriptions.long + "</div>"
+            description += "</p>"
+
+        description += "</div>"
 
         return description
-
-    ###*
-     * Retrieves information about the property described by the specified term.
-     * @param  {TextEditor} editor          TextEditor to search for namespace of term.
-     * @param  {string}     term            Term to search for.
-     * @param  {Point}      bufferPosition  The cursor location the term is at.
-     * @param  {Object}     calledClass     Information about the called class (optional).
-    ###
-    getPropertyForTerm: (editor, term, bufferPosition, calledClass) ->
-        if not calledClass
-            calledClass = @parser.getCalledClass(editor, term, bufferPosition)
-
-        if not calledClass
-            return
-
-        proxy = require '../services/php-proxy.coffee'
-        methodsAndProperties = proxy.methods(calledClass)
-        if not methodsAndProperties.names?
-            return
-
-        if methodsAndProperties.names.indexOf(term) == -1
-            return
-        value = methodsAndProperties.values[term]
-
-        if value instanceof Array
-            for val in value
-                if !val.isMethod
-                    value = val
-                    break
-
-        return value
