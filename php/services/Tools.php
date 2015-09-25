@@ -96,6 +96,14 @@ abstract class Tools
 
         $docblockInheritsLongDescription = false;
 
+        // Ticket #86 - Add support for inheriting the entire docblock from the parent if the current docblock contains
+        // nothing but these tags. Note that, according to draft PSR-5 and phpDocumentor's implementation, this is
+        // incorrect. However, some large frameworks (such as Symfony) use this and it thus makes life easier for many
+        // developers, hence this workaround.
+        if (in_array($docParseResult['descriptions']['short'], array('{@inheritdoc}', '{@inheritDoc}'))) {
+            $docComment = false; // Pretend there is no docblock.
+        }
+
         if (strpos($docParseResult['descriptions']['long'], DocParser::INHERITDOC) !== false) {
             // The parent docblock is embedded, which we'll need to parse. Note that according to phpDocumentor this
             // only works for the long description (not the so-called 'summary' or short description).
