@@ -79,6 +79,10 @@ class AbstractGoto
         if editor.getGrammar().scopeName.match /text.html.php$/
             position = editor.getCursorBufferPosition()
             term = @parser.getFullWordFromBufferPosition(editor, position)
+
+            termParts = term.split(/(?:\-\>|::)/)
+            term = termParts.pop().replace('(', '')
+
             @gotoFromWord(editor, term)
 
     ###*
@@ -203,34 +207,25 @@ class AbstractGoto
     getJumpToRegex: (term) ->
 
     ###*
-     * Retrieves the called class and the splitter used.
+     * Retrieves the class the specified term (method or property) is being invoked on.
+     *
      * @param  {TextEditor} editor         TextEditor to search for namespace of term.
      * @param  {string}     term           Term to search for.
      * @param  {Point}      bufferPosition The cursor location the term is at.
+     *
+     * @return {string}
+     *
+     * @example Invoking it on MyMethod::foo()->bar() will ask what class 'bar' is invoked on, which will whatever type
+     *          foo returns.
     ###
-    getCalledClassInfo: (editor, term, bufferPosition) ->
+    getCalledClass: (editor, term, bufferPosition) ->
         proxy = require '../services/php-proxy.coffee'
         fullCall = @parser.getStackClasses(editor, bufferPosition)
 
         if fullCall.length == 0 or !term
           return
 
-        calledClass = ''
-        splitter = '->'
-        if fullCall.length > 1
-            calledClass = @parser.parseElements(editor, bufferPosition, fullCall)
-        else
-            parts = fullCall[0].trim().split('::')
-            splitter = '::'
-            if parts[0] == 'parent'
-                calledClass = @parser.getParentClass(editor)
-            else
-                calledClass = @parser.findUseForClass(editor, parts[0])
-
-        return {
-            calledClass : calledClass,
-            splitter    : splitter
-        }
+        return @parser.parseElements(editor, bufferPosition, fullCall)
 
     ###*
      * Jumps to a word within the editor

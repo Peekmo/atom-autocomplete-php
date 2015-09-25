@@ -346,7 +346,8 @@ module.exports =
     # Get the full text
     return [] if not text
 
-    elements = text.split("->")
+    elements = text.split(/(?:\-\>|::)/)
+    # elements = text.split("->")
 
     # Remove parenthesis and whitespaces
     for key, element of elements
@@ -470,13 +471,23 @@ module.exports =
     for element in elements
       # $this keyword
       if loop_index == 0
-        if element == '$this'
-
+        if element == '$this' or element == 'static' or element == 'self'
           className = @getCurrentClass(editor, bufferPosition)
           loop_index++
           continue
-        else
+
+        else if element[0] == '$'
           className = @getVariableType(editor, bufferPosition, element)
+          loop_index++
+          continue
+
+        else if element == 'parent'
+          className = @getParentClass(editor)
+          loop_index++
+          continue
+
+        else
+          className = @findUseForClass(editor, element)
           loop_index++
           continue
 

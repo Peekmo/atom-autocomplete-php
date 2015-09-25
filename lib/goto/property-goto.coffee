@@ -16,23 +16,18 @@ class GotoProperty extends AbstractGoto
     gotoFromWord: (editor, term) ->
         bufferPosition = editor.getCursorBufferPosition()
 
-        calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
+        calledClass = @getCalledClass(editor, term, bufferPosition)
 
-        if not calledClassInfo?.calledClass
+        if not calledClass
             return
-
-        calledClass = calledClassInfo.calledClass
-        splitter = calledClassInfo.splitter
 
         currentClass = @parser.getCurrentClass(editor, bufferPosition)
 
-        termParts = term.split(splitter)
-        term = termParts.pop()
         if currentClass == calledClass && @jumpTo(editor, term)
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
 
-        value = @getPropertyForTerm(editor, term, bufferPosition, calledClassInfo)
+        value = @getPropertyForTerm(editor, term, bufferPosition, calledClass)
 
         if not value
             return
@@ -90,16 +85,14 @@ class GotoProperty extends AbstractGoto
      * @param  {TextEditor} editor          TextEditor to search for namespace of term.
      * @param  {string}     term            Term to search for.
      * @param  {Point}      bufferPosition  The cursor location the term is at.
-     * @param  {Object}     calledClassInfo Information about the called class (optional).
+     * @param  {Object}     calledClass     Information about the called class (optional).
     ###
-    getPropertyForTerm: (editor, term, bufferPosition, calledClassInfo) ->
-        if not calledClassInfo
-            calledClassInfo = @getCalledClassInfo(editor, term, bufferPosition)
+    getPropertyForTerm: (editor, term, bufferPosition, calledClass) ->
+        if not calledClass
+            calledClass = @getCalledClass(editor, term, bufferPosition)
 
-        if not calledClassInfo?.calledClass
+        if not calledClass
             return
-
-        calledClass = calledClassInfo.calledClass
 
         proxy = require '../services/php-proxy.coffee'
         methodsAndProperties = proxy.methods(calledClass)
