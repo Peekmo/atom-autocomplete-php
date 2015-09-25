@@ -52,6 +52,26 @@ module.exports =
     return name
 
   ###*
+   * Retrieves the class the specified term (method or property) is being invoked on.
+   *
+   * @param  {TextEditor} editor         TextEditor to search for namespace of term.
+   * @param  {string}     term           Term to search for.
+   * @param  {Point}      bufferPosition The cursor location the term is at.
+   *
+   * @return {string}
+   *
+   * @example Invoking it on MyMethod::foo()->bar() will ask what class 'bar' is invoked on, which will whatever type
+   *          foo returns.
+  ###
+  getCalledClass: (editor, term, bufferPosition) ->
+    fullCall = @getStackClasses(editor, bufferPosition)
+
+    if fullCall.length == 0 or !term
+      return
+
+    return @parseElements(editor, bufferPosition, fullCall)
+
+  ###*
    * Get all variables declared in the current function
    * @param {TextEdutir} editor         Atom text editor
    * @param {Range}      bufferPosition Position of the current buffer

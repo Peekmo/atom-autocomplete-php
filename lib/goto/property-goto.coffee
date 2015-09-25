@@ -44,43 +44,6 @@ class GotoProperty extends AbstractGoto
         @jumpWord = term
 
     ###*
-     * Retrieves a tooltip for the word given.
-     * @param  {TextEditor} editor         TextEditor to search for namespace of term.
-     * @param  {string}     term           Term to search for.
-     * @param  {Point}      bufferPosition The cursor location the term is at.
-    ###
-    getTooltipForWord: (editor, term, bufferPosition) ->
-        value = @getPropertyForTerm(editor, term, bufferPosition)
-
-        if not value
-            return
-
-        # Create a useful description to show in the tooltip.
-        returnType = if value.args.return then value.args.return else 'mixed'
-
-        description = ''
-
-        if value.isPublic
-            description += 'public'
-
-        else if value.isProtected
-            description += 'protected'
-
-        else
-            description += 'private'
-
-        description += ' ' + returnType + '<strong>' + ' $' + term + '</strong>';
-        description += "<br/><br/>"
-
-        if value.args.descriptions.short
-            description += value.args.descriptions.short
-
-        else
-            description += '(No documentation available)'
-
-        return description
-
-    ###*
      * Retrieves information about the property described by the specified term.
      * @param  {TextEditor} editor          TextEditor to search for namespace of term.
      * @param  {string}     term            Term to search for.

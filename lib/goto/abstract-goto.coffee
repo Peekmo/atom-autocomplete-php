@@ -25,8 +25,6 @@ class AbstractGoto
         @$ = require 'jquery'
         @parser = require '../services/php-file-parser'
         @fuzzaldrin = require 'fuzzaldrin'
-        {CompositeDisposable} = require 'atom'
-        @subscriptions = new CompositeDisposable
         @manager = manager
         atom.workspace.observeTextEditors (editor) =>
             editor.onDidSave (event) =>
@@ -92,16 +90,6 @@ class AbstractGoto
     ###
     gotoFromWord: (editor, term) ->
 
-
-    ###*
-     * Retrieves a tooltip for the word given.
-     * @param  {TextEditor} editor         TextEditor to search for namespace of term.
-     * @param  {string}     term           Term to search for.
-     * @param  {Point}      bufferPosition The cursor location the term is at.
-    ###
-    getTooltipForWord: (editor, term, bufferPosition) ->
-
-
     ###*
      * Registers the mouse events for alt-click.
      * @param  {TextEditor} editor  TextEditor to register events to.
@@ -113,27 +101,7 @@ class AbstractGoto
 
             @subAtom.add scrollViewElement, 'mousemove', @hoverEventSelectors, (event) =>
                 selector = @getSelector(event)
-                if selector == null
-                    return
-
-                # Try to show a tooltip containing the documentation of the item.
-                if not @showingDocumentationTooltip
-                    cursorPosition = atom.views.getView(editor).component.screenPositionForMouseEvent(event)
-
-                    tooltipText = @getTooltipForWord(editor, @$(selector).text(), cursorPosition)
-
-                    if tooltipText?.length > 0
-                        @subscriptions.add atom.tooltips.add(event.target, {
-                            title: '<div style="text-align: left;">' + tooltipText.replace(/\n/g, '<br/>') + '</div>'
-                            html: true
-                            placement: 'bottom'
-                            delay:
-                                show: 500
-                        })
-
-                        @showingDocumentationTooltip = true
-
-                if event.altKey == false
+                if selector == null or event.altKey == false
                     return
 
                 @$(selector).css('border-bottom', '1px solid ' + @$(selector).css('color'))
@@ -143,9 +111,6 @@ class AbstractGoto
                 selector = @getSelector(event)
                 if selector == null
                     return
-
-                @subscriptions.dispose();
-                @showingDocumentationTooltip = false
 
                 @$(selector).css('border-bottom', '')
                 @$(selector).css('cursor', '')
@@ -219,7 +184,6 @@ class AbstractGoto
      *          foo returns.
     ###
     getCalledClass: (editor, term, bufferPosition) ->
-        proxy = require '../services/php-proxy.coffee'
         fullCall = @parser.getStackClasses(editor, bufferPosition)
 
         if fullCall.length == 0 or !term
