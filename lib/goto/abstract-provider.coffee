@@ -134,6 +134,7 @@ class AbstractProvider
                     @gotoFromWord(editor, @$(selector).text())
                     event.handled = true
 
+            # This is needed to be able to alt-click class names inside comments (docblocks).
             editor.onDidChangeCursorPosition (event) =>
                 if @isHovering == false
                     return
