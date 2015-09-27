@@ -1,5 +1,4 @@
 {TextEditor} = require 'atom'
-{CompositeDisposable} = require 'atom'
 
 SubAtom = require 'sub-atom'
 
@@ -16,7 +15,14 @@ class AbstractProvider
         @parser = require '../services/php-file-parser'
 
         @subAtom = new SubAtom
-        @subscriptions = new CompositeDisposable
+
+        # Find or create the tooltip popover.
+        @popover = @$(document.body).find('.php-atom-autocomplete-popover')
+
+        if @popover?.length == 0
+            @popover = document.createElement('span')
+            @popover.className = 'php-atom-autocomplete-popover'
+            document.body.appendChild(@popover)
 
         atom.workspace.observeTextEditors (editor) =>
             @registerEvents editor
@@ -46,6 +52,7 @@ class AbstractProvider
      * Deactives the goto feature.
     ###
     deactivate: () ->
+        document.removeChild(@popover)
         @subAtom.dispose()
 
     ###*
@@ -59,27 +66,48 @@ class AbstractProvider
             scrollViewElement = @$(textEditorElement.shadowRoot).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mouseover', @hoverEventSelectors, (event) =>
+                if @timeout
+                    clearTimeout(@timeout)
+
                 selector = @getSelectorFromEvent(event)
 
                 if selector == null
                     return
 
                 # Try to show a tooltip containing the documentation of the item.
-                cursorPosition = atom.views.getView(editor).component.screenPositionForMouseEvent(event)
+                @timeout = setTimeout(() =>
+                    cursorPosition = atom.views.getView(editor).component.screenPositionForMouseEvent(event)
 
-                tooltipText = @getTooltipForWord(editor, @$(selector).text(), cursorPosition)
-
-                if tooltipText?.length > 0
-                    @subscriptions.add atom.tooltips.add(event.target, {
-                        title: '<div style="text-align: left;">' + tooltipText.replace(/\n/g, '<br/>') + '</div>'
-                        html: true
-                        placement: 'bottom'
-                        delay:
-                            show: 500
-                    })
+                    @showTooltipFor(editor, selector, cursorPosition)
+                , 500)
 
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
-                @subscriptions.dispose();
+                clearTimeout(@timeout)
+                @$(@popover).hide();
+
+    ###*
+     * Shows a tooltip containing the documentation of the specified element located at the specified location.
+     *
+     * @param {TextEditor} editor         TextEditor containing the elemment.
+     * @param {string}     element        The element to search for.
+     * @param {Point}      bufferPosition The cursor location the element is at.
+     * @param {int}        fadeInTime     The amount of time to take to fade in the tooltip.
+    ###
+    showTooltipFor: (editor, element, bufferPosition, fadeInTime = 100) ->
+        term = @$(element).text()
+        tooltipText = @getTooltipForWord(editor, term, bufferPosition)
+
+        if tooltipText?.length > 0
+            coordinates = element.getBoundingClientRect();
+
+            centerOffset = ((coordinates.right - coordinates.left) / 2)
+
+            @$(@popover).html('<div class="wrapper">' + tooltipText.replace(/\n/g, '<br/>') + '</div>')
+
+            @$(@popover).css('left', (coordinates.left - (@$(@popover).width() / 8) + centerOffset) + 'px')
+            @$(@popover).css('top', (coordinates.bottom + 10) + 'px')
+
+            @$(@popover).fadeIn(fadeInTime)
 
     ###*
      * Retrieves a tooltip for the word given.

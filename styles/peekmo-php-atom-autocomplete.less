@@ -17,6 +17,49 @@
     margin-left: -50%;
 }
 
+.php-atom-autocomplete-popover {
+    display: none;
+    z-index: 999999;
+    position: absolute;
+    text-align: left;
+    font-size: small;
+    opacity: 0.95;
+    color: @text-color-highlight;
+    background: @tool-panel-background-color;
+    border: 4px solid darken(@tool-panel-background-color, 1%);
+    border-radius: 5px;
+
+    .wrapper {
+        padding: 0em 1em 1em 1em;
+
+        .section {
+            > h4 {
+                margin-top: 1em;
+                font-size: larger;
+                font-weight: bold;
+            }
+
+            > div {
+                padding-left: 1em;
+            }
+        }
+
+    }
+}
+
+.php-atom-autocomplete-popover:before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0.95;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent darken(@tool-panel-background-color, 1%) transparent;
+    top: -14px;
+    left: 12.5%;
+}
+
 atom-text-editor, atom-text-editor::shadow {
     .comment-clickable .region {
         pointer-events: all;

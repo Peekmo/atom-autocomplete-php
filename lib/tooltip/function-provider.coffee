@@ -35,8 +35,6 @@ class FunctionProvider extends AbstractProvider
         else
             accessModifier = 'private'
 
-        description += '<div style="margin-top: -1em; margin-bottom: -1em;">'
-
         description += "<p><div>"
         description += accessModifier + ' ' + returnType + ' <strong>' + term + '</strong>' + '('
 
@@ -62,10 +60,10 @@ class FunctionProvider extends AbstractProvider
 
         # Show the (long) description.
         if value.args.descriptions.long?.length > 0
-            description += "<p>"
-            description +=     "<div>Description:</div>"
-            description +=     "<div style='padding-left: 1em;'>" + value.args.descriptions.long + "</div>"
-            description += "</p>"
+            description += '<div class="section">'
+            description +=     "<h4>Description</h4>"
+            description +=     "<div>" + value.args.descriptions.long + "</div>"
+            description += "</div>"
 
         # Show the parameters the method has.
         parametersDescription = ""
@@ -81,16 +79,16 @@ class FunctionProvider extends AbstractProvider
             parametersDescription += "</div>"
 
         if value.args.parameters.length > 0 or value.args.optionals.length > 0
-            description += "<p>"
-            description +=     "<div>Parameters:</div>"
-            description +=     "<div style='padding-left: 1em;'>" + parametersDescription + "</div>"
-            description += "</p>"
+            description += '<div class="section">'
+            description +=     "<h4>Parameters</h4>"
+            description +=     "<div>" + parametersDescription + "</div>"
+            description += "</div>"
 
         if value.args.return
-            description += "<p>"
-            description +=     "<div>Returns:</div>"
-            description +=     "<div style='padding-left: 1em;'>" + value.args.return + "</div>"
-            description += "</p>"
+            description += '<div class="section">'
+            description +=     "<h4>Returns</h4>"
+            description +=     "<div>" + value.args.return + "</div>"
+            description += "</div>"
 
         # Show an overview of the exceptions the method can throw.
         throwsDescription = ""
@@ -105,11 +103,9 @@ class FunctionProvider extends AbstractProvider
             throwsDescription += "</div>"
 
         if throwsDescription.length > 0
-            description += "<p>"
-            description +=     "<div>Throws:</div>"
-            description +=     "<div style='margin-left: 1em;'>" + throwsDescription + "</div>"
-            description += "</p>"
-
-        description += "</div>"
+            description += '<div class="section">'
+            description +=     "<h4>Throws</h4>"
+            description +=     "<div>" + throwsDescription + "</div>"
+            description += "</div>"
 
         return description
