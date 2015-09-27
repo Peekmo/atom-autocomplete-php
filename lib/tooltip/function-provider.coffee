@@ -75,7 +75,7 @@ class FunctionProvider extends AbstractProvider
 
         for param in value.args.optionals
             parametersDescription += "<div>"
-            parametersDescription += "• <strong>" + param + "</strong>"
+            parametersDescription += "• <strong>[" + param + "]</strong>"
             parametersDescription += "</div>"
 
         if value.args.parameters.length > 0 or value.args.optionals.length > 0
