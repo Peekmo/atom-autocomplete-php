@@ -55,33 +55,29 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 return $this->getClassMetadata($values['declaringClass']);
             }
         } elseif (ucfirst($returnValue) === $returnValue) {
-            if (!empty($returnValue) && $returnValue[0] === "\\") {
-                // Absolute full class name specified, there is no doubt what class this is.
-                return $this->getClassMetadata($returnValue);
-            }
-
             // At this point, this could either be a class name relative to the current namespace or a full class
             // name without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which
             // case its absolute path is determined by the namespace and use statements of the file containing it.
-            $parser = new FileParser($classMap[$values['declaringClass']]);
+            $className = $returnValue;
 
-            $useStatementFound = false;
-            $className = $parser->getCompleteNamespace($returnValue, $useStatementFound);
+            if (!empty($className) && $returnValue[0] !== "\\" && isset($classMap[$values['declaringClass']])) {
+                $parser = new FileParser($classMap[$values['declaringClass']]);
 
-            if (!$useStatementFound) {
-                $isRelativeClass = true;
+                $useStatementFound = false;
+                $competedClassName = $parser->getCompleteNamespace($returnValue, $useStatementFound);
 
-                // Try instantiating the class, e.g. My\Foo\Bar.
-                try {
-                    $reflection = new \ReflectionClass($className);
-                } catch (\Exception $e) {
-                    $isRelativeClass = false;
-                }
+                if (!$useStatementFound) {
+                    $isRelativeClass = true;
 
-                // The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a namespace
-                // set up in composer.json, without a leading slash.
-                if (!$isRelativeClass) {
-                    $className = $returnValue;
+                    // Try instantiating the class, e.g. My\Foo\Bar.
+                    try {
+                        $reflection = new \ReflectionClass($competedClassName);
+
+                        $className = $competedClassName;
+                    } catch (\Exception $e) {
+                        // The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a
+                        // namespace set up in composer.json, without a leading slash.
+                    }
                 }
             }
 
