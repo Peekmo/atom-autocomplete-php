@@ -251,6 +251,8 @@ module.exports =
    * @return string className
   ###
   getStackClasses: (editor, position) ->
+    return unless position?  
+
     lineIdx = 0
     parenthesisOpened = 0
     parenthesisClosed = 0
