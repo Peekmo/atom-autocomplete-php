@@ -54,9 +54,9 @@ class FunctionProvider extends AbstractProvider
         description += '</div></p>'
 
         # Show the summary (short description).
-        description += '<p><div>'
+        description += '<div>'
         description +=     (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)')
-        description += '</p></div>'
+        description += '</div>'
 
         # Show the (long) description.
         if value.args.descriptions.long?.length > 0
