@@ -251,7 +251,7 @@ module.exports =
    * @return string className
   ###
   getStackClasses: (editor, position) ->
-    return unless position?  
+    return unless position?
 
     lineIdx = 0
     parenthesisOpened = 0
@@ -469,6 +469,8 @@ module.exports =
   parseElements: (editor, bufferPosition, elements) ->
     loop_index = 0
     className  = null
+    if not elements?
+      return
 
     for element in elements
       # $this keyword

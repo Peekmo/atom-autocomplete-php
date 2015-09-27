@@ -50,12 +50,11 @@ module.exports =
   activate: ->
     # if not config.testConfig()
     #   return
-
     config.init()
-    @registerProviders()
-    @gotoManager = new GotoManager()
-    @gotoManager.init()
-    proxy.init()
+    if @registerProviders()
+      @gotoManager = new GotoManager()
+      @gotoManager.init()
+      proxy.init()
 
   deactivate: ->
     @providers = []
@@ -68,7 +67,7 @@ module.exports =
     try
         proxy.composer()
     catch err
-        return
+        return false
 
     @providers.push new ClassProvider()
     @providers.push new AutocompleteProvider()
@@ -76,5 +75,6 @@ module.exports =
     @providers.push new SelfProvider()
     @providers.push new ParentProvider()
 
+    return true
   getProvider: ->
     @providers

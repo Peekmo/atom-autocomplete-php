@@ -94,6 +94,7 @@ readComposer = () ->
     return data.composer
 
   console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
+  throw "Error"
 
 ###*
  * Throw a formatted error

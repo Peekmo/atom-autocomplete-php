@@ -222,7 +222,7 @@ class AbstractGoto
         proxy = require '../services/php-proxy.coffee'
         fullCall = @parser.getStackClasses(editor, bufferPosition)
 
-        if fullCall.length == 0 or !term
+        if fullCall?.length == 0 or !term
           return
 
         return @parser.parseElements(editor, bufferPosition, fullCall)
