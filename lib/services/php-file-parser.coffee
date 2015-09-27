@@ -66,7 +66,7 @@ module.exports =
   getCalledClass: (editor, term, bufferPosition) ->
     fullCall = @getStackClasses(editor, bufferPosition)
 
-    if fullCall.length == 0 or !term
+    if fullCall?.length == 0 or !term
       return
 
     return @parseElements(editor, bufferPosition, fullCall)

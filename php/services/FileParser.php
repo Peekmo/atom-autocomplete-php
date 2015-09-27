@@ -37,10 +37,6 @@ class FileParser
 
         $fullClass = $className;
 
-        if (count(explode('\\', $className)) > 1) {
-            return $className;
-        }
-
         while (!feof($this->file)) {
             $line = fgets($this->file);
 

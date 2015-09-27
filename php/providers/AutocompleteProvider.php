@@ -55,24 +55,33 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 return $this->getClassMetadata($values['declaringClass']);
             }
         } elseif (ucfirst($returnValue) === $returnValue) {
-            $parser = new FileParser($classMap[$class]);
+            if (!empty($returnValue) && $returnValue[0] === "\\") {
+                // Absolute full class name specified, there is no doubt what class this is.
+                return $this->getClassMetadata($returnValue);
+            }
 
-            $found = false;
-            $className = $parser->getCompleteNamespace($returnValue, $found);
+            // At this point, this could either be a class name relative to the current namespace or a full class
+            // name without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which
+            // case its absolute path is determined by the namespace and use statements of the file containing it.
+            $parser = new FileParser($classMap[$values['declaringClass']]);
 
-            // Look into its parents if use not found
-            if (!$found) {
+            $useStatementFound = false;
+            $className = $parser->getCompleteNamespace($returnValue, $useStatementFound);
+
+            if (!$useStatementFound) {
+                $isRelativeClass = true;
+
+                // Try instantiating the class, e.g. My\Foo\Bar.
                 try {
-                    $reflection = new \ReflectionClass($class);
+                    $reflection = new \ReflectionClass($className);
                 } catch (\Exception $e) {
-                    return $className;
+                    $isRelativeClass = false;
                 }
 
-                while (($reflection = $reflection->getParentClass()) && ($found == false)) {
-                    if (isset($classMap[$reflection->getName()])) {
-                        $parser = new FileParser($classMap[$reflection->getName()]);
-                        $className = $parser->getCompleteNamespace($returnValue, $found);
-                    }
+                // The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a namespace
+                // set up in composer.json, without a leading slash.
+                if (!$isRelativeClass) {
+                    $className = $returnValue;
                 }
             }
 
