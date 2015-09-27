@@ -7,6 +7,7 @@ ParentProvider = require "./providers/parent-provider.coffee"
 SelfProvider = require "./providers/self-provider.coffee"
 
 GotoManager = require "./goto/goto-manager.coffee"
+TooltipManager = require "./tooltip/tooltip-manager.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
@@ -52,13 +53,21 @@ module.exports =
     #   return
     config.init()
     if @registerProviders()
+      @registerProviders()
+
       @gotoManager = new GotoManager()
       @gotoManager.init()
+
+      @tooltipManager = new TooltipManager()
+      @tooltipManager.init()
+
       proxy.init()
 
   deactivate: ->
     @providers = []
+
     @gotoManager.deactivate()
+    @tooltipManager.deactivate()
 
   registerProviders: ->
     @providers.push new VariableProvider()
