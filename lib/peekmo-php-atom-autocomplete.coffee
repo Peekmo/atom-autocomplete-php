@@ -52,16 +52,15 @@ module.exports =
     # if not config.testConfig()
     #   return
     config.init()
-    if @registerProviders()
-      @registerProviders()
+    @registerProviders()
 
-      @gotoManager = new GotoManager()
-      @gotoManager.init()
+    @gotoManager = new GotoManager()
+    @gotoManager.init()
 
-      @tooltipManager = new TooltipManager()
-      @tooltipManager.init()
+    @tooltipManager = new TooltipManager()
+    @tooltipManager.init()
 
-      proxy.init()
+    proxy.init()
 
   deactivate: ->
     @providers = []
@@ -76,7 +75,8 @@ module.exports =
     try
         proxy.composer()
     catch err
-        return false
+        console.log "No composer"
+        #return false
 
     @providers.push new ClassProvider()
     @providers.push new AutocompleteProvider()
@@ -84,6 +84,6 @@ module.exports =
     @providers.push new SelfProvider()
     @providers.push new ParentProvider()
 
-    return true
+    #return true
   getProvider: ->
     @providers
