@@ -46,16 +46,9 @@ class AutocompleteProvider extends Tools implements ProviderInterface
             $returnValue = $memberInfo['args']['return'];
 
             if ($returnValue == '$this' || $returnValue == 'static') {
-                return $data;
+                $relevantClass = $class;
             } elseif ($returnValue === 'self') {
-                // Is the method returning self declared in the class itself or in a parent class? Self refers to the
-                // class declaring the method and will not point to child classes on inheritance, unless they redefine
-                // the method and its docblock.
-                if ($memberInfo['declaringClass'] === $class) {
-                    return $data;
-                } else {
-                    return $this->getClassMetadata($memberInfo['declaringClass']);
-                }
+                $relevantClass = $memberInfo['declaringClass'];
             } elseif (ucfirst($returnValue) === $returnValue) {
                 // At this point, this could either be a class name relative to the current namespace or a full class
                 // name without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which
