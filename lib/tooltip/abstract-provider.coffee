@@ -16,7 +16,10 @@ class AbstractProvider
 
         @subAtom = new SubAtom
 
-        # Find or create the tooltip popover.
+        # Find or create the tooltip popover. NOTE: The reason we do not use Atom's native tooltip is because it is
+        # attached to an element, which caused strange problems such as #107 and #72. This implementation uses the same
+        # CSS classes and transitions but handles the displaying manually as we don't want to attach/detach, we only
+        # want to temporarily display a popover on mouseover.
         @popover = @$(document.body).find('#php-atom-autocomplete-popover')
 
         if @popover?.length == 0
