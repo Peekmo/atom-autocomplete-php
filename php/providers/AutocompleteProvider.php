@@ -55,23 +55,28 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 return $this->getClassMetadata($values['declaringClass']);
             }
         } elseif (ucfirst($returnValue) === $returnValue) {
-            $parser = new FileParser($classMap[$class]);
+            // At this point, this could either be a class name relative to the current namespace or a full class
+            // name without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which
+            // case its absolute path is determined by the namespace and use statements of the file containing it.
+            $className = $returnValue;
 
-            $found = false;
-            $className = $parser->getCompleteNamespace($returnValue, $found);
+            if (!empty($className) && $returnValue[0] !== "\\" && isset($classMap[$values['declaringClass']])) {
+                $parser = new FileParser($classMap[$values['declaringClass']]);
 
-            // Look into its parents if use not found
-            if (!$found) {
-                try {
-                    $reflection = new \ReflectionClass($class);
-                } catch (\Exception $e) {
-                    return $className;
-                }
+                $useStatementFound = false;
+                $competedClassName = $parser->getCompleteNamespace($returnValue, $useStatementFound);
 
-                while (($reflection = $reflection->getParentClass()) && ($found == false)) {
-                    if (isset($classMap[$reflection->getName()])) {
-                        $parser = new FileParser($classMap[$reflection->getName()]);
-                        $className = $parser->getCompleteNamespace($returnValue, $found);
+                if (!$useStatementFound) {
+                    $isRelativeClass = true;
+
+                    // Try instantiating the class, e.g. My\Foo\Bar.
+                    try {
+                        $reflection = new \ReflectionClass($competedClassName);
+
+                        $className = $competedClassName;
+                    } catch (\Exception $e) {
+                        // The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a
+                        // namespace set up in composer.json, without a leading slash.
                     }
                 }
             }
