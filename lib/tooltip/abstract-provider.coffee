@@ -125,6 +125,7 @@ class AbstractProvider
     hideTooltip: () ->
         @$(@popover).removeClass('in')
         @$(@popover).css('opacity', 0)
+        @$(@popover).css('left', -@$(@popover).width())
 
     ###*
      * Retrieves a tooltip for the word given.
