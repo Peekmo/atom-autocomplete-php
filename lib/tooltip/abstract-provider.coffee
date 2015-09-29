@@ -118,6 +118,7 @@ class AbstractProvider
 
             @$(@popover).addClass('in')
             @$(@popover).css('opacity', 100)
+            @$(@popover).css('display', 'block')
 
     ###*
      * Hides the tooltip, if it is displayed.
@@ -125,7 +126,7 @@ class AbstractProvider
     hideTooltip: () ->
         @$(@popover).removeClass('in')
         @$(@popover).css('opacity', 0)
-        @$(@popover).css('left', -@$(@popover).width())
+        @$(@popover).css('display', 'none')
 
     ###*
      * Retrieves a tooltip for the word given.
