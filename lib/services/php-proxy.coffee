@@ -5,11 +5,11 @@ md5 = require 'md5'
 fs = require 'fs'
 
 data =
-  statics: [],
-  methods: [],
-  autocomplete: [],
-  parent: [],
-  composer: null
+    statics: [],
+    methods: [],
+    autocomplete: [],
+    parent: [],
+    composer: null
 
 currentProcesses = []
 
@@ -20,235 +20,236 @@ currentProcesses = []
  * @return {array}           Json of the response
 ###
 execute = (command, async) ->
-  for directory in atom.project.getDirectories()
-    if not async
-      for c in command
-        c.replace(/\\/g, '\\\\')
+    for directory in atom.project.getDirectories()
+        if not async
+            for c in command
+                c.replace(/\\/g, '\\\\')
 
-      try
-        # avoid multiple processes of the same command
-        if not currentProcesses[command]?
-          currentProcesses[command] = true
+            try
+                # avoid multiple processes of the same command
+                if not currentProcesses[command]?
+                    currentProcesses[command] = true
 
-          stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php",  directory.path].concat(command)).output[1].toString('ascii')
+                    stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php",  directory.path].concat(command)).output[1].toString('ascii')
 
-          delete currentProcesses[command]
-          res = JSON.parse(stdout)
-      catch err
-        console.log err
-        res =
-          error: err
+                    delete currentProcesses[command]
+                    res = JSON.parse(stdout)
+            catch err
+                console.log err
+                res =
+                    error: err
 
-      if !res
-        return []
+            if !res
+                return []
 
-      if res.error?
-        printError(res.error)
+            if res.error?
+                printError(res.error)
 
-      return res
-    else
-      command.replace(/\\/g, '\\\\')
+            return res
+        else
+            command.replace(/\\/g, '\\\\')
 
-      if not currentProcesses[command]?
-        console.log 'Building index'
-        currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) ->
-          delete currentProcesses[command]
-          console.log 'Build done'
-          return []
-        )
+            if not currentProcesses[command]?
+                console.log 'Building index'
+                currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) ->
+                    delete currentProcesses[command]
+                    console.log 'Build done'
+                    return []
+                )
 
 ###*
  * Reads an index by its name (file in indexes/index.[name].json)
  * @param {string} name Name of the index to read
 ###
 readIndex = (name) ->
-  for directory in atom.project.getDirectories()
-    crypt = md5(directory.path)
-    path = __dirname + "/../../indexes/" + crypt + "/index." + name + ".json"
-    try
-      fs.accessSync(path, fs.F_OK | fs.R_OK)
-    catch err
-      return []
+    for directory in atom.project.getDirectories()
+        crypt = md5(directory.path)
+        path = __dirname + "/../../indexes/" + crypt + "/index." + name + ".json"
+        try
+            fs.accessSync(path, fs.F_OK | fs.R_OK)
+        catch err
+            return []
 
-    options =
-      encoding: 'UTF-8'
-    return JSON.parse(fs.readFileSync(path, options))
+        options =
+            encoding: 'UTF-8'
+        return JSON.parse(fs.readFileSync(path, options))
 
-    break
+        break
 
 ###*
  * Open and read the composer.json file in the current folder
 ###
 readComposer = () ->
-  for directory in atom.project.getDirectories()
-    path = "#{directory.path}/composer.json"
+    for directory in atom.project.getDirectories()
+        path = "#{directory.path}/composer.json"
 
-    try
-      fs.accessSync(path, fs.F_OK | fs.R_OK)
-    catch err
-      continue
+        try
+            fs.accessSync(path, fs.F_OK | fs.R_OK)
+        catch err
+            continue
 
-    options =
-      encoding: 'UTF-8'
-    data.composer = JSON.parse(fs.readFileSync(path, options))
-    return data.composer
+        options =
+            encoding: 'UTF-8'
+        data.composer = JSON.parse(fs.readFileSync(path, options))
+        return data.composer
 
-  console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
-  throw "Error"
+    console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
+    throw "Error"
 
 ###*
  * Throw a formatted error
  * @param {object} error Error to show
 ###
 printError = (error) ->
-  data.error = true
-  message = error.message
+    data.error = true
+    message = error.message
 
-  #if error.file? and error.line?
-    #message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']'
+    #if error.file? and error.line?
+        #message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']'
 
-  #throw new Error(message)
+    #throw new Error(message)
 
 module.exports =
-  ###*
-   * Clear all cache of the plugin
-  ###
-  clearCache: () ->
-    data =
-      error: false,
-      statics: [],
-      autocomplete: [],
-      methods: [],
-      parent: [],
-      composer: null
 
-  ###*
-   * Autocomplete for classes name
-   * @return {array}
-  ###
-  classes: () ->
-    return readIndex('classes')
+    ###*
+     * Clear all cache of the plugin
+    ###
+    clearCache: () ->
+        data =
+            error: false,
+            statics: [],
+            autocomplete: [],
+            methods: [],
+            parent: [],
+            composer: null
 
-  ###*
-   * Returns composer.json file
-   * @return {Object}
-  ###
-  composer: () ->
-    return readComposer()
+    ###*
+     * Autocomplete for classes name
+     * @return {array}
+    ###
+    classes: () ->
+        return readIndex('classes')
 
-  ###*
-   * Autocomplete for internal PHP functions
-   * @return {array}
-  ###
-  functions: () ->
-    if not data.functions?
-      res = execute(["--functions"], false)
-      data.functions = res
+    ###*
+     * Returns composer.json file
+     * @return {Object}
+    ###
+    composer: () ->
+        return readComposer()
 
-    return data.functions
+    ###*
+     * Autocomplete for internal PHP functions
+     * @return {array}
+    ###
+    functions: () ->
+        if not data.functions?
+            res = execute(["--functions"], false)
+            data.functions = res
 
-  ###*
-   * Autocomplete for statics methods of a class
-   * @param  {string} className Class complete name (with namespace)
-   * @return {array}
-  ###
-  statics: (className) ->
-    if not data.statics[className]?
-      res = execute(["--statics", "#{className}"], false)
-      data.statics[className] = res
+        return data.functions
 
-    return data.statics[className]
+    ###*
+     * Autocomplete for statics methods of a class
+     * @param  {string} className Class complete name (with namespace)
+     * @return {array}
+    ###
+    statics: (className) ->
+        if not data.statics[className]?
+            res = execute(["--statics", "#{className}"], false)
+            data.statics[className] = res
 
-  ###*
-   * Autocomplete for methods & properties of a class
-   * @param  {string} className Class complete name (with namespace)
-   * @return {array}
-  ###
-  methods: (className) ->
-    if not data.methods[className]?
-      res = execute(["--methods","#{className}"], false)
-      data.methods[className] = res
+        return data.statics[className]
 
-    return data.methods[className]
+    ###*
+     * Autocomplete for methods & properties of a class
+     * @param  {string} className Class complete name (with namespace)
+     * @return {array}
+    ###
+    methods: (className) ->
+        if not data.methods[className]?
+            res = execute(["--methods","#{className}"], false)
+            data.methods[className] = res
 
-  ###*
-   * Autocomplete for methods & properties of the parent class
-   * @param  {string} className Class complete name (with namespace)
-   * @return {array}
-  ###
-  parent: (className) ->
-    if not data.parent[className]?
-      res = execute(["--parent", "#{className}"], false)
-      data.parent[className] = res
+        return data.methods[className]
 
-    return data.parent[className]
+    ###*
+     * Autocomplete for methods & properties of the parent class
+     * @param  {string} className Class complete name (with namespace)
+     * @return {array}
+    ###
+    parent: (className) ->
+        if not data.parent[className]?
+            res = execute(["--parent", "#{className}"], false)
+            data.parent[className] = res
 
-  ###*
-   * Autocomplete for methods & properties of a class
-   * @param  {string} className Class complete name (with namespace)
-   * @return {array}
-  ###
-  autocomplete: (className, name) ->
-    cacheKey = className + "." + name
+        return data.parent[className]
 
-    if not data.autocomplete[cacheKey]?
-      res = execute(["--autocomplete", className, name], false)
-      data.autocomplete[cacheKey] = res
+    ###*
+     * Autocomplete for methods & properties of a class
+     * @param  {string} className Class complete name (with namespace)
+     * @return {array}
+    ###
+    autocomplete: (className, name) ->
+        cacheKey = className + "." + name
 
-    return data.autocomplete[cacheKey]
+        if not data.autocomplete[cacheKey]?
+            res = execute(["--autocomplete", className, name], false)
+            data.autocomplete[cacheKey] = res
 
-  autoloadClassMap: () ->
-      res = execute("--autoloadClassMap", false)
-      return res
-  ###*
-   * Returns params from the documentation of the given function
-   *
-   * @param {string} className
-   * @param {string} functionName
-  ###
-  docParams: (className, functionName) ->
-    res = execute("--doc-params #{className} #{functionName}", false)
-    return res
+        return data.autocomplete[cacheKey]
 
+    autoloadClassMap: () ->
+        res = execute("--autoloadClassMap", false)
+        return res
 
-  ###*
-   * Refresh the full index or only for the given classPath
-   * @param  {string} classPath Full path (dir) of the class to refresh
-  ###
-  refresh: (classPath) ->
-    if not classPath?
-      execute("--refresh", true)
-    else
-      execute("--refresh #{classPath}", true)
+    ###*
+     * Returns params from the documentation of the given function
+     *
+     * @param {string} className
+     * @param {string} functionName
+    ###
+    docParams: (className, functionName) ->
+        res = execute("--doc-params #{className} #{functionName}", false)
+        return res
 
-  ###*
-   * Method called on plugin activation
-  ###
-  init: () ->
-    @refresh()
-    atom.workspace.observeTextEditors (editor) =>
-      editor.onDidSave((event) =>
-        # Only .php file
-        if event.path.substr(event.path.length - 4) == ".php"
-          @clearCache()
+    ###*
+     * Refresh the full index or only for the given classPath
+     * @param  {string} classPath Full path (dir) of the class to refresh
+    ###
+    refresh: (classPath) ->
+        if not classPath?
+            execute("--refresh", true)
+        else
+            execute("--refresh #{classPath}", true)
 
-          # For Windows - Replace \ in class namespace to / because
-          # composer use / instead of \
-          path = event.path
-          for directory in atom.project.getDirectories()
-              if path.indexOf(directory.path) == 0
-                  classPath = path.substr(0, directory.path.length+1)
-                  path = path.substr(directory.path.length+1)
-                  break
+    ###*
+     * Method called on plugin activation
+    ###
+    init: () ->
+        @refresh()
+        atom.workspace.observeTextEditors (editor) =>
+            editor.onDidSave((event) =>
+              # Only .php file
+              if event.path.substr(event.path.length - 4) == ".php"
+                  @clearCache()
 
-          @refresh(classPath + path.replace(/\\/g, '/'))
-      )
+                  # For Windows - Replace \ in class namespace to / because
+                  # composer use / instead of \
+                  path = event.path
+                  for directory in atom.project.getDirectories()
+                      if path.indexOf(directory.path) == 0
+                          classPath = path.substr(0, directory.path.length+1)
+                          path = path.substr(directory.path.length+1)
+                          break
 
-    atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>
-      @clearCache()
+                  @refresh(classPath + path.replace(/\\/g, '/'))
+            )
 
-    atom.config.onDidChange 'atom-autocomplete-php.binComposer', () =>
-      @clearCache()
+        atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>
+            @clearCache()
 
-    atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
-      @clearCache()
+        atom.config.onDidChange 'atom-autocomplete-php.binComposer', () =>
+            @clearCache()
+
+        atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
+            @clearCache()

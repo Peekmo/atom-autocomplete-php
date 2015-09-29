@@ -9,709 +9,710 @@ classDeclarations = [
 
 namespaceDeclaration = 'namespace '
 module.exports =
-  # Simple cache to avoid duplicate computation for each providers
-  cache: []
-
-  ###*
-   * Returns the current class from the buffer
-   * @param {TextEditor} editor
-   * @param {Range}      position
-   * @return string className
-  ###
-  getCurrentClass: (editor, position) ->
-    # Get text before the current position
-    text = editor.getTextInBufferRange([[0, 0], position])
-    row = position.row
-    rows = text.split('\n')
-
-    name = ''
-    # for each row
-    while row != -1
-      line = rows[row].trim()
-      # Looking for a line starting with one of the allowed php declaration of
-      # a class (see on top of the file)
-      if name == ''
-        for classDeclaration in classDeclarations
-          if line.indexOf(classDeclaration) == 0
-            line = line.substring(classDeclaration.length, line.length).trim()
-
-            name = line.split(' ')[0]
-      else
-        if line.indexOf(namespaceDeclaration) != -1
-          line = line.replace('<?php', '').trim()
-          line = line.substring(namespaceDeclaration.length, line.length).trim()
-
-          namespaceEnd = line.indexOf(';')
-          if namespaceEnd == -1
-            namespaceEnd = line.indexOf('{')
-
-          return line.substring(0, namespaceEnd).trim() + "\\" + name
-
-      row--
-
-    return name
-
-  ###*
-   * Retrieves the class the specified term (method or property) is being invoked on.
-   *
-   * @param  {TextEditor} editor         TextEditor to search for namespace of term.
-   * @param  {string}     term           Term to search for.
-   * @param  {Point}      bufferPosition The cursor location the term is at.
-   *
-   * @return {string}
-   *
-   * @example Invoking it on MyMethod::foo()->bar() will ask what class 'bar' is invoked on, which will whatever type
-   *          foo returns.
-  ###
-  getCalledClass: (editor, term, bufferPosition) ->
-    fullCall = @getStackClasses(editor, bufferPosition)
-
-    if fullCall?.length == 0 or !term
-      return
-
-    return @parseElements(editor, bufferPosition, fullCall)
-
-  ###*
-   * Get all variables declared in the current function
-   * @param {TextEdutir} editor         Atom text editor
-   * @param {Range}      bufferPosition Position of the current buffer
-  ###
-  getAllVariablesInFunction: (editor, bufferPosition) ->
-    return if not @isInFunction(editor, bufferPosition)
-
-    text = editor.getTextInBufferRange([@cache["functionPosition"], [bufferPosition.row, bufferPosition.column-1]])
-    regex = /(\$[a-zA-Z_]+)/g
-
-    matches = text.match(regex)
-    return [] if not matches?
-
-    matches.push "$this"
-    return matches
-
-  ###*
-   * Search the use for the given class name
-   * @param {TextEditor} editor    Atom text editor
-   * @param {string}     className Name of the class searched
-   * @return string
-  ###
-  findUseForClass: (editor, className) ->
-    # remove first "\" if any
-    if className.indexOf("\\") == 0
-      className = className.substr(1)
-
-    # fix #51
-    classNameElements = className.split("\\")
-    className = classNameElements.shift()
-
-    text = editor.getText()
-
-    lines = text.split('\n')
-    for line,i in lines
-      line = line.trim()
-
-      # If we found class keyword, we are not in namespace space, so return the className
-      classIndex = line.indexOf('class ')
-
-      if classIndex != -1
-        chain = editor.scopeDescriptorForBufferPosition([i, classIndex]).getScopeChain()
-
-        if chain.indexOf('.comment') == -1
-          break
-
-      # Use keyword
-      if line.indexOf('use') == 0
-        useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
-
-        matches = useRegex.exec(line)
-        # just one use
-        if matches[1]? and not matches[2]?
-          splits = matches[1].split('\\')
-          if splits[splits.length-1] == className
-            className = matches[1]
-            break
-
-        # use aliases
-        else if matches[1]? and matches[2]? and matches[2] == className
-          className = matches[1]
-          break
-
-    if classNameElements.length > 0
-      return className + "\\" + classNameElements.join("\\")
-    else
-      return className
-
-  ###*
-   * Add the use for the given class if not already added
-   * @param {TextEditor} editor    Atom text editor
-   * @param {string}     className Name of the class to add
-  ###
-  addUseClass: (editor, className) ->
-    text = editor.getText()
-    lastUse = 0
-    index = 0
-
-    splits = className.split('\\')
-    if splits.length == 1 || className.indexOf('\\') == 0
-        return null
-
-    lines = text.split('\n')
-    for line in lines
-      line = line.trim()
-
-      # If we found class keyword, we are not in namespace space, so return
-      if line.indexOf('class ') != -1
-        editor.setTextInBufferRange([[lastUse+1,0], [lastUse+1, 0]], "use #{className};\n")
-        return 'added'
-
-      if line.indexOf('namespace ') == 0
-        lastUse = index
-
-      # Use keyword
-      if line.indexOf('use') == 0
-        useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
-        matches = useRegex.exec(line)
-
-        # just one use
-        if matches? and matches[1]?
-          if matches[1] == className
-            return 'exists'
-          else
-            lastUse = index
-
-      index += 1
-
-    return null
-
-  ###*
-   * Checks if the given name is a class or not
-   * @param  {string}  name Name to check
-   * @return {Boolean}
-  ###
-  isClass: (name) ->
-    return name.substr(0,1).toUpperCase() + name.substr(1) == name
-
-  ###*
-   * Checks if the current buffer is in a functon or not
-   * @param {TextEditor} editor         Atom text editor
-   * @param {Range}      bufferPosition Position of the current buffer
-   * @return bool
-  ###
-  isInFunction: (editor, bufferPosition) ->
-    text = editor.getTextInBufferRange([[0, 0], bufferPosition])
-
-    # If last request was the same
-    if @cache[text]?
-      return @cache[text]
-
-    # Reinitialize current cache
-    @cache = []
-
-    row = bufferPosition.row
-    rows = text.split('\n')
-
-    openedBlocks = 0
-    closedBlocks = 0
-
-    result = false
-
-    # for each row
-    while row != -1
-      line = rows[row]
-
-      # issue #61
-      if not line
-        row--
-        continue
-
-      character = 0
-      lineLength = line.length
-      lastChain = null
-
-      # Scan the entire line, fetching the scope for each character position as one line can contain both a scope start
-      # and end such as "} elseif (true) {". Here the scope descriptor will differ for different character positions on
-      # the line.
-      while character <= line.length
-        # Get chain of all scopes
-        chain = editor.scopeDescriptorForBufferPosition([row, character]).getScopeChain()
-
-        # NOTE: Atom quirk: both line.length and line.length - 1 return the same scope descriptor, BUT you can't skip
-        # scanning line.length as sometimes line.length - 1 does not return a scope descriptor at all.
-        if not (character == line.length and chain == lastChain)
-          # }
-          if chain.indexOf("scope.end") != -1
-            closedBlocks++
-          # {
-          else if chain.indexOf("scope.begin") != -1
-            openedBlocks++
-
-        lastChain = chain
-        character++
-
-      # Get chain of all scopes
-      chain = editor.scopeDescriptorForBufferPosition([row, line.length]).getScopeChain()
-
-      # function
-      if chain.indexOf("function") != -1
-        # If more openedblocks than closedblocks, we are in a function. Otherwise, could be a closure, continue looking.
-        if openedBlocks > closedBlocks
-          result = true
-          @cache["functionPosition"] = [row, 0]
-
-          break
-
-      row--
-
-    @cache[text] = result
-    return result
-
-  ###*
-   * Returns the stack of elements in a ->xxx->xxxx stack
-   * @param  {TextEditor} editor
-   * @param  {Rang}       position
-   * @return string className
-  ###
-  getStackClasses: (editor, position) ->
-    return unless position?
-
-    lineIdx = 0
-    parenthesisOpened = 0
-    parenthesisClosed = 0
-    squiggleBracketOpened = false
-    idx = 0
-    end = false
-
-    # Algorithm to get something inside parenthesis
-    # Count parenthesis, when opened == closed and found a variable, it's done
-    while (position.row - lineIdx > 0) and end == false
-      text = editor.getTextInBufferRange([[position.row - idx, 0], position])
-      lineIdx++
-      len = text.length
-
-      while idx < len and end == false
-        if text[len - idx] == "("
-          parenthesisOpened += 1
-        else if text[len - idx] == ")"
-          parenthesisClosed += 1
-        else if text[len - idx] == "}"
-          # Not going to do the semi,equals,{ check (else if below) as we are probably in a callback.
-          squiggleBracketOpened = true
-        else if text[len - idx] == "{" and squiggleBracketOpened
-          squiggleBracketOpened = false
-        # Checking we haven't hit a semi or equals. As parent calls won't have a $ to end on.
-        else if (text[len - (idx + 1)] == ";" or text[len - (idx + 1)] == "=" or text[len - (idx + 1)] == "{") and !squiggleBracketOpened
-          end = true
-        if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
-          end = true
-
-        idx += 1
-
-    if text
-      text = text.substr(text.length - idx + 1, text.length).trim()
-    else
-      text = ""
-
-    return @parseStackClass(text)
-
-  ###*
-   * Removes content inside parantheses (including nested parantheses).
-   * @param {string} text String to analyze.
-   * @return String
-  ###
-  stripParanthesesContent: (text) ->
-    i = 0
-    openCount = 0
-    closeCount = 0
-    startIndex = -1
-
-    while i < text.length
-      if text[i] == '('
-        ++openCount
-
-        if openCount == 1
-          startIndex = i
-
-      else if text[i] == ')'
-        ++closeCount
-
-        if closeCount == openCount
-          originalLength = text.length
-          text = text.substr(0, startIndex + 1) + text.substr(i, text.length);
-
-          i -= (originalLength - text.length)
-
-          openCount = 0
-          closeCount = 0
-
-      ++i
-
-    return text
-
-  ###*
-   * Parse stack class elements
-   * @param {string} text String of the stack class
-   * @return Array
-  ###
-  parseStackClass: (text) ->
-    # Remove singe line comments
-    regx = /\/\/.*\n/g
-    text = text.replace regx, (match) =>
-        return ''
-
-    # Remove multi line comments
-    regx = /\/\*[^(\*\/)]*\*\//g
-    text = text.replace regx, (match) =>
-        return ''
-
-    # Remove content inside parantheses (including nested parantheses).
-    text = @stripParanthesesContent(text)
-
-    # Get the full text
-    return [] if not text
-
-    elements = text.split(/(?:\-\>|::)/)
-    # elements = text.split("->")
-
-    # Remove parenthesis and whitespaces
-    for key, element of elements
-      element = element.replace /^\s+|\s+$/g, ""
-      if element[0] == '{' or element[0] == '(' or element[0] == '['
-        element = element.substring(1)
-      else if element.indexOf('return ') == 0
-        element = element.substring('return '.length)
-
-      elements[key] = element
-
-    return elements
-
-  ###*
-   * Get the type of a variable
-   *
-   * @param {TextEditor} editor
-   * @param {Range}      bufferPosition
-   * @param {string}     element        Variable to search
-  ###
-  getVariableType: (editor, bufferPosition, element) ->
-    idx = 1
-
-    if element.replace(/[\$][a-zA-Z0-9_]+/g, "").trim().length > 0
-      return null
-
-    if element.trim().length == 0
-      return null
-
-    # Regex variable definition
-    regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
-    regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([A-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
-    regexCatch = new RegExp("catch[\\s]*\\([\\s]*([A-Za-z0-9_\\\\]+)[\\s]+\\#{element}[\\s]*\\)", "g")
-    while bufferPosition.row - idx > 0
-      # Get the line
-      line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
-
-      # Check for $x = new XXXXX()
-      matchesNew = regexNewInstance.exec(line)
-      if null != matchesNew
-        return @findUseForClass(editor, matchesNew[1])
-
-      # Check for catch(XXX $xxx)
-      matchesCatch = regexCatch.exec(line)
-      if null != matchesCatch
-        return @findUseForClass(editor, matchesCatch[1])
-
-      # Get chain of all scopes
-      chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
-      matches = regexElement.exec(line)
-
-      if null != matches
-        value = matches[1]
-        elements = @parseStackClass(value)
-        elements.push("") # Push one more element to get fully the last class
-
-        newPosition =
-            row : bufferPosition.row - idx
-            column: bufferPosition.column
-        className = @parseElements(editor, newPosition, elements)
-
-        # if className is null, we check if there's a /** @var */ on top of it, to guess the type
-        # Get the line
-        line = editor.getTextInBufferRange([[newPosition.row - 1, 0], [newPosition.row, 10000]])
-
-        # Get chain of all scopes
-        chain = editor.scopeDescriptorForBufferPosition([newPosition.row - 1, line.length]).getScopeChain()
-
-        if chain.indexOf("comment") != -1
-          regexVar = /\@var[\s]+([a-zA-Z_\\]+)/g
-          matches = regexVar.exec(line)
-
-          if null == matches
+
+    # Simple cache to avoid duplicate computation for each providers
+    cache: []
+
+    ###*
+     * Returns the current class from the buffer
+     * @param {TextEditor} editor
+     * @param {Range}      position
+     * @return string className
+    ###
+    getCurrentClass: (editor, position) ->
+        # Get text before the current position
+        text = editor.getTextInBufferRange([[0, 0], position])
+        row = position.row
+        rows = text.split('\n')
+
+        name = ''
+        # for each row
+        while row != -1
+            line = rows[row].trim()
+            # Looking for a line starting with one of the allowed php declaration of
+            # a class (see on top of the file)
+            if name == ''
+                for classDeclaration in classDeclarations
+                    if line.indexOf(classDeclaration) == 0
+                        line = line.substring(classDeclaration.length, line.length).trim()
+
+                        name = line.split(' ')[0]
+            else
+                if line.indexOf(namespaceDeclaration) != -1
+                    line = line.replace('<?php', '').trim()
+                    line = line.substring(namespaceDeclaration.length, line.length).trim()
+
+                    namespaceEnd = line.indexOf(';')
+                    if namespaceEnd == -1
+                        namespaceEnd = line.indexOf('{')
+
+                    return line.substring(0, namespaceEnd).trim() + "\\" + name
+
+            row--
+
+        return name
+
+    ###*
+     * Retrieves the class the specified term (method or property) is being invoked on.
+     *
+     * @param  {TextEditor} editor         TextEditor to search for namespace of term.
+     * @param  {string}     term           Term to search for.
+     * @param  {Point}      bufferPosition The cursor location the term is at.
+     *
+     * @return {string}
+     *
+     * @example Invoking it on MyMethod::foo()->bar() will ask what class 'bar' is invoked on, which will whatever type
+     *          foo returns.
+    ###
+    getCalledClass: (editor, term, bufferPosition) ->
+        fullCall = @getStackClasses(editor, bufferPosition)
+
+        if fullCall?.length == 0 or !term
+            return
+
+        return @parseElements(editor, bufferPosition, fullCall)
+
+    ###*
+     * Get all variables declared in the current function
+     * @param {TextEdutir} editor         Atom text editor
+     * @param {Range}      bufferPosition Position of the current buffer
+    ###
+    getAllVariablesInFunction: (editor, bufferPosition) ->
+        return if not @isInFunction(editor, bufferPosition)
+
+        text = editor.getTextInBufferRange([@cache["functionPosition"], [bufferPosition.row, bufferPosition.column-1]])
+        regex = /(\$[a-zA-Z_]+)/g
+
+        matches = text.match(regex)
+        return [] if not matches?
+
+        matches.push "$this"
+        return matches
+
+    ###*
+     * Search the use for the given class name
+     * @param {TextEditor} editor    Atom text editor
+     * @param {string}     className Name of the class searched
+     * @return string
+    ###
+    findUseForClass: (editor, className) ->
+        # remove first "\" if any
+        if className.indexOf("\\") == 0
+            className = className.substr(1)
+
+        # fix #51
+        classNameElements = className.split("\\")
+        className = classNameElements.shift()
+
+        text = editor.getText()
+
+        lines = text.split('\n')
+        for line,i in lines
+            line = line.trim()
+
+            # If we found class keyword, we are not in namespace space, so return the className
+            classIndex = line.indexOf('class ')
+
+            if classIndex != -1
+                chain = editor.scopeDescriptorForBufferPosition([i, classIndex]).getScopeChain()
+
+                if chain.indexOf('.comment') == -1
+                    break
+
+            # Use keyword
+            if line.indexOf('use') == 0
+                useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
+
+                matches = useRegex.exec(line)
+                # just one use
+                if matches[1]? and not matches[2]?
+                    splits = matches[1].split('\\')
+                    if splits[splits.length-1] == className
+                        className = matches[1]
+                        break
+
+                # use aliases
+                else if matches[1]? and matches[2]? and matches[2] == className
+                    className = matches[1]
+                    break
+
+        if classNameElements.length > 0
+            return className + "\\" + classNameElements.join("\\")
+        else
             return className
 
-          return @findUseForClass(editor, matches[1])
+    ###*
+     * Add the use for the given class if not already added
+     * @param {TextEditor} editor    Atom text editor
+     * @param {string}     className Name of the class to add
+    ###
+    addUseClass: (editor, className) ->
+        text = editor.getText()
+        lastUse = 0
+        index = 0
 
-      # /* @var $var Class (like intelliJ) */
-      if chain.indexOf("comment") != -1
-        regexVarWithVarName = new RegExp("\\@var[\\s]+\\#{element}[\\s]+([a-zA-Z_\\\\]+)", "g")
-        matches = regexVarWithVarName.exec(line)
+        splits = className.split('\\')
+        if splits.length == 1 || className.indexOf('\\') == 0
+            return null
 
-        if null != matches
-          return @findUseForClass(editor, matches[1])
+        lines = text.split('\n')
+        for line in lines
+            line = line.trim()
 
-      if chain.indexOf("function") != -1
-        regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
-        matches = regexFunction.exec(line)
+            # If we found class keyword, we are not in namespace space, so return
+            if line.indexOf('class ') != -1
+                editor.setTextInBufferRange([[lastUse+1,0], [lastUse+1, 0]], "use #{className};\n")
+                return 'added'
 
-        if null == matches
-          return null
+            if line.indexOf('namespace ') == 0
+                lastUse = index
 
-        func = matches[1]
-        value = matches[2]
+            # Use keyword
+            if line.indexOf('use') == 0
+                useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
+                matches = useRegex.exec(line)
 
-        # If we have a type hint
-        if value != ""
-          return @findUseForClass(editor, value)
+                # just one use
+                if matches? and matches[1]?
+                    if matches[1] == className
+                        return 'exists'
+                    else
+                        lastUse = index
 
-        # otherwise, we are parsing PHPdoc (@param)
-        params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
-        if params.params? and params.params[element]?
-          return @findUseForClass(editor, params.params[element])
+            index += 1
 
-        break
+        return null
 
-      idx++
+    ###*
+     * Checks if the given name is a class or not
+     * @param  {string}  name Name to check
+     * @return {Boolean}
+    ###
+    isClass: (name) ->
+        return name.substr(0,1).toUpperCase() + name.substr(1) == name
 
-    return null
+    ###*
+     * Checks if the current buffer is in a functon or not
+     * @param {TextEditor} editor         Atom text editor
+     * @param {Range}      bufferPosition Position of the current buffer
+     * @return bool
+    ###
+    isInFunction: (editor, bufferPosition) ->
+        text = editor.getTextInBufferRange([[0, 0], bufferPosition])
 
-  ###*
-   * Retrieves contextual information about the property at the specified location in the editor.
-   *
-   * @param {TextEditor} editor         TextEditor to search for namespace of term.
-   * @param {string}     term           Term to search for.
-   * @param {Point}      bufferPosition The cursor location the term is at.
-   * @param {Object}     calledClass    Information about the called class (optional).
-  ###
-  getMethodContext: (editor, term, bufferPosition, calledClass) ->
-      if not calledClass
-          calledClass = @getCalledClass(editor, term, bufferPosition)
+        # If last request was the same
+        if @cache[text]?
+          return @cache[text]
 
-      if not calledClass
-          return
+        # Reinitialize current cache
+        @cache = []
 
-      proxy = require '../services/php-proxy.coffee'
-      methods = proxy.methods(calledClass)
+        row = bufferPosition.row
+        rows = text.split('\n')
 
-      if not methods
-          return
+        openedBlocks = 0
+        closedBlocks = 0
 
-      if methods.error? and methods.error != ''
-          atom.notifications.addError('Failed to get methods for ' + calledClass, {
-              'detail': methods.error.message
-          })
+        result = false
 
-          return
+        # for each row
+        while row != -1
+            line = rows[row]
 
-      if methods.names.indexOf(term) == -1
-          return
+            # issue #61
+            if not line
+                row--
+                continue
 
-      value = methods.values[term]
+            character = 0
+            lineLength = line.length
+            lastChain = null
 
-      # If there are multiple matches, just select the first method.
-      if value instanceof Array
-          for val in value
-              if val.isMethod
-                  value = val
-                  break
+            # Scan the entire line, fetching the scope for each character position as one line can contain both a scope start
+            # and end such as "} elseif (true) {". Here the scope descriptor will differ for different character positions on
+            # the line.
+            while character <= line.length
+                # Get chain of all scopes
+                chain = editor.scopeDescriptorForBufferPosition([row, character]).getScopeChain()
 
-      return value
+                # NOTE: Atom quirk: both line.length and line.length - 1 return the same scope descriptor, BUT you can't skip
+                # scanning line.length as sometimes line.length - 1 does not return a scope descriptor at all.
+                if not (character == line.length and chain == lastChain)
+                    # }
+                    if chain.indexOf("scope.end") != -1
+                        closedBlocks++
+                    # {
+                    else if chain.indexOf("scope.begin") != -1
+                        openedBlocks++
 
-  ###*
-   * Retrieves contextual information about the property at the specified location in the editor.
-   #
-   * @param {TextEditor} editor         TextEditor to search for namespace of term.
-   * @param {string}     name           The name of the property to search for.
-   * @param {Point}      bufferPosition The cursor location the term is at.
-   * @param {Object}     calledClass    Information about the called class (optional).
-  ###
-  getPropertyContext: (editor, name, bufferPosition, calledClass) ->
-      if not calledClass
-          calledClass = @getCalledClass(editor, name, bufferPosition)
+                lastChain = chain
+                character++
 
-      if not calledClass
-          return
+            # Get chain of all scopes
+            chain = editor.scopeDescriptorForBufferPosition([row, line.length]).getScopeChain()
 
-      proxy = require '../services/php-proxy.coffee'
-      methodsAndProperties = proxy.methods(calledClass)
+            # function
+            if chain.indexOf("function") != -1
+                # If more openedblocks than closedblocks, we are in a function. Otherwise, could be a closure, continue looking.
+                if openedBlocks > closedBlocks
+                    result = true
+                    @cache["functionPosition"] = [row, 0]
 
-      if not methodsAndProperties.names?
-          return
+                    break
 
-      if methodsAndProperties.names.indexOf(name) == -1
-          return
+            row--
 
-      value = methodsAndProperties.values[name]
+        @cache[text] = result
+        return result
 
-      if value instanceof Array
-          for val in value
-              if !val.isMethod
-                  value = val
-                  break
+    ###*
+     * Returns the stack of elements in a ->xxx->xxxx stack
+     * @param  {TextEditor} editor
+     * @param  {Rang}       position
+     * @return string className
+    ###
+    getStackClasses: (editor, position) ->
+        return unless position?
 
-      return value
+        lineIdx = 0
+        parenthesisOpened = 0
+        parenthesisClosed = 0
+        squiggleBracketOpened = false
+        idx = 0
+        end = false
 
-  ###*
-   * Parse all elements from the given array to return the last className (if any)
-   * @param  Array elements Elements to parse
-   * @return string|null full class name of the last element
-  ###
-  parseElements: (editor, bufferPosition, elements) ->
-    loop_index = 0
-    className  = null
-    if not elements?
-      return
+        # Algorithm to get something inside parenthesis
+        # Count parenthesis, when opened == closed and found a variable, it's done
+        while (position.row - lineIdx > 0) and end == false
+            text = editor.getTextInBufferRange([[position.row - idx, 0], position])
+            lineIdx++
+            len = text.length
 
-    for element in elements
-      # $this keyword
-      if loop_index == 0
-        if element == '$this' or element == 'static' or element == 'self'
-          className = @getCurrentClass(editor, bufferPosition)
-          loop_index++
-          continue
+            while idx < len and end == false
+                if text[len - idx] == "("
+                    parenthesisOpened += 1
+                else if text[len - idx] == ")"
+                    parenthesisClosed += 1
+                else if text[len - idx] == "}"
+                    # Not going to do the semi,equals,{ check (else if below) as we are probably in a callback.
+                    squiggleBracketOpened = true
+                else if text[len - idx] == "{" and squiggleBracketOpened
+                    squiggleBracketOpened = false
+                # Checking we haven't hit a semi or equals. As parent calls won't have a $ to end on.
+                else if (text[len - (idx + 1)] == ";" or text[len - (idx + 1)] == "=" or text[len - (idx + 1)] == "{") and !squiggleBracketOpened
+                    end = true
+                if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
+                    end = true
 
-        else if element[0] == '$'
-          className = @getVariableType(editor, bufferPosition, element)
-          loop_index++
-          continue
+                idx += 1
 
-        else if element == 'parent'
-          className = @getParentClass(editor)
-          loop_index++
-          continue
-
+        if text
+            text = text.substr(text.length - idx + 1, text.length).trim()
         else
-          className = @findUseForClass(editor, element)
-          loop_index++
-          continue
+            text = ""
 
-      # Last element
-      if loop_index >= elements.length - 1
-        break
+        return @parseStackClass(text)
 
-      if className == null
-        break
+    ###*
+     * Removes content inside parantheses (including nested parantheses).
+     * @param {string} text String to analyze.
+     * @return String
+    ###
+    stripParanthesesContent: (text) ->
+        i = 0
+        openCount = 0
+        closeCount = 0
+        startIndex = -1
 
-      methods = proxy.autocomplete(className, element)
+        while i < text.length
+            if text[i] == '('
+                ++openCount
 
-      # Element not found or no return value
-      if not methods.class? or not @isClass(methods.class)
-        className = null
-        break
+                if openCount == 1
+                    startIndex = i
 
-      className = methods.class
-      loop_index++
+            else if text[i] == ')'
+                ++closeCount
 
-    # If no data or a valid end of line, OK
-    if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
-      return className
+                if closeCount == openCount
+                    originalLength = text.length
+                    text = text.substr(0, startIndex + 1) + text.substr(i, text.length);
 
-    return null
+                    i -= (originalLength - text.length)
 
-  ###*
-   * Gets the full words from the buffer position given.
-   * E.g. Getting a class with its namespace.
-   * @param  {TextEditor}     editor   TextEditor to search.
-   * @param  {BufferPosition} position BufferPosition to start searching from.
-   * @return {string}  Returns a string of the class.
-  ###
-  getFullWordFromBufferPosition: (editor, position) ->
-    foundStart = false
-    foundEnd = false
-    startBufferPosition = []
-    endBufferPosition = []
-    forwardRegex = /-|(?:\()[\w\[\$\(\\]|\s|\)|;|'|,|"|\|/
-    backwardRegex = /\(|\s|\)|;|'|,|"|\|/
-    index = -1
-    previousText = ''
+                    openCount = 0
+                    closeCount = 0
 
-    loop
-      index++
-      startBufferPosition = [position.row, position.column - index - 1]
-      range = [[position.row, position.column], [startBufferPosition[0], startBufferPosition[1]]]
-      currentText = editor.getTextInBufferRange(range)
-      if backwardRegex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
-          foundStart = true
-      previousText = editor.getTextInBufferRange(range)
-      break if foundStart
-    index = -1
-    loop
-      index++
-      endBufferPosition = [position.row, position.column + index + 1]
-      range = [[position.row, position.column], [endBufferPosition[0], endBufferPosition[1]]]
-      currentText = editor.getTextInBufferRange(range)
-      if forwardRegex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
-          foundEnd = true
-      previousText = editor.getTextInBufferRange(range)
-      break if foundEnd
+            ++i
 
-    startBufferPosition[1] += 1
-    endBufferPosition[1] -= 1
-    return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
+        return text
 
-  ###*
-   * Gets the parent class of the current class opened in the editor
-   * @param  {TextEditor} editor Editor with the class in.
-   * @return {string}            The namespace and class of the parent
-  ###
-  getParentClass: (editor) ->
-    text = editor.getText()
+    ###*
+     * Parse stack class elements
+     * @param {string} text String of the stack class
+     * @return Array
+    ###
+    parseStackClass: (text) ->
+        # Remove singe line comments
+        regx = /\/\/.*\n/g
+        text = text.replace regx, (match) =>
+            return ''
 
-    lines = text.split('\n')
-    for line in lines
-      line = line.trim()
+        # Remove multi line comments
+        regx = /\/\*[^(\*\/)]*\*\//g
+        text = text.replace regx, (match) =>
+            return ''
 
-      # If we found extends keyword, return the class
-      if line.indexOf('extends ') != -1
-        words = line.split(' ')
-        extendsIndex = words.indexOf('extends')
-        return @findUseForClass(editor, words[extendsIndex + 1])
+        # Remove content inside parantheses (including nested parantheses).
+        text = @stripParanthesesContent(text)
 
-  ###*
-   * Finds the buffer position of the word given
-   * @param  {TextEditor} editor TextEditor to search
-   * @param  {string}     term   The function name to search for
-   * @return {mixed}             Either null or the buffer position of the function.
-  ###
-  findBufferPositionOfWord: (editor, term, regex, line = null) ->
-    if line != null
-      lineText = editor.lineTextForBufferRow(line)
-      result = @checkLineForWord(lineText, term, regex)
-      if result != null
-        return [line, result]
-    else
-      text = editor.getText()
-      row = 0
-      lines = text.split('\n')
-      for line in lines
-        result = @checkLineForWord(line, term, regex)
-        if result != null
-          return [row, result]
-        row++
-    return null;
+        # Get the full text
+        return [] if not text
 
-  ###*
-   * Checks the lineText for the term and regex matches
-   * @param  {string}   lineText The line of text to check.
-   * @param  {string}   term     Term to look for.
-   * @param  {regex}    regex    Regex to run on the line to make sure it's valid
-   * @return {null|int}          Returns null if nothing was found or an
-   *                             int of the column the term is on.
-  ###
-  checkLineForWord: (lineText, term, regex) ->
-    if regex.test(lineText)
-      words = lineText.split(' ')
-      propertyIndex = 0
-      for element in words
-        if element.indexOf(term) != -1
-          break
-        propertyIndex++;
+        elements = text.split(/(?:\-\>|::)/)
+        # elements = text.split("->")
 
-      reducedWords = words.slice(0, propertyIndex).join(' ')
-      return reducedWords.length + 1
-    return null
+        # Remove parenthesis and whitespaces
+        for key, element of elements
+            element = element.replace /^\s+|\s+$/g, ""
+            if element[0] == '{' or element[0] == '(' or element[0] == '['
+                element = element.substring(1)
+            else if element.indexOf('return ') == 0
+                element = element.substring('return '.length)
+
+            elements[key] = element
+
+        return elements
+
+    ###*
+     * Get the type of a variable
+     *
+     * @param {TextEditor} editor
+     * @param {Range}      bufferPosition
+     * @param {string}     element        Variable to search
+    ###
+    getVariableType: (editor, bufferPosition, element) ->
+        idx = 1
+
+        if element.replace(/[\$][a-zA-Z0-9_]+/g, "").trim().length > 0
+            return null
+
+        if element.trim().length == 0
+            return null
+
+        # Regex variable definition
+        regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
+        regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([A-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
+        regexCatch = new RegExp("catch[\\s]*\\([\\s]*([A-Za-z0-9_\\\\]+)[\\s]+\\#{element}[\\s]*\\)", "g")
+        while bufferPosition.row - idx > 0
+            # Get the line
+            line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
+
+            # Check for $x = new XXXXX()
+            matchesNew = regexNewInstance.exec(line)
+            if null != matchesNew
+                return @findUseForClass(editor, matchesNew[1])
+
+            # Check for catch(XXX $xxx)
+            matchesCatch = regexCatch.exec(line)
+            if null != matchesCatch
+                return @findUseForClass(editor, matchesCatch[1])
+
+            # Get chain of all scopes
+            chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
+            matches = regexElement.exec(line)
+
+            if null != matches
+                value = matches[1]
+                elements = @parseStackClass(value)
+                elements.push("") # Push one more element to get fully the last class
+
+                newPosition =
+                    row : bufferPosition.row - idx
+                    column: bufferPosition.column
+                className = @parseElements(editor, newPosition, elements)
+
+                # if className is null, we check if there's a /** @var */ on top of it, to guess the type
+                # Get the line
+                line = editor.getTextInBufferRange([[newPosition.row - 1, 0], [newPosition.row, 10000]])
+
+                # Get chain of all scopes
+                chain = editor.scopeDescriptorForBufferPosition([newPosition.row - 1, line.length]).getScopeChain()
+
+                if chain.indexOf("comment") != -1
+                    regexVar = /\@var[\s]+([a-zA-Z_\\]+)/g
+                    matches = regexVar.exec(line)
+
+                    if null == matches
+                        return className
+
+                    return @findUseForClass(editor, matches[1])
+
+            # /* @var $var Class (like intelliJ) */
+            if chain.indexOf("comment") != -1
+                regexVarWithVarName = new RegExp("\\@var[\\s]+\\#{element}[\\s]+([a-zA-Z_\\\\]+)", "g")
+                matches = regexVarWithVarName.exec(line)
+
+                if null != matches
+                    return @findUseForClass(editor, matches[1])
+
+            if chain.indexOf("function") != -1
+                regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
+                matches = regexFunction.exec(line)
+
+                if null == matches
+                    return null
+
+                func = matches[1]
+                value = matches[2]
+
+                # If we have a type hint
+                if value != ""
+                    return @findUseForClass(editor, value)
+
+                # otherwise, we are parsing PHPdoc (@param)
+                params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
+                if params.params? and params.params[element]?
+                    return @findUseForClass(editor, params.params[element])
+
+                break
+
+            idx++
+
+        return null
+
+    ###*
+     * Retrieves contextual information about the property at the specified location in the editor.
+     *
+     * @param {TextEditor} editor         TextEditor to search for namespace of term.
+     * @param {string}     term           Term to search for.
+     * @param {Point}      bufferPosition The cursor location the term is at.
+     * @param {Object}     calledClass    Information about the called class (optional).
+    ###
+    getMethodContext: (editor, term, bufferPosition, calledClass) ->
+        if not calledClass
+            calledClass = @getCalledClass(editor, term, bufferPosition)
+
+        if not calledClass
+            return
+
+        proxy = require '../services/php-proxy.coffee'
+        methods = proxy.methods(calledClass)
+
+        if not methods
+            return
+
+        if methods.error? and methods.error != ''
+            atom.notifications.addError('Failed to get methods for ' + calledClass, {
+                'detail': methods.error.message
+            })
+
+            return
+
+        if methods.names.indexOf(term) == -1
+            return
+
+        value = methods.values[term]
+
+        # If there are multiple matches, just select the first method.
+        if value instanceof Array
+            for val in value
+                if val.isMethod
+                    value = val
+                    break
+
+        return value
+
+    ###*
+     * Retrieves contextual information about the property at the specified location in the editor.
+     #
+     * @param {TextEditor} editor         TextEditor to search for namespace of term.
+     * @param {string}     name           The name of the property to search for.
+     * @param {Point}      bufferPosition The cursor location the term is at.
+     * @param {Object}     calledClass    Information about the called class (optional).
+    ###
+    getPropertyContext: (editor, name, bufferPosition, calledClass) ->
+        if not calledClass
+            calledClass = @getCalledClass(editor, name, bufferPosition)
+
+        if not calledClass
+            return
+
+        proxy = require '../services/php-proxy.coffee'
+        methodsAndProperties = proxy.methods(calledClass)
+
+        if not methodsAndProperties.names?
+            return
+
+        if methodsAndProperties.names.indexOf(name) == -1
+            return
+
+        value = methodsAndProperties.values[name]
+
+        if value instanceof Array
+            for val in value
+                if !val.isMethod
+                    value = val
+                    break
+
+        return value
+
+    ###*
+     * Parse all elements from the given array to return the last className (if any)
+     * @param  Array elements Elements to parse
+     * @return string|null full class name of the last element
+    ###
+    parseElements: (editor, bufferPosition, elements) ->
+        loop_index = 0
+        className  = null
+        if not elements?
+            return
+
+        for element in elements
+            # $this keyword
+            if loop_index == 0
+                if element == '$this' or element == 'static' or element == 'self'
+                    className = @getCurrentClass(editor, bufferPosition)
+                    loop_index++
+                    continue
+
+                else if element[0] == '$'
+                    className = @getVariableType(editor, bufferPosition, element)
+                    loop_index++
+                    continue
+
+                else if element == 'parent'
+                    className = @getParentClass(editor)
+                    loop_index++
+                    continue
+
+                else
+                    className = @findUseForClass(editor, element)
+                    loop_index++
+                    continue
+
+            # Last element
+            if loop_index >= elements.length - 1
+                break
+
+            if className == null
+                break
+
+            methods = proxy.autocomplete(className, element)
+
+            # Element not found or no return value
+            if not methods.class? or not @isClass(methods.class)
+                className = null
+                break
+
+            className = methods.class
+            loop_index++
+
+        # If no data or a valid end of line, OK
+        if elements.length > 0 and (elements[elements.length-1].length == 0 or elements[elements.length-1].match(/([a-zA-Z0-9]$)/g))
+            return className
+
+        return null
+
+    ###*
+     * Gets the full words from the buffer position given.
+     * E.g. Getting a class with its namespace.
+     * @param  {TextEditor}     editor   TextEditor to search.
+     * @param  {BufferPosition} position BufferPosition to start searching from.
+     * @return {string}  Returns a string of the class.
+    ###
+    getFullWordFromBufferPosition: (editor, position) ->
+        foundStart = false
+        foundEnd = false
+        startBufferPosition = []
+        endBufferPosition = []
+        forwardRegex = /-|(?:\()[\w\[\$\(\\]|\s|\)|;|'|,|"|\|/
+        backwardRegex = /\(|\s|\)|;|'|,|"|\|/
+        index = -1
+        previousText = ''
+
+        loop
+            index++
+            startBufferPosition = [position.row, position.column - index - 1]
+            range = [[position.row, position.column], [startBufferPosition[0], startBufferPosition[1]]]
+            currentText = editor.getTextInBufferRange(range)
+            if backwardRegex.test(editor.getTextInBufferRange(range)) || startBufferPosition[1] == -1 || currentText == previousText
+                foundStart = true
+            previousText = editor.getTextInBufferRange(range)
+            break if foundStart
+        index = -1
+        loop
+            index++
+            endBufferPosition = [position.row, position.column + index + 1]
+            range = [[position.row, position.column], [endBufferPosition[0], endBufferPosition[1]]]
+            currentText = editor.getTextInBufferRange(range)
+            if forwardRegex.test(currentText) || endBufferPosition[1] == 500 || currentText == previousText
+                foundEnd = true
+            previousText = editor.getTextInBufferRange(range)
+            break if foundEnd
+
+        startBufferPosition[1] += 1
+        endBufferPosition[1] -= 1
+        return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
+
+    ###*
+     * Gets the parent class of the current class opened in the editor
+     * @param  {TextEditor} editor Editor with the class in.
+     * @return {string}            The namespace and class of the parent
+    ###
+    getParentClass: (editor) ->
+        text = editor.getText()
+
+        lines = text.split('\n')
+        for line in lines
+            line = line.trim()
+
+            # If we found extends keyword, return the class
+            if line.indexOf('extends ') != -1
+                words = line.split(' ')
+                extendsIndex = words.indexOf('extends')
+                return @findUseForClass(editor, words[extendsIndex + 1])
+
+    ###*
+     * Finds the buffer position of the word given
+     * @param  {TextEditor} editor TextEditor to search
+     * @param  {string}     term   The function name to search for
+     * @return {mixed}             Either null or the buffer position of the function.
+    ###
+    findBufferPositionOfWord: (editor, term, regex, line = null) ->
+        if line != null
+            lineText = editor.lineTextForBufferRow(line)
+            result = @checkLineForWord(lineText, term, regex)
+            if result != null
+                return [line, result]
+        else
+            text = editor.getText()
+            row = 0
+            lines = text.split('\n')
+            for line in lines
+                result = @checkLineForWord(line, term, regex)
+                if result != null
+                    return [row, result]
+                row++
+        return null;
+
+    ###*
+     * Checks the lineText for the term and regex matches
+     * @param  {string}   lineText The line of text to check.
+     * @param  {string}   term     Term to look for.
+     * @param  {regex}    regex    Regex to run on the line to make sure it's valid
+     * @return {null|int}          Returns null if nothing was found or an
+     *                             int of the column the term is on.
+    ###
+    checkLineForWord: (lineText, term, regex) ->
+        if regex.test(lineText)
+            words = lineText.split(' ')
+            propertyIndex = 0
+            for element in words
+                if element.indexOf(term) != -1
+                    break
+                propertyIndex++;
+
+              reducedWords = words.slice(0, propertyIndex).join(' ')
+              return reducedWords.length + 1
+        return null
