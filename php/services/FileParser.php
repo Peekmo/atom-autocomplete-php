@@ -33,28 +33,33 @@ class FileParser
      */
     public function getCompleteNamespace($className, &$found)
     {
+        $line = '';
         $found = false;
-
+        $matches = array();
         $fullClass = $className;
 
-        while (!feof($this->file)) {
+        while (!feof($this->file) && !$this->containsStopMarker($line)) {
             $line = fgets($this->file);
 
-              // Namespace
-            $matches = array();
-            preg_match(self::NAMESPACE_PATTERN, $line, $matches);
-
-            if (!empty($matches)) {
+            if (preg_match(self::NAMESPACE_PATTERN, $line, $matches) === 1) {
+                // The class name is relative to the namespace of the class it is contained in, unless a use statement
+                // says otherwise.
                 $fullClass = $matches[1] . '\\' . $className;
             }
 
-            $matches = array();
-            preg_match(self::USE_PATTERN, $line, $matches);
+            if (preg_match(self::USE_PATTERN, $line, $matches) === 1) {
+                $fullImportNameParts = explode('\\', $matches[1]);
+                $fullClassNameParts = explode('\\', $className);
 
-            if (!empty($matches)) {
-                if (isset($matches[2]) && $matches[2] == $className) {
-                    $found = true;
-                    return $matches[1];
+                // Is this an aliased import?
+                if (isset($matches[2])) {
+                    if ($matches[2] === $className) {
+                        $found = true;
+                        return $matches[1];
+                    } /*elseif ($matches[2] == substr($className, 0, strlen($matches[2]))) {
+                        $found = true;
+                        return $matches[1] . '\\' . substr($className, substr($matches[1]));
+                    }*/
                 } elseif (substr($matches[1], -strlen($className)) === $className) {
                     $isOnlyPartOfClassName = false;
 
@@ -74,14 +79,28 @@ class FileParser
                     }
                 }
             }
-
-            // Stop if declaration of a class
-            if (strpos(trim($line), 'class') === 0 || strpos(trim($line), 'abstract') === 0) {
-                return $fullClass;
-            }
         }
 
         return $fullClass;
+    }
+
+    /**
+     * Returns a boolean indicating if the specified line contains a stop marker.
+     *
+     * @param string $line
+     *
+     * @return bool
+     */
+    protected function containsStopMarker($line)
+    {
+        $line = trim($line);
+
+        return (
+            strpos($line, 'abstract')  === 0 ||
+            strpos($line, 'class')     === 0 ||
+            strpos($line, 'interface') === 0 ||
+            strpos($line, 'trait')     === 0
+        );
     }
 
     public function __destruct()
