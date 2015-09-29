@@ -33,24 +33,27 @@ class PropertyProvider extends AbstractProvider
 
         # Create a useful description to show in the tooltip.
         description = ''
-        description += '<div style="margin-top: -1em; margin-bottom: -1em;">'
 
         description += "<p><div>"
         description += accessModifier + ' ' + returnType + '<strong>' + ' $' + term + '</strong>'
         description += '</div></p>'
 
         # Show the summary (short description).
-        description += '<p><div>'
+        description += '<div>'
         description +=     (if value.args.descriptions.short then value.args.descriptions.short else '(No documentation available)')
-        description += '</p></div>'
+        description += '</div>'
 
         # Show the (long) description.
         if value.args.descriptions.long?.length > 0
-            description += "<p>"
-            description +=     "<div>Description:</div>"
-            description +=     "<div style='padding-left: 1em;'>" + value.args.descriptions.long + "</div>"
-            description += "</p>"
+            description += '<div class="section">'
+            description +=     "<h4>Description</h4>"
+            description +=     "<div>" + value.args.descriptions.long + "</div>"
+            description += "</div>"
 
-        description += "</div>"
+        if value.args.return
+            description += '<div class="section">'
+            description +=     "<h4>Type</h4>"
+            description +=     "<div>" + value.args.return + "</div>"
+            description += "</div>"
 
         return description

@@ -94,16 +94,6 @@ class ClassProvider extends AbstractProvider
                 @selectView.show()
 
     ###*
-     * Retrieves a tooltip for the word given.
-     *
-     * @param {TextEditor} editor         TextEditor to search for namespace of term.
-     * @param {string}     term           Term to search for.
-     * @param {Point}      bufferPosition The cursor location the term is at.
-    ###
-    getTooltipForWord: (editor, term, bufferPosition) ->
-        # TODO: Not implemented yet (as summaries from class docblocks are not extracted).
-
-    ###*
      * Gets the correct selector when a class or namespace is clicked.
      *
      * @param  {jQuery.Event}  event  A jQuery event.
