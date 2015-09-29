@@ -1,3 +1,15 @@
+## 0.13.0
+* Custom tooltip management (does not rely on atom's one anymore)
+
+## 0.12.0
+* Support for {@inheritdoc} && {@inheritDoc} as the only one comment (symfony2 style)
+* Bugfixes for non PHP projects
+* Bugfixes on Docblock parser
+
+## 0.11.0
+* Bugfixes on Goto
+* Major refactor in the code of the plugin itself
+
 ## 0.10.0
 * Autocomplete in catch() {} #91
 * Comments "@var $var Class" now supported for completion
