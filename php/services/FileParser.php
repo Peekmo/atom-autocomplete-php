@@ -26,9 +26,12 @@ class FileParser
     }
 
     /**
-     * Get the full namespace of the given class
+     * Retrieves the full namespace of the given class, based on the namespace and use statements in the current file.
+     *
      * @param string $className
-     * @param bool   $found     Set to true if use founded
+     * @param bool   $found     Set to true if an explicit use statement was found. If false, the full class name could,
+     *                          for example, have been built using the namespace of the current file.
+     *
      * @return string
      */
     public function getCompleteNamespace($className, &$found)
@@ -45,38 +48,25 @@ class FileParser
                 // The class name is relative to the namespace of the class it is contained in, unless a use statement
                 // says otherwise.
                 $fullClass = $matches[1] . '\\' . $className;
-            }
+            } elseif (preg_match(self::USE_PATTERN, $line, $matches) === 1) {
+                $classNameParts = explode('\\', $className);
+                $importNameParts = explode('\\', $matches[1]);
 
-            if (preg_match(self::USE_PATTERN, $line, $matches) === 1) {
-                $fullImportNameParts = explode('\\', $matches[1]);
-                $fullClassNameParts = explode('\\', $className);
+                $isAliasedImport = isset($matches[2]);
 
-                // Is this an aliased import?
-                if (isset($matches[2])) {
-                    if ($matches[2] === $className) {
-                        $found = true;
-                        return $matches[1];
-                    } /*elseif ($matches[2] == substr($className, 0, strlen($matches[2]))) {
-                        $found = true;
-                        return $matches[1] . '\\' . substr($className, substr($matches[1]));
-                    }*/
-                } elseif (substr($matches[1], -strlen($className)) === $className) {
-                    $isOnlyPartOfClassName = false;
+                if (($isAliasedImport && $matches[2] === $classNameParts[0]) ||
+                    (!$isAliasedImport && $importNameParts[count($importNameParts) - 1] === $classNameParts[0])) {
+                    $found = true;
 
-                    // If we're looking for the class name 'Mailer', a use statement such as "use \My_Mailer" should not
-                    // pass the check.
-                    if (strlen($matches[1]) > strlen($className)) {
-                        $characterBeforeClassName = substr($matches[1], -strlen($className) - 1, 1);
+                    $fullClass = $matches[1];
 
-                        if ($characterBeforeClassName !== "\\" && $characterBeforeClassName !== ' ') {
-                            $isOnlyPartOfClassName = true;
-                        }
+                    array_shift($classNameParts);
+
+                    if (!empty($classNameParts)) {
+                        $fullClass .= '\\' . implode('\\', $classNameParts);
                     }
 
-                    if (!$isOnlyPartOfClassName) {
-                        $found = true;
-                        return $matches[1];
-                    }
+                    break;
                 }
             }
         }
