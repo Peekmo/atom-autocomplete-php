@@ -26,62 +26,71 @@ class FileParser
     }
 
     /**
-     * Get the full namespace of the given class
+     * Retrieves the full namespace of the given class, based on the namespace and use statements in the current file.
+     *
      * @param string $className
-     * @param bool   $found     Set to true if use founded
+     * @param bool   $found     Set to true if an explicit use statement was found. If false, the full class name could,
+     *                          for example, have been built using the namespace of the current file.
+     *
      * @return string
      */
     public function getCompleteNamespace($className, &$found)
     {
+        $line = '';
         $found = false;
-
+        $matches = array();
         $fullClass = $className;
 
-        while (!feof($this->file)) {
+        while (!feof($this->file) && !$this->containsStopMarker($line)) {
             $line = fgets($this->file);
 
-              // Namespace
-            $matches = array();
-            preg_match(self::NAMESPACE_PATTERN, $line, $matches);
-
-            if (!empty($matches)) {
+            if (preg_match(self::NAMESPACE_PATTERN, $line, $matches) === 1) {
+                // The class name is relative to the namespace of the class it is contained in, unless a use statement
+                // says otherwise.
                 $fullClass = $matches[1] . '\\' . $className;
-            }
+            } elseif (preg_match(self::USE_PATTERN, $line, $matches) === 1) {
+                $classNameParts = explode('\\', $className);
+                $importNameParts = explode('\\', $matches[1]);
 
-            $matches = array();
-            preg_match(self::USE_PATTERN, $line, $matches);
+                $isAliasedImport = isset($matches[2]);
 
-            if (!empty($matches)) {
-                if (isset($matches[2]) && $matches[2] == $className) {
+                if (($isAliasedImport && $matches[2] === $classNameParts[0]) ||
+                    (!$isAliasedImport && $importNameParts[count($importNameParts) - 1] === $classNameParts[0])) {
                     $found = true;
-                    return $matches[1];
-                } elseif (substr($matches[1], -strlen($className)) === $className) {
-                    $isOnlyPartOfClassName = false;
 
-                    // If we're looking for the class name 'Mailer', a use statement such as "use \My_Mailer" should not
-                    // pass the check.
-                    if (strlen($matches[1]) > strlen($className)) {
-                        $characterBeforeClassName = substr($matches[1], -strlen($className) - 1, 1);
+                    $fullClass = $matches[1];
 
-                        if ($characterBeforeClassName !== "\\" && $characterBeforeClassName !== ' ') {
-                            $isOnlyPartOfClassName = true;
-                        }
+                    array_shift($classNameParts);
+
+                    if (!empty($classNameParts)) {
+                        $fullClass .= '\\' . implode('\\', $classNameParts);
                     }
 
-                    if (!$isOnlyPartOfClassName) {
-                        $found = true;
-                        return $matches[1];
-                    }
+                    break;
                 }
-            }
-
-            // Stop if declaration of a class
-            if (strpos(trim($line), 'class') === 0 || strpos(trim($line), 'abstract') === 0) {
-                return $fullClass;
             }
         }
 
         return $fullClass;
+    }
+
+    /**
+     * Returns a boolean indicating if the specified line contains a stop marker.
+     *
+     * @param string $line
+     *
+     * @return bool
+     */
+    protected function containsStopMarker($line)
+    {
+        $line = trim($line);
+
+        return (
+            strpos($line, 'abstract')  === 0 ||
+            strpos($line, 'class')     === 0 ||
+            strpos($line, 'interface') === 0 ||
+            strpos($line, 'trait')     === 0
+        );
     }
 
     public function __destruct()
