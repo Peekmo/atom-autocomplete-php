@@ -12,15 +12,14 @@ module.exports =
 # Autocomplete for internal PHP functions
 class FunctionProvider extends AbstractProvider
     functions: []
-    functionOnly: true
 
     ###*
      * Get suggestions from the provider (@see provider-api)
      * @return array
     ###
     fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-        # "new" keyword or word starting with capital letter
-        @regex = /(?:[^\w\$_\>])([a-z_]+)(?![\w\$_\>])/g
+        # not preceded by a > (arrow operator), a $ (variable start), ...
+        @regex = /(?:(?:^|[^\w\$_\>]))([a-z_]+)(?![\w\$_\>])/g
 
         prefix = @getPrefix(editor, bufferPosition)
         return unless prefix.length
