@@ -5,8 +5,7 @@ AbstractProvider = require "./abstract-provider"
 
 module.exports =
 
-# Autocomplete for viariables in the current function
-# (keyword $)
+# Autocomplete for local variable names.
 class VariableProvider extends AbstractProvider
     variables: []
 

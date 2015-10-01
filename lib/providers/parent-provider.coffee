@@ -7,7 +7,7 @@ AbstractProvider = require "./abstract-provider.coffee"
 
 module.exports =
 
-# Autocomplete for parent keyword
+# Autocomplete for members following the parent keyword.
 class ParentProvider extends AbstractProvider
     parent: []
     functionOnly: true

@@ -9,7 +9,7 @@ config = require "../config.coffee"
 
 module.exports =
 
-# Autocomplete for internal PHP functions
+# Autocompletion for internal PHP functions.
 class FunctionProvider extends AbstractProvider
     functions: []
 
