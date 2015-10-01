@@ -430,6 +430,7 @@ module.exports =
                     bestMatchRow = lineNumber
                     bestMatch = @findUseForClass(editor, matchesNew[1])
 
+            if not bestMatch
                 # Check for catch(XXX $xxx)
                 matchesCatch = regexCatch.exec(line)
 
@@ -437,6 +438,7 @@ module.exports =
                     bestMatchRow = lineNumber
                     bestMatch = @findUseForClass(editor, matchesCatch[1])
 
+            if not bestMatch
                 # Check for a variable assignment $x = ...
                 matches = regexElement.exec(line)
 
