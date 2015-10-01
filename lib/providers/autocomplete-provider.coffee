@@ -12,7 +12,6 @@ module.exports =
 # WORK IN PROGRESS
 class AutocompleteProvider extends AbstractProvider
     methods: []
-    functionOnly: true
 
     ###*
      * Get suggestions from the provider (@see provider-api)

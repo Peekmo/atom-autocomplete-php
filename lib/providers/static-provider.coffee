@@ -10,7 +10,6 @@ module.exports =
 # Autocomplete for static methods and constants
 class StaticProvider extends AbstractProvider
     statics: []
-    functionOnly: true
 
     ###*
      * Get suggestions from the provider (@see provider-api)

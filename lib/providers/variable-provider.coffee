@@ -9,7 +9,6 @@ module.exports =
 # (keyword $)
 class VariableProvider extends AbstractProvider
     variables: []
-    functionOnly: true
 
     ###*
      * Get suggestions from the provider (@see provider-api)

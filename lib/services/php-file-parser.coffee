@@ -78,15 +78,26 @@ module.exports =
      * @param {Range}      bufferPosition Position of the current buffer
     ###
     getAllVariablesInFunction: (editor, bufferPosition) ->
-        return if not @isInFunction(editor, bufferPosition)
+        # return if not @isInFunction(editor, bufferPosition)
+        isInFunction = @isInFunction(editor, bufferPosition)
 
-        text = editor.getTextInBufferRange([@cache["functionPosition"], [bufferPosition.row, bufferPosition.column-1]])
+        startPosition = null
+
+        if isInFunction
+            startPosition = @cache['functionPosition']
+
+        else
+            startPosition = [0, 0]
+
+        text = editor.getTextInBufferRange([startPosition, [bufferPosition.row, bufferPosition.column-1]])
         regex = /(\$[a-zA-Z_]+)/g
 
         matches = text.match(regex)
         return [] if not matches?
 
-        matches.push "$this"
+        if isInFunction
+            matches.push "$this"
+            
         return matches
 
     ###*
