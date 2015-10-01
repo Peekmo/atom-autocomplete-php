@@ -97,7 +97,7 @@ module.exports =
 
         if isInFunction
             matches.push "$this"
-            
+
         return matches
 
     ###*
@@ -582,13 +582,18 @@ module.exports =
         for element in elements
             # $this keyword
             if loop_index == 0
-                if element == '$this' or element == 'static' or element == 'self'
-                    className = @getCurrentClass(editor, bufferPosition)
+                if element[0] == '$'
+                    className = @getVariableType(editor, bufferPosition, element)
+
+                    # NOTE: The type of $this can also be overridden locally by a docblock.
+                    if element == '$this' and not className
+                        className = @getCurrentClass(editor, bufferPosition)
+
                     loop_index++
                     continue
 
-                else if element[0] == '$'
-                    className = @getVariableType(editor, bufferPosition, element)
+                else if element == 'static' or element == 'self'
+                    className = @getCurrentClass(editor, bufferPosition)
                     loop_index++
                     continue
 
