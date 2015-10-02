@@ -451,11 +451,10 @@ module.exports =
                         row : lineNumber
                         column: bufferPosition.column
 
-                    className = @parseElements(editor, newPosition, elements)
-
-                    if className
-                        bestMatchRow = lineNumber
-                        bestMatch = className
+                    # NOTE: bestMatch could now be null, but this line is still the closest match. The fact that we
+                    # don't recognize the class name is irrelevant.
+                    bestMatchRow = lineNumber
+                    bestMatch = @parseElements(editor, newPosition, elements)
 
             chain = editor.scopeDescriptorForBufferPosition([lineNumber, line.length]).getScopeChain()
 
