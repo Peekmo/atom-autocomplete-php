@@ -82,9 +82,13 @@ class AbstractProvider
 
                 # Try to show a tooltip containing the documentation of the item.
                 @timeout = setTimeout(() =>
-                    cursorPosition = atom.views.getView(editor).component.screenPositionForMouseEvent(event)
+                    editorViewComponent = atom.views.getView(editor).component
 
-                    @showTooltipFor(editor, selector, cursorPosition)
+                    # Ticket #140 - In rare cases the component is null.
+                    if editorViewComponent
+                        cursorPosition = editorViewComponent.screenPositionForMouseEvent(event)
+
+                        @showTooltipFor(editor, selector, cursorPosition)
                 , 500)
 
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
