@@ -103,10 +103,11 @@ class AbstractProvider
             scrollViewElement = @$(textEditorElement.shadowRoot).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mousemove', @hoverEventSelectors, (event) =>
+                return unless event.altKey
+
                 selector = @getSelectorFromEvent(event)
 
-                if selector == null or event.altKey == false
-                    return
+                return unless selector
 
                 @$(selector).css('border-bottom', '1px solid ' + @$(selector).css('color'))
                 @$(selector).css('cursor', 'pointer')
@@ -114,10 +115,11 @@ class AbstractProvider
                 @isHovering = true
 
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
+                return unless @isHovering
+
                 selector = @getSelectorFromEvent(event)
 
-                if selector == null
-                    return
+                return unless selector
 
                 @$(selector).css('border-bottom', '')
                 @$(selector).css('cursor', '')
@@ -136,8 +138,7 @@ class AbstractProvider
 
             # This is needed to be able to alt-click class names inside comments (docblocks).
             editor.onDidChangeCursorPosition (event) =>
-                if @isHovering == false
-                    return
+                return unless @isHovering
 
                 markerProperties =
                     containsBufferPosition: event.newBufferPosition
