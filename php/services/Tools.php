@@ -120,6 +120,20 @@ abstract class Tools
             $classIterator = new ReflectionClass($function->class);
             $classIterator = $classIterator->getParentClass();
 
+            // Check if this method is implemented an abstract method from a trait, in which case that docblock should
+            // be used.
+            if (!$docComment) {
+                foreach ($function->getDeclaringClass()->getTraits() as $trait) {
+                    if ($trait->hasMethod($function->getName())) {
+                        $traitMethod = $trait->getMethod($function->getName());
+
+                        if ($traitMethod->isAbstract() && $traitMethod->getDocComment()) {
+                            return $this->getMethodArguments($traitMethod);
+                        }
+                    }
+                }
+            }
+
             // Walk up base classes to see if any of them have additional info about this method.
             while ($classIterator) {
                 if ($classIterator->hasMethod($function->getName())) {
@@ -131,7 +145,6 @@ abstract class Tools
                         if (!$docComment) {
                             return $baseClassMethodArgs; // Fall back to parent docblock.
                         } elseif ($docblockInheritsLongDescription) {
-
                             $docParseResult['descriptions']['long'] = str_replace(
                                 DocParser::INHERITDOC,
                                 $baseClassMethodArgs['descriptions']['long'],
