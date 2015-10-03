@@ -39,14 +39,6 @@ class FunctionProvider extends AbstractProvider
         if not value
             return
 
-
-        ###
-        parentClass = value.declaringClass
-
-        proxy = require '../services/php-proxy.coffee'
-        classMap = proxy.autoloadClassMap()
-        ###
-
         atom.workspace.open(value.declaringStructure.filename, {
             initialLine    : (value.startLine - 1),
             searchAllPanes : true

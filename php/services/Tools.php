@@ -214,11 +214,13 @@ abstract class Tools
         // This will point to the class that contains the member, which will resolve to the parent class if it's
         // inherited (and not overridden).
         $declaringStructure = $reflectionMember->getDeclaringClass();
+        $isMethod = ($reflectionMember instanceof ReflectionFunctionAbstract);
 
         // Members from traits are seen as part of the structure using the trait, but we still want the actual trait
         // name.
         foreach ($declaringStructure->getTraits() as $trait) {
-            if ($trait->hasMethod($reflectionMember->name)) {
+            if (($isMethod && $trait->hasMethod($reflectionMember->name)) ||
+                (!$isMethod && $trait->hasProperty($reflectionMember->name))) {
                 $declaringStructure = $trait;
                 break;
             }

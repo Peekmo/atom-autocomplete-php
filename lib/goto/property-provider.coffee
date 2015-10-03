@@ -34,14 +34,10 @@ class PropertyProvider extends AbstractProvider
         if not value
             return
 
-        parentClass = value.declaringClass
-
-        proxy = require '../services/php-proxy.coffee'
-        classMap = proxy.autoloadClassMap()
-
-        atom.workspace.open(classMap[parentClass], {
+        atom.workspace.open(value.declaringStructure.filename, {
             searchAllPanes: true
         })
+        
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
         @jumpWord = term
 
