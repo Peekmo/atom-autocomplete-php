@@ -120,7 +120,7 @@ abstract class Tools
             $classIterator = new ReflectionClass($function->class);
             $classIterator = $classIterator->getParentClass();
 
-            // Check if this method is implemented an abstract method from a trait, in which case that docblock should
+            // Check if this method is implementing an abstract method from a trait, in which case that docblock should
             // be used.
             if (!$docComment) {
                 foreach ($function->getDeclaringClass()->getTraits() as $trait) {
@@ -129,6 +129,22 @@ abstract class Tools
 
                         if ($traitMethod->isAbstract() && $traitMethod->getDocComment()) {
                             return $this->getMethodArguments($traitMethod);
+                        }
+                    }
+                }
+            }
+
+            // Check if this method is implementing an interface method, in which case that docblock should be used.
+            // NOTE: If the parent class has an interface, getMethods() on the parent class will include the interface
+            // methods, along with their docblocks, even if the parent doesn't actually implement the method. So we only
+            // have to check the interfaces of the declaring class.
+            if (!$docComment) {
+                foreach ($function->getDeclaringClass()->getInterfaces() as $interface) {
+                    if ($interface->hasMethod($function->getName())) {
+                        $interfaceMethod = $interface->getMethod($function->getName());
+
+                        if ($interfaceMethod->getDocComment()) {
+                            return $this->getMethodArguments($interfaceMethod);
                         }
                     }
                 }
