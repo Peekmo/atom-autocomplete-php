@@ -273,7 +273,23 @@ abstract class Tools
         }
 
         if (!$overriddenMember) {
-            return null;
+            // This method is not an override of a parent method, see if it is an 'override' of an abstract method from
+            // a trait the class it is in is using.
+            if ($reflectionMember instanceof ReflectionFunctionAbstract) {
+                foreach ($reflectionMember->getDeclaringClass()->getTraits() as $trait) {
+                    if ($trait->hasMethod($methodName)) {
+                        $traitMethod = $trait->getMethod($methodName);
+
+                        if ($traitMethod->isAbstract()) {
+                            $overriddenMember = $traitMethod;
+                        }
+                    }
+                }
+            }
+
+            if (!$overriddenMember) {
+                return null;
+            }
         }
 
         $startLine = null;
