@@ -55,18 +55,8 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 // case its absolute path is determined by the namespace and use statements of the file containing it.
                 $relevantClass = $returnValue;
 
-                $filename = null;
-
-                try {
-                    $reflection = new \ReflectionClass($memberInfo['declaringClass']);
-
-                    $filename = $reflection->getFileName();
-                } catch (\Exception $e) {
-
-                }
-
-                if (!empty($returnValue) && $returnValue[0] !== "\\" && $filename) {
-                    $parser = new FileParser($filename);
+                if (!empty($returnValue) && $returnValue[0] !== "\\") {
+                    $parser = new FileParser($memberInfo['declaringStructure']['filename']);
 
                     $useStatementFound = false;
                     $completedClassName = $parser->getCompleteNamespace($returnValue, $useStatementFound);
