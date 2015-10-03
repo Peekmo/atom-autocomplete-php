@@ -6,6 +6,7 @@ class FileParser
 {
     const USE_PATTERN = '/(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/';
     const NAMESPACE_PATTERN = '/(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/';
+    const DEFINITION_PATTERN = '/(?:abstract class|class|trait|interface)\s+(\w+)/';
 
     /**
      * @var string Handler to the file
@@ -26,11 +27,20 @@ class FileParser
     }
 
     /**
+     * Destructor.
+     */
+    public function __destruct()
+    {
+        fclose($this->file);
+    }
+
+    /**
      * Retrieves the full namespace of the given class, based on the namespace and use statements in the current file.
      *
-     * @param string $className
-     * @param bool   $found     Set to true if an explicit use statement was found. If false, the full class name could,
-     *                          for example, have been built using the namespace of the current file.
+     * @param string|null $className The class to search for. If null, the full class name of the first
+     *                               class/trait/interface definition will be returned.
+     * @param bool        $found     Set to true if an explicit use statement was found. If false, the full class name
+     *                               could, for example, have been built using the namespace of the current file.
      *
      * @return string
      */
@@ -41,14 +51,14 @@ class FileParser
         $matches = array();
         $fullClass = $className;
 
-        while (!feof($this->file) && !$this->containsStopMarker($line)) {
+        while (!feof($this->file)) {
             $line = fgets($this->file);
 
             if (preg_match(self::NAMESPACE_PATTERN, $line, $matches) === 1) {
                 // The class name is relative to the namespace of the class it is contained in, unless a use statement
                 // says otherwise.
                 $fullClass = $matches[1] . '\\' . $className;
-            } elseif (preg_match(self::USE_PATTERN, $line, $matches) === 1) {
+            } elseif ($className && preg_match(self::USE_PATTERN, $line, $matches) === 1) {
                 $classNameParts = explode('\\', $className);
                 $importNameParts = explode('\\', $matches[1]);
 
@@ -69,33 +79,18 @@ class FileParser
                     break;
                 }
             }
+
+            if (preg_match(self::DEFINITION_PATTERN, $line, $matches) === 1) {
+                if (!$className) {
+                    $found = true;
+                    $fullClass .= $matches[1];
+                }
+
+                break;
+            }
         }
 
         return $fullClass;
-    }
-
-    /**
-     * Returns a boolean indicating if the specified line contains a stop marker.
-     *
-     * @param string $line
-     *
-     * @return bool
-     */
-    protected function containsStopMarker($line)
-    {
-        $line = trim($line);
-
-        return (
-            strpos($line, 'abstract')  === 0 ||
-            strpos($line, 'class')     === 0 ||
-            strpos($line, 'interface') === 0 ||
-            strpos($line, 'trait')     === 0
-        );
-    }
-
-    public function __destruct()
-    {
-        fclose($this->file);
     }
 }
 
