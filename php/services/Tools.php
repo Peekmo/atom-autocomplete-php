@@ -203,11 +203,30 @@ abstract class Tools
     }
 
     /**
+     * Retrieves the class that contains the specified reflection member.
+     *
+     * @param ReflectionFunctionAbstract|ReflectionProperty $reflectionMember
+     *
+     * @return array
+     */
+    protected function getDeclaringClass($reflectionMember)
+    {
+        // This will point to the class that contains the member, which will resolve to the parent class if it's
+        // inherited (and not overridden).
+        $declaringClass = $reflectionMember->getDeclaringClass();
+
+        return array(
+            'name'     => $declaringClass->name,
+            'filename' => $declaringClass->getFilename()
+        );
+    }
+
+    /**
      * Retrieves the structure (class, trait, interface, ...) that contains the specified reflection member.
      *
      * @param ReflectionFunctionAbstract|ReflectionProperty $reflectionMember
      *
-     * @return string
+     * @return array
      */
     protected function getDeclaringStructure($reflectionMember)
     {
@@ -264,7 +283,7 @@ abstract class Tools
         }
 
         return array(
-            'declaringClass'     => $overriddenMember->getDeclaringClass()->getName(),
+            'declaringClass'     => $this->getDeclaringClass($overriddenMember),
             'declaringStructure' => $this->getDeclaringStructure($overriddenMember),
             'startLine'          => $startLine
         );
@@ -294,7 +313,7 @@ abstract class Tools
         }
 
         return array(
-            'declaringClass'     => $implementedMember->getDeclaringClass()->getName(),
+            'declaringClass'     => $this->getDeclaringClass($implementedMember),
             'declaringStructure' => $this->getDeclaringStructure($implementedMember),
             'startLine'          => $implementedMember->getStartLine()
         );
@@ -339,7 +358,7 @@ abstract class Tools
                 'implementation'     => $this->getImplementationInfo($method),
 
                 'args'               => $this->getMethodArguments($method),
-                'declaringClass'     => $method->getDeclaringClass()->name,
+                'declaringClass'     => $this->getDeclaringClass($method),
                 'declaringStructure' => $this->getDeclaringStructure($method),
                 'startLine'          => $method->getStartLine()
             );
@@ -363,7 +382,7 @@ abstract class Tools
                 'override'           => $this->getOverrideInfo($attribute),
 
                 'args'               => $this->getPropertyArguments($attribute),
-                'declaringClass'     => $attribute->getDeclaringClass()->name,
+                'declaringClass'     => $this->getDeclaringClass($attribute),
                 'declaringStructure' => $this->getDeclaringStructure($attribute)
             );
 
@@ -395,7 +414,10 @@ abstract class Tools
                 'isProperty'     => false,
                 'isPublic'       => true,
                 'isProtected'    => false,
-                'declaringClass' => $reflection->name,
+                'declaringClass' => array(
+                    'name'     => $reflection->name,
+                    'filename' => $reflection->getFileName()
+                ),
 
                 // TODO: It is not possible to directly fetch the docblock of the constant through reflection, manual
                 // file parsing is required.

@@ -107,11 +107,13 @@ class FunctionProvider extends AbstractProvider
 
                             tooltipText = ''
 
+                            # NOTE: We explicitly show the declaring class here, not the structure (which could be a
+                            # trait).
                             if value.override
-                                tooltipText += 'Overrides method from ' + value.override.declaringClass
+                                tooltipText += 'Overrides method from ' + value.override.declaringClass.name
 
                             else
-                                tooltipText += 'Implements method for ' + value.implementation.declaringClass
+                                tooltipText += 'Implements method for ' + value.implementation.declaringClass.name
 
                             atom.tooltips.add(event.target, {
                                 title: '<div style="text-align: left;">' + tooltipText + '</div>'
