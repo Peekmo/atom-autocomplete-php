@@ -11,8 +11,6 @@ class ClassMapRefresh extends Tools implements ProviderInterface
      */
     public function execute($args = array())
     {
-        $classMap = $this->getClassMap(true);
-
         $fileExists = false;
 
         // If we specified a file
@@ -24,7 +22,12 @@ class ClassMapRefresh extends Tools implements ProviderInterface
                 if (false !== $index) {
                     $fileExists = true;
 
-                    if (false !== $class = array_search($file, $classMap)) {
+                    $found = false;
+                    $fileParser = new FileParser($file);
+                    $class = $fileParser->getCompleteNamespace(null, $found);
+
+                    // if (false !== $class = array_search($file, $classMap)) {
+                    if ($found) {
                         if (isset($index['mapping'][$class])) {
                             unset($index['mapping'][$class]);
                         }
@@ -46,7 +49,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
         // Otherwise, full index
         if (!$fileExists) {
             // Autoload classes
-            foreach ($classMap as $class => $filePath) {
+            foreach ($this->getClassMap(true) as $class => $filePath) {
                 if ($value = $this->buildIndexClass($class)) {
                     $index['mapping'][$class] = $value;
                     $index['autocomplete'][] = $class;

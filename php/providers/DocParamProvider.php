@@ -18,8 +18,6 @@ class DocParamProvider extends Tools implements ProviderInterface
             $class = substr($class, 1);
         }
 
-        $classMap = $this->getClassMap();
-
         $parser = new DocParser();
         return $parser->get($class, 'method', $name, array(DocParser::PARAM_TYPE));
     }
