@@ -6,9 +6,8 @@ parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider.coffee"
 
 module.exports =
-    
-# Autocomplete for static methods and constants inside a class
-# (keyword self:: and static::)
+
+# Autocomplete for static members following the self and static keywords (e.g. self:: and static::).
 class SelfProvider extends AbstractProvider
     statics: []
     functionOnly: true

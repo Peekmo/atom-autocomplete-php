@@ -8,11 +8,9 @@ AbstractProvider = require "./abstract-provider"
 
 module.exports =
 
-# Other autocompletions (Everything is here !!)
-# WORK IN PROGRESS
+# Autocompletion for members of variables such as after ->, ::.
 class AutocompleteProvider extends AbstractProvider
     methods: []
-    functionOnly: true
 
     ###*
      * Get suggestions from the provider (@see provider-api)

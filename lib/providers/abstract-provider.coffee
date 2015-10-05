@@ -2,6 +2,7 @@ parser = require "../services/php-file-parser.coffee"
 
 module.exports =
 
+# Abstract base class for autocompletion providers.
 class AbstractProvider
     regex: ''
     selector: '.source.php'

@@ -8,7 +8,7 @@ AbstractProvider = require "./abstract-provider"
 
 module.exports =
 
-# Autocompletion for class names
+# Autocompletion for class names (e.g. after the new or use keyword).
 class ClassProvider extends AbstractProvider
     classes = []
     disableForSelector: '.source.php .string'

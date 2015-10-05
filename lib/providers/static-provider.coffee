@@ -7,10 +7,9 @@ AbstractProvider = require "./abstract-provider.coffee"
 
 module.exports =
 
-# Autocomplete for static methods and constants
+# Autocomplete for static members following a class name (e.g. Foo::).
 class StaticProvider extends AbstractProvider
     statics: []
-    functionOnly: true
 
     ###*
      * Get suggestions from the provider (@see provider-api)

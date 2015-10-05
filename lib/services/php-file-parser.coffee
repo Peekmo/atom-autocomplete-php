@@ -78,15 +78,26 @@ module.exports =
      * @param {Range}      bufferPosition Position of the current buffer
     ###
     getAllVariablesInFunction: (editor, bufferPosition) ->
-        return if not @isInFunction(editor, bufferPosition)
+        # return if not @isInFunction(editor, bufferPosition)
+        isInFunction = @isInFunction(editor, bufferPosition)
 
-        text = editor.getTextInBufferRange([@cache["functionPosition"], [bufferPosition.row, bufferPosition.column-1]])
+        startPosition = null
+
+        if isInFunction
+            startPosition = @cache['functionPosition']
+
+        else
+            startPosition = [0, 0]
+
+        text = editor.getTextInBufferRange([startPosition, [bufferPosition.row, bufferPosition.column-1]])
         regex = /(\$[a-zA-Z_]+)/g
 
         matches = text.match(regex)
         return [] if not matches?
 
-        matches.push "$this"
+        if isInFunction
+            matches.push "$this"
+
         return matches
 
     ###*
@@ -392,71 +403,88 @@ module.exports =
      * @param {string}     element        Variable to search
     ###
     getVariableType: (editor, bufferPosition, element) ->
-        idx = 1
-
         if element.replace(/[\$][a-zA-Z0-9_]+/g, "").trim().length > 0
             return null
 
         if element.trim().length == 0
             return null
 
+        bestMatch = null
+        bestMatchRow = null
+
         # Regex variable definition
         regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
         regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([A-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
         regexCatch = new RegExp("catch[\\s]*\\([\\s]*([A-Za-z0-9_\\\\]+)[\\s]+\\#{element}[\\s]*\\)", "g")
-        while bufferPosition.row - idx > 0
-            # Get the line
-            line = editor.getTextInBufferRange([[bufferPosition.row - idx, 0], bufferPosition])
 
-            # Check for $x = new XXXXX()
-            matchesNew = regexNewInstance.exec(line)
-            if null != matchesNew
-                return @findUseForClass(editor, matchesNew[1])
+        lineNumber = bufferPosition.row - 1
 
-            # Check for catch(XXX $xxx)
-            matchesCatch = regexCatch.exec(line)
-            if null != matchesCatch
-                return @findUseForClass(editor, matchesCatch[1])
+        while lineNumber > 0
+            line = editor.getTextInBufferRange([[lineNumber, 0], bufferPosition])
 
-            # Get chain of all scopes
-            chain = editor.scopeDescriptorForBufferPosition([bufferPosition.row - idx, line.length]).getScopeChain()
-            matches = regexElement.exec(line)
+            if not bestMatch
+                # Check for $x = new XXXXX()
+                matchesNew = regexNewInstance.exec(line)
 
-            if null != matches
-                value = matches[1]
-                elements = @parseStackClass(value)
-                elements.push("") # Push one more element to get fully the last class
+                if null != matchesNew
+                    bestMatchRow = lineNumber
+                    bestMatch = @findUseForClass(editor, matchesNew[1])
 
-                newPosition =
-                    row : bufferPosition.row - idx
-                    column: bufferPosition.column
-                className = @parseElements(editor, newPosition, elements)
+            if not bestMatch
+                # Check for catch(XXX $xxx)
+                matchesCatch = regexCatch.exec(line)
 
-                # if className is null, we check if there's a /** @var */ on top of it, to guess the type
-                # Get the line
-                line = editor.getTextInBufferRange([[newPosition.row - 1, 0], [newPosition.row, 10000]])
+                if null != matchesCatch
+                    bestMatchRow = lineNumber
+                    bestMatch = @findUseForClass(editor, matchesCatch[1])
 
-                # Get chain of all scopes
-                chain = editor.scopeDescriptorForBufferPosition([newPosition.row - 1, line.length]).getScopeChain()
+            if not bestMatch
+                # Check for a variable assignment $x = ...
+                matches = regexElement.exec(line)
 
-                if chain.indexOf("comment") != -1
-                    regexVar = /\@var[\s]+([a-zA-Z_\\]+)/g
+                if null != matches
+                    value = matches[1]
+                    elements = @parseStackClass(value)
+                    elements.push("") # Push one more element to get fully the last class
+
+                    newPosition =
+                        row : lineNumber
+                        column: bufferPosition.column
+
+                    # NOTE: bestMatch could now be null, but this line is still the closest match. The fact that we
+                    # don't recognize the class name is irrelevant.
+                    bestMatchRow = lineNumber
+                    bestMatch = @parseElements(editor, newPosition, elements)
+
+            chain = editor.scopeDescriptorForBufferPosition([lineNumber, line.length]).getScopeChain()
+
+            # Annotations in comments can optionally override the variable type.
+            if chain.indexOf("comment") != -1
+                # Check if the line before contains a /** @var FooType */, which overrides the type of the variable
+                # immediately below it. This will not evaluate to /** @var FooType $someVar */ (see below for that).
+                if bestMatchRow and lineNumber == (bestMatchRow - 1)
+                    regexVar = /\@var[\s]+([a-zA-Z_\\]+)(?![\w]+\$)/g
                     matches = regexVar.exec(line)
 
-                    if null == matches
-                        return className
+                    if null != matches
+                        return @findUseForClass(editor, matches[1])
 
+                # Check if there is an PHPStorm-style type inline docblock present /** @var FooType $someVar */.
+                regexVarWithVarName = new RegExp("\\@var[\\s]+([a-zA-Z_\\\\]+)[\\s]+\\#{element}", "g")
+                matches = regexVarWithVarName.exec(line)
+
+                if null != matches
                     return @findUseForClass(editor, matches[1])
 
-            # /* @var $var Class (like intelliJ) */
-            if chain.indexOf("comment") != -1
+                # Check if there is an IntelliJ-style type inline docblock present /** @var $someVar FooType */.
                 regexVarWithVarName = new RegExp("\\@var[\\s]+\\#{element}[\\s]+([a-zA-Z_\\\\]+)", "g")
                 matches = regexVarWithVarName.exec(line)
 
                 if null != matches
                     return @findUseForClass(editor, matches[1])
 
-            if chain.indexOf("function") != -1
+            # We've reached the function definition, check for type hints and/or the docblock.
+            if not bestMatch and chain.indexOf("function") != -1
                 regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
                 matches = regexFunction.exec(line)
 
@@ -477,9 +505,9 @@ module.exports =
 
                 break
 
-            idx++
+            --lineNumber
 
-        return null
+        return bestMatch
 
     ###*
      * Retrieves contextual information about the property at the specified location in the editor.
@@ -571,13 +599,18 @@ module.exports =
         for element in elements
             # $this keyword
             if loop_index == 0
-                if element == '$this' or element == 'static' or element == 'self'
-                    className = @getCurrentClass(editor, bufferPosition)
+                if element[0] == '$'
+                    className = @getVariableType(editor, bufferPosition, element)
+
+                    # NOTE: The type of $this can also be overridden locally by a docblock.
+                    if element == '$this' and not className
+                        className = @getCurrentClass(editor, bufferPosition)
+
                     loop_index++
                     continue
 
-                else if element[0] == '$'
-                    className = @getVariableType(editor, bufferPosition, element)
+                else if element == 'static' or element == 'self'
+                    className = @getCurrentClass(editor, bufferPosition)
                     loop_index++
                     continue
 
