@@ -106,10 +106,14 @@ class ClassProvider extends AbstractProvider
         if @$(selector).hasClass('builtin') or @$(selector).children('.builtin').length > 0
             return null
 
-        if @$(selector).parent().hasClass('function argument') or
-           @$(selector).prev().hasClass('namespace') && @$(selector).hasClass('class') or
-           @$(selector).next().hasClass('class') && @$(selector).hasClass('namespace')
+        if @$(selector).parent().hasClass('function argument')
             return @$(selector).parent().children('.namespace, .class:not(.operator):not(.constant)')
+
+        if @$(selector).prev().hasClass('namespace') && @$(selector).hasClass('class')
+            return @$([@$(selector).prev()[0], selector])
+
+        if @$(selector).next().hasClass('class') && @$(selector).hasClass('namespace')
+           return @$([selector, @$(selector).next()[0]])
 
         if @$(selector).prev().hasClass('namespace') || @$(selector).next().hasClass('inherited-class')
             return @$(selector).parent().children('.namespace, .inherited-class')
