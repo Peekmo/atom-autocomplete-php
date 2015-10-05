@@ -2,6 +2,11 @@
 
 namespace Peekmo\AtomAutocompletePhp;
 
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionProperty;
+use ReflectionFunctionAbstract;
+
 abstract class Tools
 {
     /**
@@ -51,7 +56,7 @@ abstract class Tools
      *
      * @return array
      */
-    protected function getMethodArguments(\ReflectionFunctionAbstract $function)
+    protected function getMethodArguments(ReflectionFunctionAbstract $function)
     {
         $args = $function->getParameters();
 
@@ -111,9 +116,39 @@ abstract class Tools
         }
 
         // No immediate docblock available or we need to scan the parent docblock?
-        if ((!$docComment || $docblockInheritsLongDescription) && $function instanceof \ReflectionMethod) {
-            $classIterator = new \ReflectionClass($function->class);
+        if ((!$docComment || $docblockInheritsLongDescription) && $function instanceof ReflectionMethod) {
+            $classIterator = new ReflectionClass($function->class);
             $classIterator = $classIterator->getParentClass();
+
+            // Check if this method is implementing an abstract method from a trait, in which case that docblock should
+            // be used.
+            if (!$docComment) {
+                foreach ($function->getDeclaringClass()->getTraits() as $trait) {
+                    if ($trait->hasMethod($function->getName())) {
+                        $traitMethod = $trait->getMethod($function->getName());
+
+                        if ($traitMethod->isAbstract() && $traitMethod->getDocComment()) {
+                            return $this->getMethodArguments($traitMethod);
+                        }
+                    }
+                }
+            }
+
+            // Check if this method is implementing an interface method, in which case that docblock should be used.
+            // NOTE: If the parent class has an interface, getMethods() on the parent class will include the interface
+            // methods, along with their docblocks, even if the parent doesn't actually implement the method. So we only
+            // have to check the interfaces of the declaring class.
+            if (!$docComment) {
+                foreach ($function->getDeclaringClass()->getInterfaces() as $interface) {
+                    if ($interface->hasMethod($function->getName())) {
+                        $interfaceMethod = $interface->getMethod($function->getName());
+
+                        if ($interfaceMethod->getDocComment()) {
+                            return $this->getMethodArguments($interfaceMethod);
+                        }
+                    }
+                }
+            }
 
             // Walk up base classes to see if any of them have additional info about this method.
             while ($classIterator) {
@@ -126,7 +161,6 @@ abstract class Tools
                         if (!$docComment) {
                             return $baseClassMethodArgs; // Fall back to parent docblock.
                         } elseif ($docblockInheritsLongDescription) {
-
                             $docParseResult['descriptions']['long'] = str_replace(
                                 DocParser::INHERITDOC,
                                 $baseClassMethodArgs['descriptions']['long'],
@@ -159,7 +193,7 @@ abstract class Tools
       *
       * @return array
       */
-    protected function getPropertyArguments(\ReflectionProperty $property)
+    protected function getPropertyArguments(ReflectionProperty $property)
     {
         $parser = new DocParser();
         $docComment = $property->getDocComment() ?: '';
@@ -171,7 +205,7 @@ abstract class Tools
         ), false);
 
         if (!$docComment) {
-            $classIterator = new \ReflectionClass($property->class);
+            $classIterator = new ReflectionClass($property->class);
             $classIterator = $classIterator->getParentClass();
 
             // Walk up base classes to see if any of them have additional info about this property.
@@ -198,6 +232,139 @@ abstract class Tools
     }
 
     /**
+     * Retrieves the class that contains the specified reflection member.
+     *
+     * @param ReflectionFunctionAbstract|ReflectionProperty $reflectionMember
+     *
+     * @return array
+     */
+    protected function getDeclaringClass($reflectionMember)
+    {
+        // This will point to the class that contains the member, which will resolve to the parent class if it's
+        // inherited (and not overridden).
+        $declaringClass = $reflectionMember->getDeclaringClass();
+
+        return array(
+            'name'     => $declaringClass->name,
+            'filename' => $declaringClass->getFilename()
+        );
+    }
+
+    /**
+     * Retrieves the structure (class, trait, interface, ...) that contains the specified reflection member.
+     *
+     * @param ReflectionFunctionAbstract|ReflectionProperty $reflectionMember
+     *
+     * @return array
+     */
+    protected function getDeclaringStructure($reflectionMember)
+    {
+        // This will point to the class that contains the member, which will resolve to the parent class if it's
+        // inherited (and not overridden).
+        $declaringStructure = $reflectionMember->getDeclaringClass();
+        $isMethod = ($reflectionMember instanceof ReflectionFunctionAbstract);
+
+        // Members from traits are seen as part of the structure using the trait, but we still want the actual trait
+        // name.
+        foreach ($declaringStructure->getTraits() as $trait) {
+            if (($isMethod && $trait->hasMethod($reflectionMember->name)) ||
+                (!$isMethod && $trait->hasProperty($reflectionMember->name))) {
+                $declaringStructure = $trait;
+                break;
+            }
+        }
+
+        return array(
+            'name'     => $declaringStructure->name,
+            'filename' => $declaringStructure->getFilename()
+        );
+    }
+
+    /**
+     * Retrieves information about what the specified member is overriding, if anything.
+     *
+     * @param ReflectionFunctionAbstract|ReflectionProperty $reflectionMember
+     *
+     * @return array|null
+     */
+    protected function getOverrideInfo($reflectionMember)
+    {
+        $overriddenMember = null;
+        $methodName = $reflectionMember->getName();
+
+        $baseClass = $reflectionMember->getDeclaringClass();
+
+        while ($baseClass = $baseClass->getParentClass()) {
+            if ($baseClass->hasMethod($methodName)) {
+                $overriddenMember = $baseClass->getMethod($methodName);
+                break;
+            }
+        }
+
+        if (!$overriddenMember) {
+            // This method is not an override of a parent method, see if it is an 'override' of an abstract method from
+            // a trait the class it is in is using.
+            if ($reflectionMember instanceof ReflectionFunctionAbstract) {
+                foreach ($reflectionMember->getDeclaringClass()->getTraits() as $trait) {
+                    if ($trait->hasMethod($methodName)) {
+                        $traitMethod = $trait->getMethod($methodName);
+
+                        if ($traitMethod->isAbstract()) {
+                            $overriddenMember = $traitMethod;
+                        }
+                    }
+                }
+            }
+
+            if (!$overriddenMember) {
+                return null;
+            }
+        }
+
+        $startLine = null;
+
+        if ($overriddenMember instanceof ReflectionFunctionAbstract) {
+            $startLine = $overriddenMember->getStartLine();
+        }
+
+        return array(
+            'declaringClass'     => $this->getDeclaringClass($overriddenMember),
+            'declaringStructure' => $this->getDeclaringStructure($overriddenMember),
+            'startLine'          => $startLine
+        );
+    }
+
+    /**
+     * Retrieves information about what interface the specified member method is implementind, if any.
+     *
+     * @param ReflectionFunctionAbstract $reflectionMember
+     *
+     * @return array|null
+     */
+    protected function getImplementationInfo(ReflectionFunctionAbstract $reflectionMember)
+    {
+        $implementedMember = null;
+        $methodName = $reflectionMember->getName();
+
+        foreach ($reflectionMember->getDeclaringClass()->getInterfaces() as $interface) {
+            if ($interface->hasMethod($methodName)) {
+                $implementedMember = $interface->getMethod($methodName);
+                break;
+            }
+        }
+
+        if (!$implementedMember) {
+            return null;
+        }
+
+        return array(
+            'declaringClass'     => $this->getDeclaringClass($implementedMember),
+            'declaringStructure' => $this->getDeclaringStructure($implementedMember),
+            'startLine'          => $implementedMember->getStartLine()
+        );
+    }
+
+    /**
      * Returns methods and properties of the given className
      *
      * @param string   $className      Full namespace of the parsed class.
@@ -215,74 +382,36 @@ abstract class Tools
         );
 
         try {
-            $reflection = new \ReflectionClass($className);
+            $reflection = new ReflectionClass($className);
         } catch (\Exception $e) {
             return $data;
         }
 
-        $methods    = $methodFilter ? $reflection->getMethods($methodFilter) : $reflection->getMethods();
-        $constants  = $reflection->getConstants();
-        $attributes = $propertyFilter ? $reflection->getProperties($propertyFilter) : $reflection->getProperties();
-        $traits     = $reflection->getTraits();
-        $interfaces = $reflection->getInterfaces();
-        foreach ($traits as $trait) {
-            $methods = array_merge($methods, $methodFilter ? $trait->getMethods($methodFilter) : $trait->getMethods());
-        }
+        // Retrieve information about methods.
+        $methods = $methodFilter ? $reflection->getMethods($methodFilter) : $reflection->getMethods();
 
-        // Methods
         foreach ($methods as $method) {
             $data['names'][] = $method->getName();
 
-            $methodName = $method->getName();
-
-            // Check if this method overrides a base class method.
-            $overrideData = null;
-
-            $baseClass = $reflection;
-
-            if ($method->getDeclaringClass() == $reflection) {
-                while ($baseClass = $baseClass->getParentClass()) {
-                    if ($baseClass->hasMethod($methodName)) {
-                        $overrideData = array(
-                            'baseClass'           => $baseClass->getName(),
-                            'baseMethodStartLine' => $baseClass->getMethod($methodName)->getStartLine()
-                        );
-
-                        break;
-                    }
-                }
-            }
-
-            // Check if this method implements an interface method.
-            $implementationData = null;
-
-            foreach ($interfaces as $interface) {
-                if ($interface->hasMethod($methodName)) {
-                    $implementationData = array(
-                        'interfaceName'            => $interface->getName(),
-                        'interfaceMethodStartLine' => $interface->getMethod($methodName)->getStartLine()
-                    );
-
-                    break;
-                }
-            }
-
-            $data['values'][$methodName] = array(
+            $data['values'][$method->getName()] = array(
                 'isMethod'           => true,
                 'isProperty'         => false,
                 'isPublic'           => $method->isPublic(),
                 'isProtected'        => $method->isProtected(),
 
-                'override'           => $overrideData,
-                'implementation'     => $implementationData,
+                'override'           => $this->getOverrideInfo($method),
+                'implementation'     => $this->getImplementationInfo($method),
 
                 'args'               => $this->getMethodArguments($method),
-                'declaringClass'     => $method->getDeclaringClass()->name,
+                'declaringClass'     => $this->getDeclaringClass($method),
+                'declaringStructure' => $this->getDeclaringStructure($method),
                 'startLine'          => $method->getStartLine()
             );
         }
 
-        // Properties
+        // Retrieves information about properties/attributes.
+        $attributes = $propertyFilter ? $reflection->getProperties($propertyFilter) : $reflection->getProperties();
+
         foreach ($attributes as $attribute) {
             if (!in_array($attribute->getName(), $data['names'])) {
                 $data['names'][] = $attribute->getName();
@@ -290,12 +419,16 @@ abstract class Tools
             }
 
             $attributesValues = array(
-                'isMethod'       => false,
-                'isProperty'     => true,
-                'isPublic'       => $attribute->isPublic(),
-                'isProtected'    => $attribute->isProtected(),
-                'declaringClass' => $attribute->class,
-                'args'           => $this->getPropertyArguments($attribute)
+                'isMethod'           => false,
+                'isProperty'         => true,
+                'isPublic'           => $attribute->isPublic(),
+                'isProtected'        => $attribute->isProtected(),
+
+                'override'           => $this->getOverrideInfo($attribute),
+
+                'args'               => $this->getPropertyArguments($attribute),
+                'declaringClass'     => $this->getDeclaringClass($attribute),
+                'declaringStructure' => $this->getDeclaringStructure($attribute)
             );
 
             if (is_array($data['values'][$attribute->getName()])) {
@@ -308,7 +441,9 @@ abstract class Tools
             $data['values'][$attribute->getName()] = $attributesValues;
         }
 
-        // Constants
+        // Retrieve information about constants.
+        $constants  = $reflection->getConstants();
+
         foreach ($constants as $constant => $value) {
             if (!in_array($constant, $data['names'])) {
                 $data['names'][] = $constant;
@@ -324,7 +459,10 @@ abstract class Tools
                 'isProperty'     => false,
                 'isPublic'       => true,
                 'isProtected'    => false,
-                'declaringClass' => $reflection->name,
+                'declaringClass' => array(
+                    'name'     => $reflection->name,
+                    'filename' => $reflection->getFileName()
+                ),
 
                 // TODO: It is not possible to directly fetch the docblock of the constant through reflection, manual
                 // file parsing is required.

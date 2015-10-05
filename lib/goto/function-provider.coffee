@@ -39,12 +39,7 @@ class FunctionProvider extends AbstractProvider
         if not value
             return
 
-        parentClass = value.declaringClass
-
-        proxy = require '../services/php-proxy.coffee'
-        classMap = proxy.autoloadClassMap()
-
-        atom.workspace.open(classMap[parentClass], {
+        atom.workspace.open(value.declaringStructure.filename, {
             initialLine    : (value.startLine - 1),
             searchAllPanes : true
         })
@@ -112,11 +107,13 @@ class FunctionProvider extends AbstractProvider
 
                             tooltipText = ''
 
+                            # NOTE: We explicitly show the declaring class here, not the structure (which could be a
+                            # trait).
                             if value.override
-                                tooltipText += 'Overrides method from ' + value.override.baseClass
+                                tooltipText += 'Overrides method from ' + value.override.declaringClass.name
 
                             else
-                                tooltipText += 'Implements method from ' + value.implementation.interfaceName
+                                tooltipText += 'Implements method for ' + value.implementation.declaringClass.name
 
                             atom.tooltips.add(event.target, {
                                 title: '<div style="text-align: left;">' + tooltipText + '</div>'
@@ -127,21 +124,10 @@ class FunctionProvider extends AbstractProvider
                             })
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'click', selector, (event) =>
-                            parentClass = value.declaringClass
+                            referencedObject = if value.override then value.override else value.implementation
 
-                            proxy = require '../services/php-proxy.coffee'
-                            classMap = proxy.autoloadClassMap()
-
-                            if value.override
-                                referencedClass = value.override.baseClass
-                                referencedLine = value.override.baseMethodStartLine
-
-                            else
-                                referencedClass = value.implementation.interfaceName
-                                referencedLine = value.implementation.interfaceMethodStartLine
-
-                            atom.workspace.open(classMap[referencedClass], {
-                                initialLine    : referencedLine - 1,
+                            atom.workspace.open(referencedObject.declaringStructure.filename, {
+                                initialLine    : referencedObject.startLine - 1,
                                 searchAllPanes : true
                             })
 
