@@ -393,17 +393,22 @@ abstract class Tools
         foreach ($methods as $method) {
             $data['names'][] = $method->getName();
 
+            $declaringClass = $this->getDeclaringClass($method);
+
             $data['values'][$method->getName()] = array(
                 'isMethod'           => true,
                 'isProperty'         => false,
                 'isPublic'           => $method->isPublic(),
                 'isProtected'        => $method->isProtected(),
+                'isPrivate'          => $method->isPrivate(),
+                'isStatic'           => $method->isStatic(),
+                'isDirectMember'     => ($declaringClass === $reflection->getName()),
 
                 'override'           => $this->getOverrideInfo($method),
                 'implementation'     => $this->getImplementationInfo($method),
 
                 'args'               => $this->getMethodArguments($method),
-                'declaringClass'     => $this->getDeclaringClass($method),
+                'declaringClass'     => $declaringClass,
                 'declaringStructure' => $this->getDeclaringStructure($method),
                 'startLine'          => $method->getStartLine()
             );
@@ -418,16 +423,21 @@ abstract class Tools
                 $data['values'][$attribute->getName()] = null;
             }
 
+            $declaringClass = $this->getDeclaringClass($attribute);
+
             $attributesValues = array(
                 'isMethod'           => false,
                 'isProperty'         => true,
                 'isPublic'           => $attribute->isPublic(),
                 'isProtected'        => $attribute->isProtected(),
+                'isPrivate'          => $attribute->isPrivate(),
+                'isStatic'           => $attribute->isStatic(),
+                'isDirectMember'     => ($declaringClass === $reflection->getName()),
 
                 'override'           => $this->getOverrideInfo($attribute),
 
                 'args'               => $this->getPropertyArguments($attribute),
-                'declaringClass'     => $this->getDeclaringClass($attribute),
+                'declaringClass'     => $declaringClass,
                 'declaringStructure' => $this->getDeclaringStructure($attribute)
             );
 
@@ -459,6 +469,8 @@ abstract class Tools
                 'isProperty'     => false,
                 'isPublic'       => true,
                 'isProtected'    => false,
+                'isPrivate'      => false,
+                'isStatic'       => true,
                 'declaringClass' => array(
                     'name'     => $reflection->name,
                     'filename' => $reflection->getFileName()
