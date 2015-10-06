@@ -26,7 +26,6 @@ require_once(__DIR__ . '/providers/ClassProvider.php');
 require_once(__DIR__ . '/providers/FunctionsProvider.php');
 require_once(__DIR__ . '/providers/ClassMapRefresh.php');
 require_once(__DIR__ . '/providers/AutoloadClassMap.php');
-require_once(__DIR__ . '/providers/ParentProvider.php');
 require_once(__DIR__ . '/providers/DocParamProvider.php');
 
 $commands = array(
@@ -37,7 +36,6 @@ $commands = array(
     '--refresh'          => 'Peekmo\AtomAutocompletePhp\ClassMapRefresh',
     '--autocomplete'     => 'Peekmo\AtomAutocompletePhp\AutocompleteProvider',
     '--autoloadClassMap' => 'Peekmo\AtomAutocompletePhp\AutoloadClassMap',
-    '--parent'           => 'Peekmo\AtomAutocompletePhp\ParentProvider',
     '--doc-params'       => 'Peekmo\AtomAutocompletePhp\DocParamProvider'
 );
 
