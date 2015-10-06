@@ -365,6 +365,26 @@ abstract class Tools
     }
 
     /**
+     * Retrieves a list of parent classes of the specified class, ordered from the closest to the furthest ancestor.
+     *
+     * @param ReflectionClass $class
+     *
+     * @return string[]
+     */
+    protected function getParentClasses(ReflectionClass $class)
+    {
+        $parents = [];
+
+        $parentClass = $class;
+
+        while ($parentClass = $parentClass->getParentClass()) {
+            $parents[] = $parentClass->getName();
+        }
+
+        return $parents;
+    }
+
+    /**
      * Returns methods and properties of the given className
      *
      * @param string   $className      Full namespace of the parsed class.
@@ -376,9 +396,9 @@ abstract class Tools
     protected function getClassMetadata($className, $methodFilter = null, $propertyFilter = null)
     {
         $data = array(
-            'class'  => $className,
-            'names'  => array(),
-            'values' => array()
+            'class'   => $className,
+            'names'   => array(),
+            'values'  => array()
         );
 
         try {
@@ -386,6 +406,8 @@ abstract class Tools
         } catch (\Exception $e) {
             return $data;
         }
+
+        $data['parents'] = $this->getParentClasses($reflection);
 
         // Retrieve information about methods.
         $methods = $methodFilter ? $reflection->getMethods($methodFilter) : $reflection->getMethods();

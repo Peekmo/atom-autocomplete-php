@@ -35,31 +35,23 @@ class MemberProvider extends AbstractProvider
         # (the latter which could be empty).
         return unless elements.length > 2
 
-        owner = elements[elements.length - 3].trim()
         currentClass = parser.getCurrentClass(editor, bufferPosition)
+        currentClassParents = []
+
+        if currentClass
+            classInfo = proxy.methods(currentClass)
+            currentClassParents = if classInfo?.parents then classInfo?.parents else []
 
         mustBeStatic = false
-        isStaticClassName = false
 
-        if owner != 'parent' and elements[elements.length - 2] == '::'
+        if elements[elements.length - 2] == '::' and elements[elements.length - 3].trim() != 'parent'
             mustBeStatic = true
 
-            if owner != 'self' and owner != 'static'
-                isStaticClassName = true
-
-        suggestions = @findSuggestionsForPrefix(className, elements[elements.length-1].trim(), (element, word) =>
+        suggestions = @findSuggestionsForPrefix(className, elements[elements.length-1].trim(), (element) =>
             # See also ticket #127.
-            return false if owner == 'parent' and element.isPrivate
             return false if mustBeStatic and not element.isStatic
-
-            # When doing static class access (e.g. FooClass::staticProperty), don't list private and protected members,
-            # unless we're in the class itself.
-            # TODO: Additionally, if the currentClass is a child of the requested class, it may still access protected
-            # members, which are currently also filtered out.
-            return false if isStaticClassName and (element.isProtected or element.isPrivate) and element.declaringClass.name != currentClass
-
-            # Private members are only accessible in the class they are defined.
-            return false if element.isPrivate and not element.isDirectMember
+            return false if element.isPrivate and element.declaringClass.name != currentClass
+            return false if element.isProtected and element.declaringClass.name != currentClass and element.declaringClass.name not in currentClassParents
 
             # Constants are only available when statically accessed.
             return false if not element.isMethod and not element.isProperty and not mustBeStatic
@@ -97,7 +89,7 @@ class MemberProvider extends AbstractProvider
                 element = [element]
 
             for ele in element
-                if filterCallback and not filterCallback(ele, word)
+                if filterCallback and not filterCallback(ele)
                     continue
 
                 # Ensure we don't get very long return types by just showing the last part.
