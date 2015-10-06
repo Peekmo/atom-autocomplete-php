@@ -48,7 +48,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
             if ($returnValue == '$this' || $returnValue == 'static') {
                 $relevantClass = $class;
             } elseif ($returnValue === 'self') {
-                $relevantClass = $memberInfo['declaringClass'];
+                $relevantClass = $memberInfo['declaringClass']['name'];
             } elseif (ucfirst($returnValue) === $returnValue) {
                 // At this point, this could either be a class name relative to the current namespace or a full class
                 // name without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which
@@ -80,15 +80,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
             }
         }
 
-        if ($relevantClass) {
-            // Minor optimization to avoid fetching the same data twice.
-            return ($relevantClass === $class) ? $data : $this->getClassMetadata($relevantClass);
-        }
-
-        return array(
-            'class'  => null,
-            'names'  => array(),
-            'values' => array()
-        );
+        // Minor optimization to avoid fetching the same data twice.
+        return ($relevantClass === $class) ? $data : $this->getClassMetadata($relevantClass);
     }
 }

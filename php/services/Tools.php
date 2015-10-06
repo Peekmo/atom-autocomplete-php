@@ -395,6 +395,7 @@ abstract class Tools
     {
         $data = array(
             'class'   => $className,
+            'parents' => array(),
             'names'   => array(),
             'values'  => array()
         );
