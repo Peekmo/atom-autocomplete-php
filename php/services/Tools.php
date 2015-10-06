@@ -387,13 +387,11 @@ abstract class Tools
     /**
      * Returns methods and properties of the given className
      *
-     * @param string   $className      Full namespace of the parsed class.
-     * @param int|null $methodFilter   The filter to apply when fetching methods.
-     * @param int|null $propertyFilter The filter to apply when fetching properties.
+     * @param string $className Full namespace of the parsed class.
      *
      * @return array
      */
-    protected function getClassMetadata($className, $methodFilter = null, $propertyFilter = null)
+    protected function getClassMetadata($className)
     {
         $data = array(
             'class'   => $className,
@@ -410,9 +408,7 @@ abstract class Tools
         $data['parents'] = $this->getParentClasses($reflection);
 
         // Retrieve information about methods.
-        $methods = $methodFilter ? $reflection->getMethods($methodFilter) : $reflection->getMethods();
-
-        foreach ($methods as $method) {
+        foreach ($reflection->getMethods() as $method) {
             $data['names'][] = $method->getName();
 
             $declaringClass = $this->getDeclaringClass($method);
@@ -424,7 +420,6 @@ abstract class Tools
                 'isProtected'        => $method->isProtected(),
                 'isPrivate'          => $method->isPrivate(),
                 'isStatic'           => $method->isStatic(),
-                'isDirectMember'     => ($declaringClass['name'] === $reflection->getName()),
 
                 'override'           => $this->getOverrideInfo($method),
                 'implementation'     => $this->getImplementationInfo($method),
@@ -437,9 +432,7 @@ abstract class Tools
         }
 
         // Retrieves information about properties/attributes.
-        $attributes = $propertyFilter ? $reflection->getProperties($propertyFilter) : $reflection->getProperties();
-
-        foreach ($attributes as $attribute) {
+        foreach ($reflection->getProperties() as $attribute) {
             if (!in_array($attribute->getName(), $data['names'])) {
                 $data['names'][] = $attribute->getName();
                 $data['values'][$attribute->getName()] = null;
@@ -454,7 +447,6 @@ abstract class Tools
                 'isProtected'        => $attribute->isProtected(),
                 'isPrivate'          => $attribute->isPrivate(),
                 'isStatic'           => $attribute->isStatic(),
-                'isDirectMember'     => ($declaringClass['name'] === $reflection->getName()),
 
                 'override'           => $this->getOverrideInfo($attribute),
 

@@ -5,10 +5,8 @@ md5 = require 'md5'
 fs = require 'fs'
 
 data =
-    statics: [],
     methods: [],
     autocomplete: [],
-    parent: [],
     composer: null
 
 currentProcesses = []
@@ -117,10 +115,8 @@ module.exports =
     clearCache: () ->
         data =
             error: false,
-            statics: [],
             autocomplete: [],
             methods: [],
-            parent: [],
             composer: null
 
     ###*
