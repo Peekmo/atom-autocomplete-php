@@ -402,7 +402,7 @@ abstract class Tools
                 'isProtected'        => $method->isProtected(),
                 'isPrivate'          => $method->isPrivate(),
                 'isStatic'           => $method->isStatic(),
-                'isDirectMember'     => ($declaringClass === $reflection->getName()),
+                'isDirectMember'     => ($declaringClass['name'] === $reflection->getName()),
 
                 'override'           => $this->getOverrideInfo($method),
                 'implementation'     => $this->getImplementationInfo($method),
@@ -432,7 +432,7 @@ abstract class Tools
                 'isProtected'        => $attribute->isProtected(),
                 'isPrivate'          => $attribute->isPrivate(),
                 'isStatic'           => $attribute->isStatic(),
-                'isDirectMember'     => ($declaringClass === $reflection->getName()),
+                'isDirectMember'     => ($declaringClass['name'] === $reflection->getName()),
 
                 'override'           => $this->getOverrideInfo($attribute),
 

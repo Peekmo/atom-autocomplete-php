@@ -36,37 +36,49 @@ class MemberProvider extends AbstractProvider
         return unless elements.length > 2
 
         owner = elements[elements.length - 3].trim()
+        currentClass = parser.getCurrentClass(editor, bufferPosition)
 
-        conditions =
-            isStatic    : false
-            noProtected : false
-            noNonStatic : false
+        mustBeStatic = false
+        isStaticClassName = false
 
-        if elements[elements.length - 2] == '::'
-            if owner == 'parent'
-                conditions.noPrivate = true
+        if owner != 'parent' and elements[elements.length - 2] == '::'
+            mustBeStatic = true
 
-            else if owner == 'self' or owner == 'static'
-                conditions.isStatic = true
+            if owner != 'self' and owner != 'static'
+                isStaticClassName = true
 
-            else # Static class name.
-                conditions.noPrivate = true
-                conditions.noProtected = true
-                conditions.isStatic = true
+        suggestions = @findSuggestionsForPrefix(className, elements[elements.length-1].trim(), (element, word) =>
+            # See also ticket #127.
+            return false if owner == 'parent' and element.isPrivate
+            return false if mustBeStatic and not element.isStatic
 
-        suggestions = @findSuggestionsForPrefix(className, elements[elements.length-1].trim(), conditions)
+            # When doing static class access (e.g. FooClass::staticProperty), don't list private and protected members,
+            # unless we're in the class itself.
+            # TODO: Additionally, if the currentClass is a child of the requested class, it may still access protected
+            # members, which are currently also filtered out.
+            return false if isStaticClassName and (element.isProtected or element.isPrivate) and element.declaringClass.name != currentClass
+
+            # Private members are only accessible in the class they are defined.
+            return false if element.isPrivate and not element.isDirectMember
+
+            # Constants are only available when statically accessed.
+            return false if not element.isMethod and not element.isProperty and not mustBeStatic
+
+            return true
+        )
 
         return unless suggestions.length
         return suggestions
 
     ###*
      * Returns suggestions available matching the given prefix
-     * @param {string} className The name of the class to show members of.
-     * @param {string} prefix    Prefix to match (may be left empty to list all members).
-     * @param {object} options   Additional conditions to apply to the listed members.
+     * @param {string}   className      The name of the class to show members of.
+     * @param {string}   prefix         Prefix to match (may be left empty to list all members).
+     * @param {callback} filterCallback A callback that should return true if the item should be added to the
+     *                                  suggestions list.
      * @return array
     ###
-    findSuggestionsForPrefix: (className, prefix, conditions) ->
+    findSuggestionsForPrefix: (className, prefix, filterCallback) ->
         methods = proxy.methods(className)
 
         if not methods?.names
@@ -85,10 +97,7 @@ class MemberProvider extends AbstractProvider
                 element = [element]
 
             for ele in element
-                if (conditions.isStatic and not ele.isStatic) or
-                   (conditions.noPrivate and ele.isPrivate) or
-                   (conditions.noProtected and ele.isProtected) or
-                   (ele.isPrivate and not ele.isDirectMember)
+                if filterCallback and not filterCallback(ele, word)
                     continue
 
                 # Ensure we don't get very long return types by just showing the last part.
@@ -103,13 +112,9 @@ class MemberProvider extends AbstractProvider
                     type = 'property'
                     snippet = null
 
-                else if conditions.isStatic
-                    # Constants are only available when statically accessed.
+                else
                     type = 'constant'
                     snippet = null
-
-                else
-                    continue
 
                 suggestions.push
                     text        : word,
