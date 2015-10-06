@@ -1,7 +1,7 @@
 {
   "name": "atom-autocomplete-php",
   "main": "./lib/peekmo-php-atom-autocomplete",
-  "version": "0.13.4",
+  "version": "0.13.5",
   "description": "Atom autocompletion plugin for PHP language",
   "repository": {
     "type": "git",
