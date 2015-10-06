@@ -412,8 +412,6 @@ abstract class Tools
         foreach ($reflection->getMethods() as $method) {
             $data['names'][] = $method->getName();
 
-            $declaringClass = $this->getDeclaringClass($method);
-
             $data['values'][$method->getName()] = array(
                 'isMethod'           => true,
                 'isProperty'         => false,
@@ -426,7 +424,7 @@ abstract class Tools
                 'implementation'     => $this->getImplementationInfo($method),
 
                 'args'               => $this->getMethodArguments($method),
-                'declaringClass'     => $declaringClass,
+                'declaringClass'     => $this->getDeclaringClass($method),
                 'declaringStructure' => $this->getDeclaringStructure($method),
                 'startLine'          => $method->getStartLine()
             );
@@ -439,8 +437,6 @@ abstract class Tools
                 $data['values'][$attribute->getName()] = null;
             }
 
-            $declaringClass = $this->getDeclaringClass($attribute);
-
             $attributesValues = array(
                 'isMethod'           => false,
                 'isProperty'         => true,
@@ -452,7 +448,7 @@ abstract class Tools
                 'override'           => $this->getOverrideInfo($attribute),
 
                 'args'               => $this->getPropertyArguments($attribute),
-                'declaringClass'     => $declaringClass,
+                'declaringClass'     => $this->getDeclaringClass($attribute),
                 'declaringStructure' => $this->getDeclaringStructure($attribute)
             );
 
