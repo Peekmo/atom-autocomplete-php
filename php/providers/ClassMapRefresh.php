@@ -60,9 +60,11 @@ class ClassMapRefresh extends Tools implements ProviderInterface
             foreach (get_declared_classes() as $class) {
                 $provider = new ClassProvider();
 
-                if ($value = $provider->execute(array($class))) {
-                    $index['mapping'][$class] = $value;
-                    $index['autocomplete'][] = $class;
+                if ($value = $provider->execute(array($class, true))) {
+                    if (!empty($value)) {
+                        $index['mapping'][$class] = $value;
+                        $index['autocomplete'][] = $class;
+                    }
                 }
             }
         }

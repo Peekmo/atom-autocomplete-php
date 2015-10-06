@@ -12,11 +12,16 @@ class ClassProvider extends Tools implements ProviderInterface
     public function execute($args = array())
     {
         $class = $args[0];
+        $internal = isset($args[1]) ? $args[1] : false;
 
         try {
             $reflection = new \ReflectionClass($class);
         } catch (\Exception $e) {
             return array('error' => $e->getMessage());
+        }
+
+        if ($internal && !$reflection->isInternal()) {
+            return array();
         }
 
         $ctor = $reflection->getConstructor();
