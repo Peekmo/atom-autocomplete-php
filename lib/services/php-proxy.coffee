@@ -149,18 +149,6 @@ module.exports =
         return data.functions
 
     ###*
-     * Autocomplete for statics methods of a class
-     * @param  {string} className Class complete name (with namespace)
-     * @return {array}
-    ###
-    statics: (className) ->
-        if not data.statics[className]?
-            res = execute(["--statics", "#{className}"], false)
-            data.statics[className] = res
-
-        return data.statics[className]
-
-    ###*
      * Autocomplete for methods & properties of a class
      * @param  {string} className Class complete name (with namespace)
      * @return {array}

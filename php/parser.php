@@ -19,7 +19,6 @@ require_once(__DIR__ . '/services/Tools.php');
 require_once(__DIR__ . '/services/DocParser.php');
 require_once(__DIR__ . '/services/FileParser.php');
 require_once(__DIR__ . '/providers/ProviderInterface.php');
-require_once(__DIR__ . '/providers/StaticsProvider.php');
 require_once(__DIR__ . '/providers/AutocompleteProvider.php');
 require_once(__DIR__ . '/providers/MethodsProvider.php');
 require_once(__DIR__ . '/providers/ClassesProvider.php');
@@ -33,7 +32,6 @@ require_once(__DIR__ . '/providers/DocParamProvider.php');
 $commands = array(
     '--classes'          => 'Peekmo\AtomAutocompletePhp\ClassesProvider',
     '--class'            => 'Peekmo\AtomAutocompletePhp\ClassProvider',
-    '--statics'          => 'Peekmo\AtomAutocompletePhp\StaticsProvider',
     '--methods'          => 'Peekmo\AtomAutocompletePhp\MethodsProvider',
     '--functions'        => 'Peekmo\AtomAutocompletePhp\FunctionsProvider',
     '--refresh'          => 'Peekmo\AtomAutocompletePhp\ClassMapRefresh',
