@@ -101,56 +101,81 @@ module.exports =
         return matches
 
     ###*
-     * Search the use for the given class name
-     * @param {TextEditor} editor    Atom text editor
-     * @param {string}     className Name of the class searched
+     * Retrieves the full class name. If the class name is a FQCN (Fully Qualified Class Name), it already is a full
+     * name and it is returned as is. Otherwise, the current namespace and use statements are scanned.
+     *
+     * @param {TextEditor}  editor    Text editor instance.
+     * @param {string|null} className Name of the class to retrieve the full name of. If null, the current class will
+     *                                be returned (if any).
+     *
      * @return string
     ###
-    findUseForClass: (editor, className) ->
-        # remove first "\" if any
-        if className.indexOf("\\") == 0
-            className = className.substr(1)
+    getFullClassName: (editor, className) ->
 
-        # fix #51
-        classNameElements = className.split("\\")
-        className = classNameElements.shift()
+
+
+        # TODO: Look at updating the PHP logic to this logic as well.
+        # TODO: getCurrentClass could probably be rewritten as @getFullClassName(editor, null) (test!).
+        # TODO: Test everything thoroughly, both relative imports as well as FQCN's with leading slash as well as relative absolute paths.
+        # TODO: Test autocompletion thoroughly as well, not just go to.
+
+
+        if className[0] == "\\"
+            return className.substr(1) # FQCN, not subject to any further context.
+
+        usePattern = /(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/
+        namespacePattern = /(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/
+        definitionPattern = /(?:abstract class|class|trait|interface)\s+(\w+)/
 
         text = editor.getText()
 
         lines = text.split('\n')
+        fullClass = className
+
         for line,i in lines
-            line = line.trim()
+            matches = line.match(namespacePattern)
 
-            # If we found class keyword, we are not in namespace space, so return the className
-            classIndex = line.indexOf('class ')
+            if matches
+                fullClass = matches[1] + '\\' + className
 
-            if classIndex != -1
-                chain = editor.scopeDescriptorForBufferPosition([i, classIndex]).getScopeChain()
+            else if className
+                matches = line.match(usePattern)
 
-                if chain.indexOf('.comment') == -1
-                    break
+                if matches
+                    classNameParts = className.split('\\')
+                    importNameParts = matches[1].split('\\')
 
-            # Use keyword
-            if line.indexOf('use') == 0
-                useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
+                    isAliasedImport = if matches[2] then true else false
 
-                matches = useRegex.exec(line)
-                # just one use
-                if matches[1]? and not matches[2]?
-                    splits = matches[1].split('\\')
-                    if splits[splits.length-1] == className
-                        className = matches[1]
+                    if className == matches[1]
+                        fullClass = className # Already a complete name
+
                         break
 
-                # use aliases
-                else if matches[1]? and matches[2]? and matches[2] == className
-                    className = matches[1]
-                    break
+                    else if (isAliasedImport and matches[2] == classNameParts[0]) or (!isAliasedImport and importNameParts[importNameParts.length - 1] == classNameParts[0])
+                        fullClass = matches[1]
 
-        if classNameElements.length > 0
-            return className + "\\" + classNameElements.join("\\")
-        else
-            return className
+                        classNameParts = classNameParts[1 .. classNameParts.length]
+
+                        if (classNameParts.length > 0)
+                            fullClass += '\\' . classNameElements.join('\\')
+
+                        break
+
+            matches = line.match(definitionPattern)
+
+            if matches
+                if not className
+                    fullClass += matches[1]
+
+                break
+
+        # In the class map, classes never have a leading slash. The leading slash only indicates that import rules of
+        # the file don't apply, but it's useless after that.
+        if fullClass and fullClass[0] == '\\'
+            fullClass = fullClass.substr(1)
+
+        return fullClass
 
     ###*
      * Add the use for the given class if not already added
@@ -428,7 +453,7 @@ module.exports =
 
                 if null != matchesNew
                     bestMatchRow = lineNumber
-                    bestMatch = @findUseForClass(editor, matchesNew[1])
+                    bestMatch = @getFullClassName(editor, matchesNew[1])
 
             if not bestMatch
                 # Check for catch(XXX $xxx)
@@ -436,7 +461,7 @@ module.exports =
 
                 if null != matchesCatch
                     bestMatchRow = lineNumber
-                    bestMatch = @findUseForClass(editor, matchesCatch[1])
+                    bestMatch = @getFullClassName(editor, matchesCatch[1])
 
             if not bestMatch
                 # Check for a variable assignment $x = ...
@@ -467,21 +492,21 @@ module.exports =
                     matches = regexVar.exec(line)
 
                     if null != matches
-                        return @findUseForClass(editor, matches[1])
+                        return @getFullClassName(editor, matches[1])
 
                 # Check if there is an PHPStorm-style type inline docblock present /** @var FooType $someVar */.
                 regexVarWithVarName = new RegExp("\\@var[\\s]+([a-zA-Z_\\\\]+)[\\s]+\\#{element}", "g")
                 matches = regexVarWithVarName.exec(line)
 
                 if null != matches
-                    return @findUseForClass(editor, matches[1])
+                    return @getFullClassName(editor, matches[1])
 
                 # Check if there is an IntelliJ-style type inline docblock present /** @var $someVar FooType */.
                 regexVarWithVarName = new RegExp("\\@var[\\s]+\\#{element}[\\s]+([a-zA-Z_\\\\]+)", "g")
                 matches = regexVarWithVarName.exec(line)
 
                 if null != matches
-                    return @findUseForClass(editor, matches[1])
+                    return @getFullClassName(editor, matches[1])
 
             # We've reached the function definition, check for type hints and/or the docblock.
             if not bestMatch and chain.indexOf("function") != -1
@@ -496,12 +521,12 @@ module.exports =
 
                 # If we have a type hint
                 if value != ""
-                    return @findUseForClass(editor, value)
+                    return @getFullClassName(editor, value)
 
                 # otherwise, we are parsing PHPdoc (@param)
                 params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
                 if params.params? and params.params[element]?
-                    return @findUseForClass(editor, params.params[element])
+                    return @getFullClassName(editor, params.params[element])
 
                 break
 
@@ -620,7 +645,7 @@ module.exports =
                     continue
 
                 else
-                    className = @findUseForClass(editor, element)
+                    className = @getFullClassName(editor, element)
                     loop_index++
                     continue
 
@@ -704,7 +729,7 @@ module.exports =
             if line.indexOf('extends ') != -1
                 words = line.split(' ')
                 extendsIndex = words.indexOf('extends')
-                return @findUseForClass(editor, words[extendsIndex + 1])
+                return @getFullClassName(editor, words[extendsIndex + 1])
 
     ###*
      * Finds the buffer position of the word given
