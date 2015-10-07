@@ -1,10 +1,7 @@
 ClassProvider = require "./providers/class-provider.coffee"
-StaticProvider = require "./providers/static-provider.coffee"
+MemberProvider = require "./providers/member-provider.coffee"
 FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
-AutocompleteProvider = require "./providers/autocomplete-provider.coffee"
-ParentProvider = require "./providers/parent-provider.coffee"
-SelfProvider = require "./providers/self-provider.coffee"
 
 GotoManager = require "./goto/goto-manager.coffee"
 TooltipManager = require "./tooltip/tooltip-manager.coffee"
@@ -80,10 +77,7 @@ module.exports =
             #return false
 
         @providers.push new ClassProvider()
-        @providers.push new AutocompleteProvider()
-        @providers.push new StaticProvider()
-        @providers.push new SelfProvider()
-        @providers.push new ParentProvider()
+        @providers.push new MemberProvider()
 
         #return true
 

@@ -5,10 +5,8 @@ md5 = require 'md5'
 fs = require 'fs'
 
 data =
-    statics: [],
     methods: [],
     autocomplete: [],
-    parent: [],
     composer: null
 
 currentProcesses = []
@@ -117,10 +115,8 @@ module.exports =
     clearCache: () ->
         data =
             error: false,
-            statics: [],
             autocomplete: [],
             methods: [],
-            parent: [],
             composer: null
 
     ###*
@@ -149,18 +145,6 @@ module.exports =
         return data.functions
 
     ###*
-     * Autocomplete for statics methods of a class
-     * @param  {string} className Class complete name (with namespace)
-     * @return {array}
-    ###
-    statics: (className) ->
-        if not data.statics[className]?
-            res = execute(["--statics", "#{className}"], false)
-            data.statics[className] = res
-
-        return data.statics[className]
-
-    ###*
      * Autocomplete for methods & properties of a class
      * @param  {string} className Class complete name (with namespace)
      * @return {array}
@@ -171,18 +155,6 @@ module.exports =
             data.methods[className] = res
 
         return data.methods[className]
-
-    ###*
-     * Autocomplete for methods & properties of the parent class
-     * @param  {string} className Class complete name (with namespace)
-     * @return {array}
-    ###
-    parent: (className) ->
-        if not data.parent[className]?
-            res = execute(["--parent", "#{className}"], false)
-            data.parent[className] = res
-
-        return data.parent[className]
 
     ###*
      * Autocomplete for methods & properties of a class
