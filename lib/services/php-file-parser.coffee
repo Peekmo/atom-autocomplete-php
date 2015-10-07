@@ -114,10 +114,17 @@ module.exports =
 
 
 
-        # TODO: Look at updating the PHP logic to this logic as well.
+        # TODO: It turns out that you can't correctly know if Foo\Bar is actually CurrentNamespace\Foo\Bar or \Foo\Bar.
+        # We'll have to try a proxy.methods(theClass) to see if we get results for the relative version (see
+        # AutocompleteProvider.php). We should do this in this method so the caller always gets the correct class.
+        # TODO: Is it necessary to port this to the PHP side?
+        #if fullClass and fullClass[0] == '\\'
+            #fullClass = fullClass.substr(1)
+
         # TODO: getCurrentClass could probably be rewritten as @getFullClassName(editor, null) (test!).
         # TODO: Test everything thoroughly, both relative imports as well as FQCN's with leading slash as well as relative absolute paths.
         # TODO: Test autocompletion thoroughly as well, not just go to.
+
 
 
         if className[0] == "\\"
@@ -158,7 +165,7 @@ module.exports =
                         classNameParts = classNameParts[1 .. classNameParts.length]
 
                         if (classNameParts.length > 0)
-                            fullClass += '\\' . classNameElements.join('\\')
+                            fullClass += '\\' + classNameParts.join('\\')
 
                         break
 
