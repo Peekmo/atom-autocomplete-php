@@ -15,6 +15,7 @@ class DocParser
     const DESCRIPTION = 'description';
     const INHERITDOC = '{@inheritDoc}';
 
+    const TYPE_SPLITTER = '|';
     const TAG_START_REGEX = '/^\s*\*\s*\@[^@]+$/';
 
     /**

@@ -49,31 +49,36 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 $relevantClass = $class;
             } elseif ($returnValue === 'self') {
                 $relevantClass = $memberInfo['declaringClass']['name'];
-            } elseif (ucfirst($returnValue) === $returnValue) {
-                // At this point, this could either be a class name relative to the current namespace or a full class
-                // name without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which
-                // case its absolute path is determined by the namespace and use statements of the file containing it.
-                $relevantClass = $returnValue;
+            } else {
+                $soleClassName = $this->getSoleClassName($returnValue);
 
-                if (!empty($returnValue) && $returnValue[0] !== "\\") {
-                    $parser = new FileParser($memberInfo['declaringStructure']['filename']);
+                if ($soleClassName) {
+                    // At this point, this could either be a class name relative to the current namespace or a full
+                    // class name without a leading slash. For example, Foo\Bar could also be relative (e.g.
+                    // My\Foo\Bar), in which case its absolute path is determined by the namespace and use statements
+                    // of the file containing it.
+                    $relevantClass = $soleClassName;
 
-                    $useStatementFound = false;
-                    $completedClassName = $parser->getCompleteNamespace($returnValue, $useStatementFound);
+                    if (!empty($soleClassName) && $soleClassName[0] !== "\\") {
+                        $parser = new FileParser($memberInfo['declaringStructure']['filename']);
 
-                    if ($useStatementFound) {
-                        $relevantClass = $completedClassName;
-                    } else {
-                        $isRelativeClass = true;
+                        $useStatementFound = false;
+                        $completedClassName = $parser->getCompleteNamespace($soleClassName, $useStatementFound);
 
-                        // Try instantiating the class, e.g. My\Foo\Bar.
-                        try {
-                            $reflection = new \ReflectionClass($completedClassName);
-
+                        if ($useStatementFound) {
                             $relevantClass = $completedClassName;
-                        } catch (\Exception $e) {
-                            // The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a
-                            // namespace set up in composer.json, without a leading slash.
+                        } else {
+                            $isRelativeClass = true;
+
+                            // Try instantiating the class, e.g. My\Foo\Bar.
+                            try {
+                                $reflection = new \ReflectionClass($completedClassName);
+
+                                $relevantClass = $completedClassName;
+                            } catch (\Exception $e) {
+                                // The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path,
+                                // using a namespace set up in composer.json, without a leading slash.
+                            }
                         }
                     }
                 }
@@ -82,5 +87,50 @@ class AutocompleteProvider extends Tools implements ProviderInterface
 
         // Minor optimization to avoid fetching the same data twice.
         return ($relevantClass === $class) ? $data : $this->getClassMetadata($relevantClass);
+    }
+
+    /**
+     * Retrieves the sole class name from the specified return value statement.
+     *
+     * @example "null" returns null.
+     * @example "FooClass" returns "FooClass".
+     * @example "FooClass|null" returns "FooClass".
+     * @example "FooClass|BarClass|null" returns null (there is no single type).
+     *
+     * @param string $returnValueStatement
+     *
+     * @return string|null
+     */
+    protected function getSoleClassName($returnValueStatement)
+    {
+        if ($returnValueStatement) {
+            $types = explode(DocParser::TYPE_SPLITTER, $returnValueStatement);
+
+            $classTypes = array();
+
+            foreach ($types as $type) {
+                if ($this->isClassType($type)) {
+                    $classTypes[] = $type;
+                }
+            }
+
+            if (count($classTypes) === 1) {
+                return $classTypes[0];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns a boolean indicating if the specified value is a class type or not.
+     *
+     * @param string $type
+     *
+     * @return bool
+     */
+    protected function isClassType($type)
+    {
+        return ucfirst($type) === $type;
     }
 }
