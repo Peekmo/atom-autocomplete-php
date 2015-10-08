@@ -44,39 +44,6 @@ class ClassProvider extends AbstractProvider
                 searchAllPanes: true
             })
 
-
-        # TODO: In what scenario do we want a list view if we can't find a class name? A class name must uniquely
-        # point to one class or there will be ambiguity errors.
-        ###
-        else
-            listViewArray = [];
-
-            for key,value of matches
-                if value.endsWith(term)
-                    if bestMatch == null # if we don't have a previous match
-                        bestMatch = classMap[value]
-
-                    else # if we have a previous match, the name is not unique, so don't use it
-                        useBestMatch = false
-
-                listViewArray.push({
-                    item: value,
-                    file: classMap[value]
-                })
-
-            # if we found a unique match
-            if bestMatch and useBestMatch
-                @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
-
-                atom.workspace.open(bestMatch, {
-                    searchAllPanes: true
-                })
-
-            else
-                @selectView.setItems(listViewArray)
-                @selectView.show()
-        ###
-
     ###*
      * Gets the correct selector when a class or namespace is clicked.
      *

@@ -1,7 +1,6 @@
 {TextEditor} = require 'atom'
 
 SubAtom = require 'sub-atom'
-GotoSelectView = require './goto-select-list-view.coffee'
 
 module.exports =
 
@@ -59,8 +58,6 @@ class AbstractProvider
                 for paneItem in pane.items
                     if paneItem instanceof TextEditor
                         @registerEvents paneItem
-
-        @selectView = new GotoSelectView
 
     ###*
      * Deactives the goto feature.
