@@ -134,6 +134,17 @@ module.exports =
         return readComposer()
 
     ###*
+     * Autocomplete for internal PHP constants
+     * @return {array}
+    ###
+    constants: () ->
+        if not data.constants?
+            res = execute(["--constants"], false)
+            data.constants = res
+
+        return data.constants
+
+    ###*
      * Autocomplete for internal PHP functions
      * @return {array}
     ###

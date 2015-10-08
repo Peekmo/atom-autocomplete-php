@@ -22,6 +22,7 @@ require_once(__DIR__ . '/providers/ProviderInterface.php');
 require_once(__DIR__ . '/providers/AutocompleteProvider.php');
 require_once(__DIR__ . '/providers/MethodsProvider.php');
 require_once(__DIR__ . '/providers/ClassProvider.php');
+require_once(__DIR__ . '/providers/ConstantsProvider.php');
 require_once(__DIR__ . '/providers/FunctionsProvider.php');
 require_once(__DIR__ . '/providers/ClassMapRefresh.php');
 require_once(__DIR__ . '/providers/AutoloadClassMap.php');
@@ -31,6 +32,7 @@ $commands = array(
     '--class'            => 'Peekmo\AtomAutocompletePhp\ClassProvider',
     '--methods'          => 'Peekmo\AtomAutocompletePhp\MethodsProvider',
     '--functions'        => 'Peekmo\AtomAutocompletePhp\FunctionsProvider',
+    '--constants'        => 'Peekmo\AtomAutocompletePhp\ConstantsProvider',
     '--refresh'          => 'Peekmo\AtomAutocompletePhp\ClassMapRefresh',
     '--autocomplete'     => 'Peekmo\AtomAutocompletePhp\AutocompleteProvider',
     '--autoloadClassMap' => 'Peekmo\AtomAutocompletePhp\AutoloadClassMap',
@@ -94,6 +96,7 @@ $args = array_slice($argv, 3);
 foreach ($args as &$arg) {
     $arg = str_replace('\\\\', '\\', $arg);
 }
+
 $data = $new->execute($args);
 
 if (false === $encoded = json_encode($data)) {
