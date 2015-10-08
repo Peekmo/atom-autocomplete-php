@@ -1,5 +1,4 @@
 fuzzaldrin = require 'fuzzaldrin'
-minimatch = require 'minimatch'
 
 proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
@@ -9,9 +8,9 @@ config = require "../config.coffee"
 
 module.exports =
 
-# Autocompletion for internal PHP functions.
-class FunctionProvider extends AbstractProvider
-    functions: []
+# Autocompletion for internal PHP constants.
+class ConstantProvider extends AbstractProvider
+    constants: []
 
     ###*
      * Get suggestions from the provider (@see provider-api)
@@ -19,13 +18,13 @@ class FunctionProvider extends AbstractProvider
     ###
     fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
         # not preceded by a > (arrow operator), a $ (variable start), ...
-        @regex = /(?:(?:^|[^\w\$_\>]))([a-z_]+)(?![\w\$_\>])/g
+        @regex = /(?:(?:^|[^\w\$_\>]))([A-Z_]+)(?![\w\$_\>])/g
 
         prefix = @getPrefix(editor, bufferPosition)
         return unless prefix.length
 
-        @functions = proxy.functions()
-        return unless @functions.names?
+        @constants = proxy.constants()
+        return unless @constants.names?
 
         suggestions = @findSuggestionsForPrefix(prefix.trim())
         return unless suggestions.length
@@ -38,19 +37,15 @@ class FunctionProvider extends AbstractProvider
     ###
     findSuggestionsForPrefix: (prefix) ->
         # Filter the words using fuzzaldrin
-        words = fuzzaldrin.filter @functions.names, prefix
+        words = fuzzaldrin.filter @constants.names, prefix
 
         # Builds suggestions for the words
         suggestions = []
         for word in words
-            for element in @functions.values[word]
+            for element in @constants.values[word]
                 suggestions.push
                     text: word,
-                    type: 'function',
-                    description: 'Built-in PHP function.' # Needed or the 'More' button won't show up.
-                    descriptionMoreURL: config.config.php_documentation_base_url.functions + word
-                    className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
-                    snippet: @getFunctionSnippet(word, element.args),
-                    replacementPrefix: prefix
+                    type: 'constant',
+                    description: 'Built-in PHP constant.'
 
         return suggestions

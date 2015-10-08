@@ -10,7 +10,10 @@ module.exports =
     ###
     getConfig: () ->
         # See also https://secure.php.net/urlhowto.php .
-        @config['php_function_documentation_base_url'] = 'https://secure.php.net/function.';
+        @config['php_documentation_base_url'] = {
+            functions: 'https://secure.php.net/function.'
+        }
+
         @config['composer'] = atom.config.get('atom-autocomplete-php.binComposer')
         @config['php'] = atom.config.get('atom-autocomplete-php.binPhp')
         @config['autoload'] = atom.config.get('atom-autocomplete-php.autoloadPaths')

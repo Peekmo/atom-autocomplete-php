@@ -1,5 +1,6 @@
 ClassProvider = require "./providers/class-provider.coffee"
 MemberProvider = require "./providers/member-provider.coffee"
+ConstantProvider = require "./providers/constant-provider.coffee"
 FunctionProvider = require "./providers/function-provider.coffee"
 VariableProvider = require "./providers/variable-provider.coffee"
 
@@ -67,6 +68,7 @@ module.exports =
         @tooltipManager.deactivate()
 
     registerProviders: ->
+        @providers.push new ConstantProvider()
         @providers.push new VariableProvider()
         @providers.push new FunctionProvider()
 
