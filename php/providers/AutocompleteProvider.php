@@ -63,7 +63,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                         $parser = new FileParser($memberInfo['declaringStructure']['filename']);
 
                         $useStatementFound = false;
-                        $completedClassName = $parser->getCompleteNamespace($soleClassName, $useStatementFound);
+                        $completedClassName = $parser->getFullClassName($soleClassName, $useStatementFound);
 
                         if ($useStatementFound) {
                             $relevantClass = $completedClassName;

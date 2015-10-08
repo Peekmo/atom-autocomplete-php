@@ -24,7 +24,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
 
                     $found = false;
                     $fileParser = new FileParser($file);
-                    $class = $fileParser->getCompleteNamespace(null, $found);
+                    $class = $fileParser->getFullClassName(null, $found);
 
                     // if (false !== $class = array_search($file, $classMap)) {
                     if ($found) {

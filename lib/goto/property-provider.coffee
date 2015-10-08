@@ -23,7 +23,7 @@ class PropertyProvider extends AbstractProvider
         if not calledClass
             return
 
-        currentClass = @parser.getCurrentClass(editor, bufferPosition)
+        currentClass = @parser.getFullClassName(editor)
 
         if currentClass == calledClass && @jumpTo(editor, term)
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
@@ -37,7 +37,7 @@ class PropertyProvider extends AbstractProvider
         atom.workspace.open(value.declaringStructure.filename, {
             searchAllPanes: true
         })
-        
+
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
         @jumpWord = term
 

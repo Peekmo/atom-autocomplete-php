@@ -35,7 +35,7 @@ class MemberProvider extends AbstractProvider
         # (the latter which could be empty).
         return unless elements.length > 2
 
-        currentClass = parser.getCurrentClass(editor, bufferPosition)
+        currentClass = parser.getFullClassName(editor)
         currentClassParents = []
 
         if currentClass

@@ -35,7 +35,7 @@ class FileParser
     }
 
     /**
-     * Retrieves the full namespace of the given class, based on the namespace and use statements in the current file.
+     * Retrieves the full class name of the given class, based on the namespace and use statements in the current file.
      *
      * @param string|null $className The class to search for. If null, the full class name of the first
      *                               class/trait/interface definition will be returned.
@@ -44,8 +44,12 @@ class FileParser
      *
      * @return string
      */
-    public function getCompleteNamespace($className, &$found)
+    public function getFullClassName($className, &$found)
     {
+        if (!empty($className) && $className[0] == "\\") {
+            return substr($className, 1); // FQCN, not subject to any further context.
+        }
+
         $line = '';
         $found = false;
         $matches = array();
@@ -88,6 +92,10 @@ class FileParser
 
                 break;
             }
+        }
+
+        if ($fullClass && $fullClass[0] == '\\') {
+            $fullClass = substr($fullClass, 1);
         }
 
         return $fullClass;

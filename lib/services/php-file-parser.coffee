@@ -14,45 +14,6 @@ module.exports =
     cache: []
 
     ###*
-     * Returns the current class from the buffer
-     * @param {TextEditor} editor
-     * @param {Range}      position
-     * @return string className
-    ###
-    getCurrentClass: (editor, position) ->
-        # Get text before the current position
-        text = editor.getTextInBufferRange([[0, 0], position])
-        row = position.row
-        rows = text.split('\n')
-
-        name = ''
-        # for each row
-        while row != -1
-            line = rows[row].trim()
-            # Looking for a line starting with one of the allowed php declaration of
-            # a class (see on top of the file)
-            if name == ''
-                for classDeclaration in classDeclarations
-                    if line.indexOf(classDeclaration) == 0
-                        line = line.substring(classDeclaration.length, line.length).trim()
-
-                        name = line.split(' ')[0]
-            else
-                if line.indexOf(namespaceDeclaration) != -1
-                    line = line.replace('<?php', '').trim()
-                    line = line.substring(namespaceDeclaration.length, line.length).trim()
-
-                    namespaceEnd = line.indexOf(';')
-                    if namespaceEnd == -1
-                        namespaceEnd = line.indexOf('{')
-
-                    return line.substring(0, namespaceEnd).trim() + "\\" + name
-
-            row--
-
-        return name
-
-    ###*
      * Retrieves the class the specified term (method or property) is being invoked on.
      *
      * @param  {TextEditor} editor         TextEditor to search for namespace of term.
@@ -110,24 +71,11 @@ module.exports =
      *
      * @return string
     ###
-    getFullClassName: (editor, className) ->
+    getFullClassName: (editor, className = null) ->
+        if className == null
+            className = ''
 
-
-
-        # TODO: It turns out that you can't correctly know if Foo\Bar is actually CurrentNamespace\Foo\Bar or \Foo\Bar.
-        # We'll have to try a proxy.methods(theClass) to see if we get results for the relative version (see
-        # AutocompleteProvider.php). We should do this in this method so the caller always gets the correct class.
-        # TODO: Is it necessary to port this to the PHP side?
-        #if fullClass and fullClass[0] == '\\'
-            #fullClass = fullClass.substr(1)
-
-        # TODO: getCurrentClass could probably be rewritten as @getFullClassName(editor, null) (test!).
-        # TODO: Test everything thoroughly, both relative imports as well as FQCN's with leading slash as well as relative absolute paths.
-        # TODO: Test autocompletion thoroughly as well, not just go to.
-
-
-
-        if className[0] == "\\"
+        if className and className[0] == "\\"
             return className.substr(1) # FQCN, not subject to any further context.
 
         usePattern = /(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/
@@ -138,6 +86,8 @@ module.exports =
 
         lines = text.split('\n')
         fullClass = className
+
+        found = false
 
         for line,i in lines
             matches = line.match(namespacePattern)
@@ -160,6 +110,8 @@ module.exports =
                         break
 
                     else if (isAliasedImport and matches[2] == classNameParts[0]) or (!isAliasedImport and importNameParts[importNameParts.length - 1] == classNameParts[0])
+                        found = true
+
                         fullClass = matches[1]
 
                         classNameParts = classNameParts[1 .. classNameParts.length]
@@ -173,6 +125,7 @@ module.exports =
 
             if matches
                 if not className
+                    found = true
                     fullClass += matches[1]
 
                 break
@@ -181,6 +134,17 @@ module.exports =
         # the file don't apply, but it's useless after that.
         if fullClass and fullClass[0] == '\\'
             fullClass = fullClass.substr(1)
+
+        if not found
+            # At this point, this could either be a class name relative to the current namespace or a full class name
+            # without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which case its
+            # absolute path is determined by the namespace and use statements of the file containing it.
+            methodsRequest = proxy.methods(fullClass)
+
+            if not methodsRequest?.filename
+                # The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a namespace
+                # set up in composer.json, without a leading slash.
+                fullClass = className
 
         return fullClass
 
@@ -531,7 +495,7 @@ module.exports =
                     return @getFullClassName(editor, value)
 
                 # otherwise, we are parsing PHPdoc (@param)
-                params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
+                params = proxy.docParams(@getFullClassName(editor), func)
                 if params.params? and params.params[element]?
                     return @getFullClassName(editor, params.params[element])
 
@@ -636,13 +600,13 @@ module.exports =
 
                     # NOTE: The type of $this can also be overridden locally by a docblock.
                     if element == '$this' and not className
-                        className = @getCurrentClass(editor, bufferPosition)
+                        className = @getFullClassName(editor)
 
                     loop_index++
                     continue
 
                 else if element == 'static' or element == 'self'
-                    className = @getCurrentClass(editor, bufferPosition)
+                    className = @getFullClassName(editor)
                     loop_index++
                     continue
 
