@@ -114,8 +114,6 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 }
             }
 
-            // $classTypes = array_filter($types, array($this, 'isClassType'));
-
             if (count($classTypes) === 1) {
                 return $classTypes[0];
             }
