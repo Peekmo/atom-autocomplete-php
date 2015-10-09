@@ -14,45 +14,6 @@ module.exports =
     cache: []
 
     ###*
-     * Returns the current class from the buffer
-     * @param {TextEditor} editor
-     * @param {Range}      position
-     * @return string className
-    ###
-    getCurrentClass: (editor, position) ->
-        # Get text before the current position
-        text = editor.getTextInBufferRange([[0, 0], position])
-        row = position.row
-        rows = text.split('\n')
-
-        name = ''
-        # for each row
-        while row != -1
-            line = rows[row].trim()
-            # Looking for a line starting with one of the allowed php declaration of
-            # a class (see on top of the file)
-            if name == ''
-                for classDeclaration in classDeclarations
-                    if line.indexOf(classDeclaration) == 0
-                        line = line.substring(classDeclaration.length, line.length).trim()
-
-                        name = line.split(' ')[0]
-            else
-                if line.indexOf(namespaceDeclaration) != -1
-                    line = line.replace('<?php', '').trim()
-                    line = line.substring(namespaceDeclaration.length, line.length).trim()
-
-                    namespaceEnd = line.indexOf(';')
-                    if namespaceEnd == -1
-                        namespaceEnd = line.indexOf('{')
-
-                    return line.substring(0, namespaceEnd).trim() + "\\" + name
-
-            row--
-
-        return name
-
-    ###*
      * Retrieves the class the specified term (method or property) is being invoked on.
      *
      * @param  {TextEditor} editor         TextEditor to search for namespace of term.
@@ -101,56 +62,91 @@ module.exports =
         return matches
 
     ###*
-     * Search the use for the given class name
-     * @param {TextEditor} editor    Atom text editor
-     * @param {string}     className Name of the class searched
+     * Retrieves the full class name. If the class name is a FQCN (Fully Qualified Class Name), it already is a full
+     * name and it is returned as is. Otherwise, the current namespace and use statements are scanned.
+     *
+     * @param {TextEditor}  editor    Text editor instance.
+     * @param {string|null} className Name of the class to retrieve the full name of. If null, the current class will
+     *                                be returned (if any).
+     *
      * @return string
     ###
-    findUseForClass: (editor, className) ->
-        # remove first "\" if any
-        if className.indexOf("\\") == 0
-            className = className.substr(1)
+    getFullClassName: (editor, className = null) ->
+        if className == null
+            className = ''
 
-        # fix #51
-        classNameElements = className.split("\\")
-        className = classNameElements.shift()
+        if className and className[0] == "\\"
+            return className.substr(1) # FQCN, not subject to any further context.
+
+        usePattern = /(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/
+        namespacePattern = /(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/
+        definitionPattern = /(?:abstract class|class|trait|interface)\s+(\w+)/
 
         text = editor.getText()
 
         lines = text.split('\n')
+        fullClass = className
+
+        found = false
+
         for line,i in lines
-            line = line.trim()
+            matches = line.match(namespacePattern)
 
-            # If we found class keyword, we are not in namespace space, so return the className
-            classIndex = line.indexOf('class ')
+            if matches
+                fullClass = matches[1] + '\\' + className
 
-            if classIndex != -1
-                chain = editor.scopeDescriptorForBufferPosition([i, classIndex]).getScopeChain()
+            else if className
+                matches = line.match(usePattern)
 
-                if chain.indexOf('.comment') == -1
-                    break
+                if matches
+                    classNameParts = className.split('\\')
+                    importNameParts = matches[1].split('\\')
 
-            # Use keyword
-            if line.indexOf('use') == 0
-                useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
+                    isAliasedImport = if matches[2] then true else false
 
-                matches = useRegex.exec(line)
-                # just one use
-                if matches[1]? and not matches[2]?
-                    splits = matches[1].split('\\')
-                    if splits[splits.length-1] == className
-                        className = matches[1]
+                    if className == matches[1]
+                        fullClass = className # Already a complete name
+
                         break
 
-                # use aliases
-                else if matches[1]? and matches[2]? and matches[2] == className
-                    className = matches[1]
-                    break
+                    else if (isAliasedImport and matches[2] == classNameParts[0]) or (!isAliasedImport and importNameParts[importNameParts.length - 1] == classNameParts[0])
+                        found = true
 
-        if classNameElements.length > 0
-            return className + "\\" + classNameElements.join("\\")
-        else
-            return className
+                        fullClass = matches[1]
+
+                        classNameParts = classNameParts[1 .. classNameParts.length]
+
+                        if (classNameParts.length > 0)
+                            fullClass += '\\' + classNameParts.join('\\')
+
+                        break
+
+            matches = line.match(definitionPattern)
+
+            if matches
+                if not className
+                    found = true
+                    fullClass += matches[1]
+
+                break
+
+        # In the class map, classes never have a leading slash. The leading slash only indicates that import rules of
+        # the file don't apply, but it's useless after that.
+        if fullClass and fullClass[0] == '\\'
+            fullClass = fullClass.substr(1)
+
+        if not found
+            # At this point, this could either be a class name relative to the current namespace or a full class name
+            # without a leading slash. For example, Foo\Bar could also be relative (e.g. My\Foo\Bar), in which case its
+            # absolute path is determined by the namespace and use statements of the file containing it.
+            methodsRequest = proxy.methods(fullClass)
+
+            if not methodsRequest?.filename
+                # The class, e.g. My\Foo\Bar, didn't exist. We can only assume its an absolute path, using a namespace
+                # set up in composer.json, without a leading slash.
+                fullClass = className
+
+        return fullClass
 
     ###*
      * Add the use for the given class if not already added
@@ -428,7 +424,7 @@ module.exports =
 
                 if null != matchesNew
                     bestMatchRow = lineNumber
-                    bestMatch = @findUseForClass(editor, matchesNew[1])
+                    bestMatch = @getFullClassName(editor, matchesNew[1])
 
             if not bestMatch
                 # Check for catch(XXX $xxx)
@@ -436,7 +432,7 @@ module.exports =
 
                 if null != matchesCatch
                     bestMatchRow = lineNumber
-                    bestMatch = @findUseForClass(editor, matchesCatch[1])
+                    bestMatch = @getFullClassName(editor, matchesCatch[1])
 
             if not bestMatch
                 # Check for a variable assignment $x = ...
@@ -467,21 +463,21 @@ module.exports =
                     matches = regexVar.exec(line)
 
                     if null != matches
-                        return @findUseForClass(editor, matches[1])
+                        return @getFullClassName(editor, matches[1])
 
                 # Check if there is an PHPStorm-style type inline docblock present /** @var FooType $someVar */.
                 regexVarWithVarName = new RegExp("\\@var[\\s]+([a-zA-Z_\\\\]+)[\\s]+\\#{element}", "g")
                 matches = regexVarWithVarName.exec(line)
 
                 if null != matches
-                    return @findUseForClass(editor, matches[1])
+                    return @getFullClassName(editor, matches[1])
 
                 # Check if there is an IntelliJ-style type inline docblock present /** @var $someVar FooType */.
                 regexVarWithVarName = new RegExp("\\@var[\\s]+\\#{element}[\\s]+([a-zA-Z_\\\\]+)", "g")
                 matches = regexVarWithVarName.exec(line)
 
                 if null != matches
-                    return @findUseForClass(editor, matches[1])
+                    return @getFullClassName(editor, matches[1])
 
             # We've reached the function definition, check for type hints and/or the docblock.
             if not bestMatch and chain.indexOf("function") != -1
@@ -496,12 +492,12 @@ module.exports =
 
                 # If we have a type hint
                 if value != ""
-                    return @findUseForClass(editor, value)
+                    return @getFullClassName(editor, value)
 
                 # otherwise, we are parsing PHPdoc (@param)
-                params = proxy.docParams(@getCurrentClass(editor, bufferPosition), func)
+                params = proxy.docParams(@getFullClassName(editor), func)
                 if params.params? and params.params[element]?
-                    return @findUseForClass(editor, params.params[element])
+                    return @getFullClassName(editor, params.params[element])
 
                 break
 
@@ -604,13 +600,13 @@ module.exports =
 
                     # NOTE: The type of $this can also be overridden locally by a docblock.
                     if element == '$this' and not className
-                        className = @getCurrentClass(editor, bufferPosition)
+                        className = @getFullClassName(editor)
 
                     loop_index++
                     continue
 
                 else if element == 'static' or element == 'self'
-                    className = @getCurrentClass(editor, bufferPosition)
+                    className = @getFullClassName(editor)
                     loop_index++
                     continue
 
@@ -620,7 +616,7 @@ module.exports =
                     continue
 
                 else
-                    className = @findUseForClass(editor, element)
+                    className = @getFullClassName(editor, element)
                     loop_index++
                     continue
 
@@ -704,7 +700,7 @@ module.exports =
             if line.indexOf('extends ') != -1
                 words = line.split(' ')
                 extendsIndex = words.indexOf('extends')
-                return @findUseForClass(editor, words[extendsIndex + 1])
+                return @getFullClassName(editor, words[extendsIndex + 1])
 
     ###*
      * Finds the buffer position of the word given

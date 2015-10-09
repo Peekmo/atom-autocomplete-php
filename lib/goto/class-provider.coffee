@@ -14,31 +14,22 @@ class ClassProvider extends AbstractProvider
      * @param  {string}     term   Term to search for.
     ###
     gotoFromWord: (editor, term) ->
-        proxy = require '../services/php-proxy.coffee'
-
         if term == undefined || term.indexOf('$') == 0
             return
 
-        if term.indexOf('\\') == 0
-            term = term.substring(1)
+        term = @parser.getFullClassName(editor, term)
 
-        namespaceTerm = @parser.findUseForClass(editor, term)
+        proxy = require '../services/php-proxy.coffee'
+        classesResponse = proxy.classes()
 
-        if namespaceTerm != undefined
-            term = namespaceTerm
-
-        classMap = proxy.autoloadClassMap()
-        classMapArray = [];
-        listViewArray = [];
-
-        for key,value of classMap
-            classMapArray.push(key)
-
-        matches = @fuzzaldrin.filter classMapArray, term
+        return unless classesResponse
 
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
 
-        if matches[0] == term || matches.length == 1
+        # See what matches we have for this class name.
+        matches = @fuzzaldrin.filter(classesResponse.autocomplete, term)
+
+        if matches[0] == term
             regexMatches = /(?:\\)(\w+)$/i.exec(matches[0])
 
             if regexMatches == null || regexMatches.length == 0
@@ -47,51 +38,11 @@ class ClassProvider extends AbstractProvider
             else
                 @jumpWord = regexMatches[1]
 
-            atom.workspace.open(classMap[matches[0]], {
+            classInfo = proxy.methods(matches[0])
+
+            atom.workspace.open(classInfo.filename, {
                 searchAllPanes: true
             })
-
-        else
-            # if we found a file that end with the exact namespace given, we store it
-            bestMatch    = null
-            useBestMatch = true
-            currentClass = @parser.getCurrentClass(editor, editor.getCursorBufferPosition())
-
-            withCurrentNamespace = currentClass.replace(/(\w+)$/, term);
-
-            if matches.indexOf(withCurrentNamespace) != -1
-                @jumpWord = /(?:\\)(\w+)$/i.exec(withCurrentNamespace)[1]
-
-                atom.workspace.open(classMap[withCurrentNamespace], {
-                    searchAllPanes: true
-                })
-
-                return
-
-            for key,value of matches
-                if value.endsWith(term)
-                    if bestMatch == null # if we don't have a previous match
-                        bestMatch = classMap[value]
-
-                    else # if we have a previous match, the name is not unique, so don't use it
-                        useBestMatch = false
-
-                listViewArray.push({
-                    item: value,
-                    file: classMap[value]
-                })
-
-            # if we found a unique match
-            if bestMatch and useBestMatch
-                @jumpWord = /(?:\\)(\w+)$/i.exec(term)[1]
-
-                atom.workspace.open(bestMatch, {
-                    searchAllPanes: true
-                })
-
-            else
-                @selectView.setItems(listViewArray)
-                @selectView.show()
 
     ###*
      * Gets the correct selector when a class or namespace is clicked.

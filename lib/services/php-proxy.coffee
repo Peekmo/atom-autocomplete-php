@@ -181,10 +181,6 @@ module.exports =
 
         return data.autocomplete[cacheKey]
 
-    autoloadClassMap: () ->
-        res = execute("--autoloadClassMap", false)
-        return res
-
     ###*
      * Returns params from the documentation of the given function
      *

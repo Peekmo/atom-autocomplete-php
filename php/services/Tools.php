@@ -394,10 +394,11 @@ abstract class Tools
     protected function getClassMetadata($className)
     {
         $data = array(
-            'class'   => $className,
-            'parents' => array(),
-            'names'   => array(),
-            'values'  => array()
+            'class'    => $className,
+            'filename' => null,
+            'parents'  => array(),
+            'names'    => array(),
+            'values'   => array()
         );
 
         try {
@@ -406,6 +407,7 @@ abstract class Tools
             return $data;
         }
 
+        $data['filename'] = $reflection->getFileName();
         $data['parents'] = $this->getParentClasses($reflection);
 
         // Retrieve information about methods.

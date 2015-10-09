@@ -18,7 +18,7 @@ class MemberProvider extends AbstractProvider
     ###
     fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
         # Autocompletion for class members, i.e. after a ::, ->, ...
-        @regex = /(?:(?:[a-zA-Z0-9_]*)\s*(?:\(.*\))?\s*(?:->|::)\s*)+([a-zA-Z0-9_]*)/g
+        @regex = /(?:(?:[a-zA-Z0-9_]+)(?:\(.*\))?(?:->|::))+([a-zA-Z0-9_]*)/g
 
         prefix = @getPrefix(editor, bufferPosition)
         return unless prefix.length
@@ -35,7 +35,7 @@ class MemberProvider extends AbstractProvider
         # (the latter which could be empty).
         return unless elements.length > 2
 
-        currentClass = parser.getCurrentClass(editor, bufferPosition)
+        currentClass = parser.getFullClassName(editor)
         currentClassParents = []
 
         if currentClass

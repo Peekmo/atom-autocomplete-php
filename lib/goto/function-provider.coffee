@@ -28,7 +28,7 @@ class FunctionProvider extends AbstractProvider
         if not calledClass
             return
 
-        currentClass = @parser.getCurrentClass(editor, bufferPosition)
+        currentClass = @parser.getFullClassName(editor)
 
         if currentClass == calledClass && @jumpTo(editor, term)
             @manager.addBackTrack(editor.getPath(), bufferPosition)
@@ -61,7 +61,7 @@ class FunctionProvider extends AbstractProvider
 
             while (match = regex.exec(row))
                 bufferPosition = new Point(parseInt(rowNum), match[1].length + match.index)
-                currentClass = @parser.getCurrentClass(editor, bufferPosition)
+                currentClass = @parser.getFullClassName(editor)
 
                 term = match[2]
 
