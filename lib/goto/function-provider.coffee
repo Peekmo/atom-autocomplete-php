@@ -57,23 +57,23 @@ class FunctionProvider extends AbstractProvider
         @annotationSubAtoms[editor.getLongTitle()] = new SubAtom
 
         for rowNum,row of rows
-            regex = /((?:public|protected|private)\ function\ )(\w+)\s*\(.*\)/g
+            regex = /(\s*(?:public|protected|private)\s+function\s+)(\w+)\s*\(/g
 
             while (match = regex.exec(row))
-                bufferPosition = new Point(parseInt(rowNum), match[1].length + match.index)
                 currentClass = @parser.getFullClassName(editor)
 
-                term = match[2]
+                methodName = match[2]
 
-                value = @parser.getMethodContext(editor, term, null, currentClass)
+                value = @parser.getMethodContext(editor, methodName, null, currentClass)
 
                 if not value
                     continue
 
                 if value.override or value.implementation
-                    rangeEnd = new Point(parseInt(rowNum), match[1].length + match.index + term.length)
-
-                    range = new Range(bufferPosition, rangeEnd)
+                    range = new Range(
+                        new Point(parseInt(rowNum), match[1].length),
+                        new Point(parseInt(rowNum), match[1].length + methodName.length)
+                    )
 
                     marker = editor.markBufferRange(range, {
                         maintainHistory: true,
@@ -96,7 +96,7 @@ class FunctionProvider extends AbstractProvider
                     textEditorElement = atom.views.getView(editor)
                     gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
 
-                    do (gutterContainerElement, term, value, editor) =>
+                    do (gutterContainerElement, methodName, value, editor) =>
                         selector = '.line-number' + '.' + annotationClass + '[data-buffer-row=' + rowNum + '] .icon-right'
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
