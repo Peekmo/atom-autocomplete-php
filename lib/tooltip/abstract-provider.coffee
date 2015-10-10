@@ -1,6 +1,7 @@
 {TextEditor} = require 'atom'
 
 SubAtom = require 'sub-atom'
+Popover = require '../services/popover'
 
 module.exports =
 
@@ -15,20 +16,6 @@ class AbstractProvider
         @parser = require '../services/php-file-parser'
 
         @subAtom = new SubAtom
-
-        # Find or create the tooltip popover. NOTE: The reason we do not use Atom's native tooltip is because it is
-        # attached to an element, which caused strange problems such as #107 and #72. This implementation uses the same
-        # CSS classes and transitions but handles the displaying manually as we don't want to attach/detach, we only
-        # want to temporarily display a popover on mouseover.
-        @popover = @$(document.body).find('#php-atom-autocomplete-popover')
-
-        if @popover?.length == 0
-            @popover = document.createElement('div')
-            @popover.id = 'php-atom-autocomplete-popover'
-            @popover.className = 'tooltip bottom fade'
-            @popover.innerHTML = "<div class='tooltip-arrow'></div><div class='tooltip-inner'></div>"
-
-            document.body.appendChild(@popover)
 
         atom.workspace.observeTextEditors (editor) =>
             @registerEvents editor
@@ -60,6 +47,7 @@ class AbstractProvider
     deactivate: () ->
         document.removeChild(@popover)
         @subAtom.dispose()
+        @hideTooltip()
 
     ###*
      * Registers the necessary event handlers.
@@ -109,28 +97,16 @@ class AbstractProvider
         tooltipText = @getTooltipForWord(editor, term, bufferPosition)
 
         if tooltipText?.length > 0
-            coordinates = element.getBoundingClientRect();
-
-            centerOffset = ((coordinates.right - coordinates.left) / 2)
-
-            @$('.tooltip-inner', @popover).html(
-                '<div class="php-atom-autocomplete-tooltip-wrapper">' + tooltipText.replace(/\n/g, '<br/>') + '</div>'
-            )
-
-            @$(@popover).css('left', (coordinates.left - (@$(@popover).width() / 2) + centerOffset) + 'px')
-            @$(@popover).css('top', (coordinates.bottom) + 'px')
-
-            @$(@popover).addClass('in')
-            @$(@popover).css('opacity', 100)
-            @$(@popover).css('display', 'block')
+            @popover = new Popover(element)
+            @popover.show(tooltipText, fadeInTime)
 
     ###*
      * Hides the tooltip, if it is displayed.
     ###
     hideTooltip: () ->
-        @$(@popover).removeClass('in')
-        @$(@popover).css('opacity', 0)
-        @$(@popover).css('display', 'none')
+        if @popover
+            @popover.dispose()
+            @popover = null
 
     ###*
      * Retrieves a tooltip for the word given.
