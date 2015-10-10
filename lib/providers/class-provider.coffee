@@ -38,14 +38,14 @@ class ClassProvider extends AbstractProvider
     ###
     findSuggestionsForPrefix: (prefix) ->
         # Get rid of the leading "new" or "use" keyword
-        instanciation = false
+        instantiation = false
         use = false
 
         if prefix.indexOf("new \\") != -1
-            instanciation = true
+            instantiation = true
             prefix = prefix.replace /new \\/, ''
         else if prefix.indexOf("new ") != -1
-            instanciation = true
+            instantiation = true
             prefix = prefix.replace /new /, ''
         else if prefix.indexOf("use ") != -1
             use = true
@@ -59,25 +59,35 @@ class ClassProvider extends AbstractProvider
 
         # Builds suggestions for the words
         suggestions = []
+
         for word in words when word isnt prefix
             # Just print classes with constructors with "new"
-            if instanciation and @classes.mapping[word].methods.constructor.has
+            if instantiation and @classes.mapping[word].methods.constructor.has
                 suggestions.push
                     text: word,
                     type: 'class',
                     snippet: @getFunctionSnippet(word, @classes.mapping[word].methods.constructor.args),
                     data:
-                        kind: 'instanciation',
+                        kind: 'instantiation',
                         prefix: prefix,
                         replacementPrefix: prefix
 
-            # Not instanciation => not printing constructor params
+            else if use
+                suggestions.push
+                    text: word,
+                    type: 'class',
+                    prefix: prefix,
+                    replacementPrefix: prefix,
+                    data:
+                        kind: 'use'
+
+            # Not instantiation => not printing constructor params
             else
                 suggestions.push
                     text: word,
                     type: 'class',
                     data:
-                        kind: if use then 'use' else 'static',
+                        kind: 'static',
                         prefix: prefix,
                         replacementPrefix: prefix
 
@@ -90,7 +100,9 @@ class ClassProvider extends AbstractProvider
      * @param {object}     suggestion
     ###
     onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
-        if suggestion.data.kind == 'instanciation' or suggestion.data.kind == 'static'
+        return unless suggestion.data?.kind
+
+        if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
             added = parser.addUseClass(editor, suggestion.text)
 
             # Removes namespace from classname
@@ -102,7 +114,7 @@ class ClassProvider extends AbstractProvider
                 wordStart = triggerPosition.column - suggestion.data.prefix.length
                 lineStart = if added == "added" then triggerPosition.row + 1 else triggerPosition.row
 
-                if suggestion.data.kind == 'instanciation'
+                if suggestion.data.kind == 'instantiation'
                     lineEnd = wordStart + name.length - nameLength - splits.length + 1
                 else
                     lineEnd = wordStart + name.length - nameLength
