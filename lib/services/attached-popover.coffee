@@ -52,11 +52,10 @@ class AttachedPopover extends Popover
      * Shows the popover with the specified text after the specified delay (in miliiseconds). Calling this method
      * multiple times will cancel previous show requests and restart.
      *
-     * @param {string} text       The text to display.
      * @param {int}    delay      The delay before the tooltip shows up (in milliseconds).
      * @param {int}    fadeInTime The amount of time to take to fade in the tooltip.
     ###
-    showAfter: (text, delay, fadeInTime = 100) ->
+    showAfter: (delay, fadeInTime = 100) ->
         @timeoutId = setTimeout(() =>
-            @show(text, fadeInTime)
+            @show(fadeInTime)
         , delay)
