@@ -1,7 +1,7 @@
 {TextEditor} = require 'atom'
 
 SubAtom = require 'sub-atom'
-Popover = require '../services/popover'
+AttachedPopover = require '../services/attached-popover'
 
 module.exports =
 
@@ -47,7 +47,7 @@ class AbstractProvider
     deactivate: () ->
         document.removeChild(@popover)
         @subAtom.dispose()
-        @hideTooltip()
+        @removePopover()
 
     ###*
      * Registers the necessary event handlers.
@@ -68,45 +68,41 @@ class AbstractProvider
                 if selector == null
                     return
 
-                # Try to show a tooltip containing the documentation of the item.
-                @timeout = setTimeout(() =>
-                    editorViewComponent = atom.views.getView(editor).component
+                editorViewComponent = atom.views.getView(editor).component
 
-                    # Ticket #140 - In rare cases the component is null.
-                    if editorViewComponent
-                        cursorPosition = editorViewComponent.screenPositionForMouseEvent(event)
+                # Ticket #140 - In rare cases the component is null.
+                if editorViewComponent
+                    cursorPosition = editorViewComponent.screenPositionForMouseEvent(event)
 
-                        @showTooltipFor(editor, selector, cursorPosition)
-                , 500)
+                    @showPopoverFor(editor, selector, cursorPosition)
 
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
-                clearTimeout(@timeout)
-
-                @hideTooltip()
+                @removePopover()
 
     ###*
-     * Shows a tooltip containing the documentation of the specified element located at the specified location.
+     * Shows a popover containing the documentation of the specified element located at the specified location.
      *
      * @param {TextEditor} editor         TextEditor containing the elemment.
      * @param {string}     element        The element to search for.
      * @param {Point}      bufferPosition The cursor location the element is at.
+     * @param {int}        delay          How long to wait before the popover shows up.
      * @param {int}        fadeInTime     The amount of time to take to fade in the tooltip.
     ###
-    showTooltipFor: (editor, element, bufferPosition, fadeInTime = 100) ->
+    showPopoverFor: (editor, element, bufferPosition, delay = 500, fadeInTime = 100) ->
         term = @$(element).text()
         tooltipText = @getTooltipForWord(editor, term, bufferPosition)
 
         if tooltipText?.length > 0
-            @popover = new Popover(element)
-            @popover.show(tooltipText, fadeInTime)
+            @attachedPopover = new AttachedPopover(element)
+            @attachedPopover.showAfter(tooltipText, delay, fadeInTime)
 
     ###*
-     * Hides the tooltip, if it is displayed.
+     * Removes the popover, if it is displayed.
     ###
-    hideTooltip: () ->
-        if @popover
-            @popover.dispose()
-            @popover = null
+    removePopover: () ->
+        if @attachedPopover
+            @attachedPopover.dispose()
+            @attachedPopover = null
 
     ###*
      * Retrieves a tooltip for the word given.
