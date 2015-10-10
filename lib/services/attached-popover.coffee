@@ -1,17 +1,14 @@
-{Disposable} = require 'atom'
-
 Popover = require './popover'
 
 module.exports =
 
-class AttachedPopover extends Disposable
+class AttachedPopover extends Popover
     ###
         NOTE: The reason we do not use Atom's native tooltip is because it is attached to an element, which caused
         strange problems such as tickets #107 and #72. This implementation uses the same CSS classes and transitions but
         handles the displaying manually as we don't want to attach/detach, we only want to temporarily display a popover
         on mouseover.
     ###
-    popover: null
     timeoutId: null
     elementToAttachTo: null
 
@@ -23,11 +20,7 @@ class AttachedPopover extends Disposable
      *                                        up (in miliiseconds).
     ###
     constructor: (@elementToAttachTo, delay = 500) ->
-        @$ = require 'jquery'
-
-        @popover = new Popover()
-
-        super @destructor
+        super()
 
     ###*
      * Destructor.
@@ -38,15 +31,7 @@ class AttachedPopover extends Disposable
             clearTimeout(@timeoutId)
             @timeoutId = null
 
-        @popover.dispose()
-
-    ###*
-     * sets the text to display.
-     *
-     * @param {string} text
-    ###
-    setText: (text) ->
-        @popover.setText(text)
+        super()
 
     ###*
      * Shows the popover with the specified text.
@@ -58,10 +43,10 @@ class AttachedPopover extends Disposable
 
         centerOffset = ((coordinates.right - coordinates.left) / 2)
 
-        x = coordinates.left - (@$(@popover.getElement()).width() / 2) + centerOffset
+        x = coordinates.left - (@$(@getElement()).width() / 2) + centerOffset
         y = coordinates.bottom
 
-        @popover.show(x, y, fadeInTime)
+        super(x, y, fadeInTime)
 
     ###*
      * Shows the popover with the specified text after the specified delay (in miliiseconds). Calling this method
@@ -75,9 +60,3 @@ class AttachedPopover extends Disposable
         @timeoutId = setTimeout(() =>
             @show(text, fadeInTime)
         , delay)
-
-    ###*
-     * Hides the tooltip, if it is displayed.
-    ###
-    hide: () ->
-        @popover.hide()
