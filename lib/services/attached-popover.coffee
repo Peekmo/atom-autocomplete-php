@@ -24,7 +24,7 @@ class AttachedPopover extends Disposable
     ###
     constructor: (@elementToAttachTo, delay = 500) ->
         @$ = require 'jquery'
-        
+
         @popover = new Popover()
 
         super @destructor
@@ -41,12 +41,19 @@ class AttachedPopover extends Disposable
         @popover.dispose()
 
     ###*
+     * sets the text to display.
+     *
+     * @param {string} text
+    ###
+    setText: (text) ->
+        @popover.setText(text)
+
+    ###*
      * Shows the popover with the specified text.
      *
-     * @param {string} text       The text to display.
-     * @param {int}    fadeInTime The amount of time to take to fade in the tooltip.
+     * @param {int} fadeInTime The amount of time to take to fade in the tooltip.
     ###
-    show: (text, fadeInTime = 100) ->
+    show: (fadeInTime = 100) ->
         coordinates = @elementToAttachTo.getBoundingClientRect();
 
         centerOffset = ((coordinates.right - coordinates.left) / 2)
@@ -54,7 +61,7 @@ class AttachedPopover extends Disposable
         x = coordinates.left - (@$(@popover.getElement()).width() / 2) + centerOffset
         y = coordinates.bottom
 
-        @popover.show(text, x, y, fadeInTime)
+        @popover.show(x, y, fadeInTime)
 
     ###*
      * Shows the popover with the specified text after the specified delay (in miliiseconds). Calling this method

@@ -36,18 +36,23 @@ class Popover extends Disposable
         return @element
 
     ###*
-     * Shows a popover at the specified location with the specified text and fade in time.
+     * sets the text to display.
      *
-     * @param {string} text       The text to display.
-     * @param {int}    x          The X coordinate to show the popover at (left).
-     * @param {int}    y          The Y coordinate to show the popover at (top).
-     * @param {int}    fadeInTime The amount of time to take to fade in the tooltip.
+     * @param {string} text
     ###
-    show: (text, x, y, fadeInTime = 100) ->
+    setText: (text) ->
         @$('.tooltip-inner', @element).html(
             '<div class="php-atom-autocomplete-popover-wrapper">' + text.replace(/\n/g, '<br/>') + '</div>'
         )
 
+    ###*
+     * Shows a popover at the specified location with the specified text and fade in time.
+     *
+     * @param {int}    x          The X coordinate to show the popover at (left).
+     * @param {int}    y          The Y coordinate to show the popover at (top).
+     * @param {int}    fadeInTime The amount of time to take to fade in the tooltip.
+    ###
+    show: (x, y, fadeInTime = 100) ->
         @$(@element).css('left', x + 'px')
         @$(@element).css('top', y + 'px')
 

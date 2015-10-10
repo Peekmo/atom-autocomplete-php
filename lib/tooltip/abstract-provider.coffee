@@ -94,7 +94,8 @@ class AbstractProvider
 
         if tooltipText?.length > 0
             @attachedPopover = new AttachedPopover(element)
-            @attachedPopover.showAfter(tooltipText, delay, fadeInTime)
+            @attachedPopover.setText('<div style="margin-top: -1em;">' + tooltipText + '</div>')
+            @attachedPopover.showAfter(delay, fadeInTime)
 
     ###*
      * Removes the popover, if it is displayed.
