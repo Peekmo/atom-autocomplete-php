@@ -1,6 +1,7 @@
 {TextEditor} = require 'atom'
 
 SubAtom = require 'sub-atom'
+AttachedPopover = require '../services/attached-popover'
 
 module.exports =
 
@@ -15,20 +16,6 @@ class AbstractProvider
         @parser = require '../services/php-file-parser'
 
         @subAtom = new SubAtom
-
-        # Find or create the tooltip popover. NOTE: The reason we do not use Atom's native tooltip is because it is
-        # attached to an element, which caused strange problems such as #107 and #72. This implementation uses the same
-        # CSS classes and transitions but handles the displaying manually as we don't want to attach/detach, we only
-        # want to temporarily display a popover on mouseover.
-        @popover = @$(document.body).find('#php-atom-autocomplete-popover')
-
-        if @popover?.length == 0
-            @popover = document.createElement('div')
-            @popover.id = 'php-atom-autocomplete-popover'
-            @popover.className = 'tooltip bottom fade'
-            @popover.innerHTML = "<div class='tooltip-arrow'></div><div class='tooltip-inner'></div>"
-
-            document.body.appendChild(@popover)
 
         atom.workspace.observeTextEditors (editor) =>
             @registerEvents editor
@@ -60,6 +47,7 @@ class AbstractProvider
     deactivate: () ->
         document.removeChild(@popover)
         @subAtom.dispose()
+        @removePopover()
 
     ###*
      * Registers the necessary event handlers.
@@ -80,57 +68,42 @@ class AbstractProvider
                 if selector == null
                     return
 
-                # Try to show a tooltip containing the documentation of the item.
-                @timeout = setTimeout(() =>
-                    editorViewComponent = atom.views.getView(editor).component
+                editorViewComponent = atom.views.getView(editor).component
 
-                    # Ticket #140 - In rare cases the component is null.
-                    if editorViewComponent
-                        cursorPosition = editorViewComponent.screenPositionForMouseEvent(event)
+                # Ticket #140 - In rare cases the component is null.
+                if editorViewComponent
+                    cursorPosition = editorViewComponent.screenPositionForMouseEvent(event)
 
-                        @showTooltipFor(editor, selector, cursorPosition)
-                , 500)
+                    @showPopoverFor(editor, selector, cursorPosition)
 
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
-                clearTimeout(@timeout)
-
-                @hideTooltip()
+                @removePopover()
 
     ###*
-     * Shows a tooltip containing the documentation of the specified element located at the specified location.
+     * Shows a popover containing the documentation of the specified element located at the specified location.
      *
      * @param {TextEditor} editor         TextEditor containing the elemment.
      * @param {string}     element        The element to search for.
      * @param {Point}      bufferPosition The cursor location the element is at.
+     * @param {int}        delay          How long to wait before the popover shows up.
      * @param {int}        fadeInTime     The amount of time to take to fade in the tooltip.
     ###
-    showTooltipFor: (editor, element, bufferPosition, fadeInTime = 100) ->
+    showPopoverFor: (editor, element, bufferPosition, delay = 500, fadeInTime = 100) ->
         term = @$(element).text()
         tooltipText = @getTooltipForWord(editor, term, bufferPosition)
 
         if tooltipText?.length > 0
-            coordinates = element.getBoundingClientRect();
-
-            centerOffset = ((coordinates.right - coordinates.left) / 2)
-
-            @$('.tooltip-inner', @popover).html(
-                '<div class="php-atom-autocomplete-tooltip-wrapper">' + tooltipText.replace(/\n/g, '<br/>') + '</div>'
-            )
-
-            @$(@popover).css('left', (coordinates.left - (@$(@popover).width() / 2) + centerOffset) + 'px')
-            @$(@popover).css('top', (coordinates.bottom) + 'px')
-
-            @$(@popover).addClass('in')
-            @$(@popover).css('opacity', 100)
-            @$(@popover).css('display', 'block')
+            @attachedPopover = new AttachedPopover(element)
+            @attachedPopover.setText('<div style="margin-top: -1em;">' + tooltipText + '</div>')
+            @attachedPopover.showAfter(delay, fadeInTime)
 
     ###*
-     * Hides the tooltip, if it is displayed.
+     * Removes the popover, if it is displayed.
     ###
-    hideTooltip: () ->
-        @$(@popover).removeClass('in')
-        @$(@popover).css('opacity', 0)
-        @$(@popover).css('display', 'none')
+    removePopover: () ->
+        if @attachedPopover
+            @attachedPopover.dispose()
+            @attachedPopover = null
 
     ###*
      * Retrieves a tooltip for the word given.

@@ -4,6 +4,7 @@
 
 SubAtom = require 'sub-atom'
 AbstractProvider = require './abstract-provider'
+AttachedPopover = require '../services/attached-popover'
 
 module.exports =
 
@@ -100,11 +101,6 @@ class FunctionProvider extends AbstractProvider
                         selector = '.line-number' + '.' + annotationClass + '[data-buffer-row=' + rowNum + '] .icon-right'
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
-                            if event.target.hasTooltipRegistered
-                                return
-
-                            event.target.hasTooltipRegistered = true;
-
                             tooltipText = ''
 
                             # NOTE: We explicitly show the declaring class here, not the structure (which could be a
@@ -115,13 +111,14 @@ class FunctionProvider extends AbstractProvider
                             else
                                 tooltipText += 'Implements method for ' + value.implementation.declaringClass.name
 
-                            atom.tooltips.add(event.target, {
-                                title: '<div style="text-align: left;">' + tooltipText + '</div>'
-                                html: true
-                                placement: 'bottom'
-                                delay:
-                                    show: 0
-                            })
+                            @attachedPopover = new AttachedPopover(event.target)
+                            @attachedPopover.setText(tooltipText)
+                            @attachedPopover.show()
+
+                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseout', selector, (event) =>
+                            if @attachedPopover
+                                @attachedPopover.dispose()
+                                @attachedPopover = null
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'click', selector, (event) =>
                             referencedObject = if value.override then value.override else value.implementation
