@@ -27,16 +27,20 @@ class ClassProvider extends AbstractProvider
         @classes = proxy.classes()
         return unless @classes?.autocomplete?
 
-        suggestions = @findSuggestionsForPrefix prefix.trim()
+        characterAfterPrefix = editor.getTextInRange([bufferPosition, [bufferPosition.row, bufferPosition.column + 1]])
+        insertParameterList = if characterAfterPrefix == '(' then false else true
+
+        suggestions = @findSuggestionsForPrefix(prefix.trim(), insertParameterList)
         return unless suggestions.length
         return suggestions
 
     ###*
      * Returns suggestions available matching the given prefix
-     * @param {string} prefix Prefix to match
+     * @param {string} prefix              Prefix to match.
+     * @param {bool}   insertParameterList Whether to insert a list of parameters for methods.
      * @return array
     ###
-    findSuggestionsForPrefix: (prefix) ->
+    findSuggestionsForPrefix: (prefix, insertParameterList = true) ->
         # Get rid of the leading "new" or "use" keyword
         instantiation = false
         use = false
@@ -63,10 +67,13 @@ class ClassProvider extends AbstractProvider
         for word in words when word isnt prefix
             # Just print classes with constructors with "new"
             if instantiation and @classes.mapping[word].methods.constructor.has
+                args = @classes.mapping[word].methods.constructor.args
+
                 suggestions.push
                     text: word,
                     type: 'class',
-                    snippet: @getFunctionSnippet(word, @classes.mapping[word].methods.constructor.args),
+                    snippet: if insertParameterList then @getFunctionSnippet(word, args) else null
+                    displayText: @getFunctionSignature(word, args)
                     data:
                         kind: 'instantiation',
                         prefix: prefix,
