@@ -685,6 +685,35 @@ module.exports =
         return editor.getTextInBufferRange([startBufferPosition, endBufferPosition])
 
     ###*
+     * Gets the correct selector when a class or namespace is clicked.
+     *
+     * @param  {jQuery.Event}  event  A jQuery event.
+     *
+     * @return {object|null} A selector to be used with jQuery.
+    ###
+    getClassSelectorFromEvent: (event) ->
+        selector = event.currentTarget
+
+        $ = require 'jquery'
+
+        if $(selector).hasClass('builtin') or $(selector).children('.builtin').length > 0
+            return null
+
+        if $(selector).parent().hasClass('function argument')
+            return $(selector).parent().children('.namespace, .class:not(.operator):not(.constant)')
+
+        if $(selector).prev().hasClass('namespace') && $(selector).hasClass('class')
+            return $([$(selector).prev()[0], selector])
+
+        if $(selector).next().hasClass('class') && $(selector).hasClass('namespace')
+           return $([selector, $(selector).next()[0]])
+
+        if $(selector).prev().hasClass('namespace') || $(selector).next().hasClass('inherited-class')
+            return $(selector).parent().children('.namespace, .inherited-class')
+
+        return selector
+
+    ###*
      * Gets the parent class of the current class opened in the editor
      * @param  {TextEditor} editor Editor with the class in.
      * @return {string}            The namespace and class of the parent

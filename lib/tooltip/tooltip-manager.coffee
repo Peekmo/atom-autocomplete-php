@@ -1,3 +1,4 @@
+ClassProvider = require './class-provider.coffee'
 FunctionProvider = require './function-provider.coffee'
 PropertyProvider = require './property-provider.coffee'
 
@@ -10,6 +11,7 @@ class TooltipManager
      * Initializes the tooltip providers.
     ###
     init: () ->
+        @providers.push new ClassProvider()
         @providers.push new FunctionProvider()
         @providers.push new PropertyProvider()
 

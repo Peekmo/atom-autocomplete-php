@@ -49,6 +49,29 @@ abstract class Tools
     }
 
     /**
+     * Fetches information about the specified class, trait, interface, ...
+     *
+     * @param ReflectionClass $class The class to analyze.
+     *
+     * @return array
+     */
+   protected function getClassArguments(ReflectionClass $class)
+   {
+       $parser = new DocParser();
+       $docComment = $class->getDocComment() ?: '';
+
+       $docParseResult = $parser->parse($docComment, array(
+           DocParser::DEPRECATED,
+           DocParser::DESCRIPTION
+       ), false);
+
+       return array(
+          'descriptions' => $docParseResult['descriptions'],
+          'deprecated'   => $docParseResult['deprecated']
+      );
+   }
+
+    /**
      * Fetches information about the specified method or function, such as its parameters, a description from the
      * docblock (if available), the return type, ...
      *
@@ -394,11 +417,18 @@ abstract class Tools
     protected function getClassMetadata($className)
     {
         $data = array(
-            'class'    => $className,
-            'filename' => null,
-            'parents'  => array(),
-            'names'    => array(),
-            'values'   => array()
+            'wasFound'    => false,
+            'class'       => $className,
+            'shortName'   => null,
+            'filename'    => null,
+            'isTrait'     => null,
+            'isClass'     => null,
+            'isAbstract'  => null,
+            'isInterface' => null,
+            'parents'     => array(),
+            'names'       => array(),
+            'values'      => array(),
+            'args'        => array()
         );
 
         try {
@@ -407,8 +437,17 @@ abstract class Tools
             return $data;
         }
 
-        $data['filename'] = $reflection->getFileName();
-        $data['parents'] = $this->getParentClasses($reflection);
+        $data = array_merge($data, array(
+            'wasFound'     => true,
+            'shortName'    => $reflection->getShortName(),
+            'filename'     => $reflection->getFileName(),
+            'isTrait'      => $reflection->isTrait(),
+            'isClass'      => !($reflection->isTrait() || $reflection->isInterface()),
+            'isAbstract'   => $reflection->isAbstract(),
+            'isInterface'  => $reflection->isInterface(),
+            'parents'      => $this->getParentClasses($reflection),
+            'args'         => $this->getClassArguments($reflection)
+        ));
 
         // Retrieve information about methods.
         foreach ($reflection->getMethods() as $method) {
