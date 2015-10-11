@@ -49,27 +49,10 @@ class ClassProvider extends AbstractProvider
      *
      * @param  {jQuery.Event}  event  A jQuery event.
      *
-     * @return {object|null}          A selector to be used with jQuery.
+     * @return {object|null} A selector to be used with jQuery.
     ###
     getSelectorFromEvent: (event) ->
-        selector = event.currentTarget
-
-        if @$(selector).hasClass('builtin') or @$(selector).children('.builtin').length > 0
-            return null
-
-        if @$(selector).parent().hasClass('function argument')
-            return @$(selector).parent().children('.namespace, .class:not(.operator):not(.constant)')
-
-        if @$(selector).prev().hasClass('namespace') && @$(selector).hasClass('class')
-            return @$([@$(selector).prev()[0], selector])
-
-        if @$(selector).next().hasClass('class') && @$(selector).hasClass('namespace')
-           return @$([selector, @$(selector).next()[0]])
-
-        if @$(selector).prev().hasClass('namespace') || @$(selector).next().hasClass('inherited-class')
-            return @$(selector).parent().children('.namespace, .inherited-class')
-
-        return selector
+        return @parser.getClassSelectorFromEvent(event)
 
     ###*
      * Goes through all the lines within the editor looking for classes within comments. More specifically if they have

@@ -93,7 +93,9 @@ class AbstractProvider
         tooltipText = @getTooltipForWord(editor, term, bufferPosition)
 
         if tooltipText?.length > 0
-            @attachedPopover = new AttachedPopover(element)
+            popoverElement = @getPopoverElementFromSelector(element)
+
+            @attachedPopover = new AttachedPopover(popoverElement)
             @attachedPopover.setText('<div style="margin-top: -1em;">' + tooltipText + '</div>')
             @attachedPopover.showAfter(delay, fadeInTime)
 
@@ -121,3 +123,11 @@ class AbstractProvider
     ###
     getSelectorFromEvent: (event) ->
         return event.currentTarget
+
+    ###*
+     * Gets the correct element to attach the popover to from the retrieved selector.
+     * @param  {jQuery.Event}  event  A jQuery event.
+     * @return {object|null}          A selector to be used with jQuery.
+    ###
+    getPopoverElementFromSelector: (selector) ->
+        return selector
