@@ -47,6 +47,9 @@ class MemberProvider extends AbstractProvider
         if elements[elements.length - 2] == '::' and elements[elements.length - 3].trim() != 'parent'
             mustBeStatic = true
 
+        characterAfterPrefix = editor.getTextInRange([bufferPosition, [bufferPosition.row, bufferPosition.column + 1]])
+        insertParameterList = if characterAfterPrefix == '(' then false else true
+
         suggestions = @findSuggestionsForPrefix(className, elements[elements.length-1].trim(), (element) =>
             # See also ticket #127.
             return false if mustBeStatic and not element.isStatic
@@ -57,20 +60,21 @@ class MemberProvider extends AbstractProvider
             return false if not element.isMethod and not element.isProperty and not mustBeStatic
 
             return true
-        )
+        , insertParameterList)
 
         return unless suggestions.length
         return suggestions
 
     ###*
      * Returns suggestions available matching the given prefix
-     * @param {string}   className      The name of the class to show members of.
-     * @param {string}   prefix         Prefix to match (may be left empty to list all members).
-     * @param {callback} filterCallback A callback that should return true if the item should be added to the
-     *                                  suggestions list.
+     * @param {string}   className           The name of the class to show members of.
+     * @param {string}   prefix              Prefix to match (may be left empty to list all members).
+     * @param {callback} filterCallback      A callback that should return true if the item should be added to the
+     *                                       suggestions list.
+     * @param {bool}     insertParameterList Whether to insert a list of parameters for methods.
      * @return array
     ###
-    findSuggestionsForPrefix: (className, prefix, filterCallback) ->
+    findSuggestionsForPrefix: (className, prefix, filterCallback, insertParameterList = true) ->
         methods = proxy.methods(className)
 
         if not methods?.names
@@ -93,25 +97,27 @@ class MemberProvider extends AbstractProvider
                     continue
 
                 # Ensure we don't get very long return types by just showing the last part.
+                snippet = null
+                displayText = word
                 returnValueParts = if ele.args.return then ele.args.return.split('\\') else []
                 returnValue = returnValueParts[returnValueParts.length - 1]
 
                 if ele.isMethod
                     type = 'method'
-                    snippet = @getFunctionSnippet(word, ele.args)
+                    snippet = if insertParameterList then @getFunctionSnippet(word, ele.args) else null
+                    displayText = @getFunctionSignature(word, ele.args)
 
                 else if ele.isProperty
                     type = 'property'
-                    snippet = null
 
                 else
                     type = 'constant'
-                    snippet = null
 
                 suggestions.push
                     text        : word,
                     type        : type
                     snippet     : snippet
+                    displayText : displayText
                     leftLabel   : returnValue
                     description : if ele.args.descriptions.short? then ele.args.descriptions.short else ''
                     className   : if ele.args.deprecated then 'php-atom-autocomplete-strike' else ''

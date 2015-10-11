@@ -25,10 +25,10 @@ class AbstractProvider
         return @fetchSuggestions({editor, bufferPosition, scopeDescriptor, prefix})
 
     ###*
-     * Builds a snipper for a PHP function
+     * Builds a snippet for a PHP function
      * @param {string} word     Function name
      * @param {array}  elements All arguments for the snippet (parameters, optionals)
-     * @return string The snipper
+     * @return string The snippet
     ###
     getFunctionSnippet: (word, elements) ->
         body = word + "("
@@ -52,9 +52,26 @@ class AbstractProvider
                 body += arg
             body += "]}"
 
-        body += ")$0"
+        body += ")"
+
+        # Ensure the user ends up after the inserted text when he's done cycling through the parameters with tab.
+        body += "$0"
 
         return body
+
+    ###*
+     * Builds the signature for a PHP function
+     * @param {string} word     Function name
+     * @param {array}  elements All arguments for the signature (parameters, optionals)
+     * @return string The signature
+    ###
+    getFunctionSignature: (word, element) ->
+        snippet = @getFunctionSnippet(word, element)
+
+        # Just strip out the placeholders.
+        signature = snippet.replace(/\$\{\d+:([^\}]+)\}/g, '$1')
+
+        return signature[0 .. -3]
 
     ###*
      * Get prefix from bufferPosition and @regex
