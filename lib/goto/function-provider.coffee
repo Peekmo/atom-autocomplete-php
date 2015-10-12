@@ -116,9 +116,7 @@ class FunctionProvider extends AbstractProvider
                             @attachedPopover.show()
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseout', selector, (event) =>
-                            if @attachedPopover
-                                @attachedPopover.dispose()
-                                @attachedPopover = null
+                            @removePopover()
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'click', selector, (event) =>
                             referencedObject = if value.override then value.override else value.implementation
@@ -127,6 +125,23 @@ class FunctionProvider extends AbstractProvider
                                 initialLine    : referencedObject.startLine - 1,
                                 searchAllPanes : true
                             })
+
+                        # Ticket #107 - Mouseout isn't generated until the mouse moves, even when scrolling (with the keyboard or
+                        # mouse). If the element goes out of the view in the meantime, its HTML element disappears, never removing
+                        # it.
+                        @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
+                            @removePopover()
+
+                        @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
+                            @removePopover()
+
+    ###*
+     * Removes the popover, if it is displayed.
+    ###
+    removePopover: () ->
+        if @attachedPopover
+            @attachedPopover.dispose()
+            @attachedPopover = null
 
     ###*
      * Removes any markers previously created by registerMarkers.
