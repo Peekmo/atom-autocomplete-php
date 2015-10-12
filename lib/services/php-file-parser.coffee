@@ -273,52 +273,91 @@ module.exports =
         return result
 
     ###*
-     * Returns the stack of elements in a ->xxx->xxxx stack
+     * Retrieves the stack of elements in a stack of calls such as "self::xxx->xxxx".
+     *
      * @param  {TextEditor} editor
-     * @param  {Rang}       position
-     * @return string className
+     * @param  {Point}       position
+     *
+     * @return {Object}
     ###
     getStackClasses: (editor, position) ->
         return unless position?
 
-        lineIdx = 0
-        parenthesisOpened = 0
-        parenthesisClosed = 0
-        squiggleBracketOpened = false
-        idx = 0
-        end = false
+        line = position.row
 
-        # Algorithm to get something inside parenthesis
-        # Count parenthesis, when opened == closed and found a variable, it's done
-        while (position.row - lineIdx > 0) and end == false
-            text = editor.getTextInBufferRange([[position.row - idx, 0], position])
-            lineIdx++
-            len = text.length
+        finished = false
+        parenthesesOpened = 0
+        parenthesesClosed = 0
+        squiggleBracketsOpened = 0
+        squiggleBracketsClosed = 0
 
-            while idx < len and end == false
-                if text[len - idx] == "("
-                    parenthesisOpened += 1
-                else if text[len - idx] == ")"
-                    parenthesisClosed += 1
-                else if text[len - idx] == "}"
-                    # Not going to do the semi,equals,{ check (else if below) as we are probably in a callback.
-                    squiggleBracketOpened = true
-                else if text[len - idx] == "{" and squiggleBracketOpened
-                    squiggleBracketOpened = false
-                # Checking we haven't hit a semi or equals. As parent calls won't have a $ to end on.
-                else if (text[len - (idx + 1)] == ";" or text[len - (idx + 1)] == "=" or text[len - (idx + 1)] == "{") and !squiggleBracketOpened
-                    end = true
-                if text[len - idx] == "$" and parenthesisClosed == parenthesisOpened
-                    end = true
+        while line > 0
+            lineText = editor.lineTextForBufferRow(line)
 
-                idx += 1
+            if line != position.row
+                i = (lineText.length - 1)
 
-        if text
-            text = text.substr(text.length - idx + 1, text.length).trim()
-        else
-            text = ""
+            else
+                i = position.column - 1
 
-        return @parseStackClass(text)
+            while i >= 0
+                if lineText[i] == '('
+                    ++parenthesesOpened
+
+                    # Ticket #164 - We're walking backwards, if we find an opening paranthesis that hasn't been closed
+                    # anywhere, we know we must stop.
+                    if parenthesesOpened > parenthesesClosed
+                        ++i
+                        finished = true
+                        break
+
+                else if lineText[i] == ')'
+                    ++parenthesesClosed
+
+                else if lineText[i] == '{'
+                    ++squiggleBracketsOpened
+
+                    # Same as above.
+                    if squiggleBracketsOpened > squiggleBracketsClosed
+                        ++i
+                        finished = true
+                        break
+
+                else if lineText[i] == '}'
+                    ++squiggleBracketsClosed
+
+                # These will not be the same if, for example, we've entered a closure.
+                else if parenthesesOpened == parenthesesClosed and squiggleBracketsOpened == squiggleBracketsClosed
+                    # Variable definition.
+                    if lineText[i] == '$'
+                        finished = true
+                        break
+
+                    else if lineText[i] == ';' or lineText[i] == '='
+                        ++i
+                        finished = true
+                        break
+
+                    else
+                        scopeDescriptor = editor.scopeDescriptorForBufferPosition([line, i]).getScopeChain()
+
+                        # Language constructs, such as echo and print, don't require parantheses.
+                        if scopeDescriptor.indexOf('.function.construct') > 0 or scopeDescriptor.indexOf('.comment') > 0
+                            ++i
+                            finished = true
+                            break
+
+                --i
+
+            if finished
+                break
+
+            --line
+
+        # Fetch everything we ran through up until the location we started from.
+        textSlice = editor.getTextInBufferRange([[line, i], position]).trim()
+
+        return @parseStackClass(textSlice)
 
     ###*
      * Removes content inside parantheses (including nested parantheses).
