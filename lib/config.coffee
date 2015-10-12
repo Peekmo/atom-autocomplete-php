@@ -65,7 +65,7 @@ module.exports =
             return false
 
         # Test Composer.
-        testResult = exec.spawnSync(@config.composer, ["--version"])
+        testResult = exec.spawnSync(@config.php, [@config.composer, "--version"])
 
         if testResult.status = null or testResult.status != 0
             atom.notifications.addError(errorTitle, {'detail': errorMessage})
