@@ -57,6 +57,8 @@ class FunctionProvider extends AbstractProvider
         rows = text.split('\n')
         @annotationSubAtoms[editor.getLongTitle()] = new SubAtom
 
+        textEditorElement = atom.views.getView(editor)
+
         for rowNum,row of rows
             regex = /(\s*(?:public|protected|private)\s+function\s+)(\w+)\s*\(/g
 
@@ -94,7 +96,6 @@ class FunctionProvider extends AbstractProvider
                     @annotationMarkers[editor.getLongTitle()].push(marker)
 
                     # Add tooltips and click handlers to the annotations.
-                    textEditorElement = atom.views.getView(editor)
                     gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
 
                     do (gutterContainerElement, methodName, value, editor) =>
@@ -126,14 +127,20 @@ class FunctionProvider extends AbstractProvider
                                 searchAllPanes : true
                             })
 
-                        # Ticket #107 - Mouseout isn't generated until the mouse moves, even when scrolling (with the keyboard or
-                        # mouse). If the element goes out of the view in the meantime, its HTML element disappears, never removing
-                        # it.
-                        @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
-                            @removePopover()
+        # Ticket #107 - Mouseout isn't generated until the mouse moves, even when scrolling (with the keyboard or
+        # mouse). If the element goes out of the view in the meantime, its HTML element disappears, never removing
+        # it.
+        editor.onDidDestroy () =>
+            @removePopover()
 
-                        @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
-                            @removePopover()
+        editor.onDidStopChanging () =>
+            @removePopover()
+
+        @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
+            @removePopover()
+
+        @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
+            @removePopover()
 
     ###*
      * Removes the popover, if it is displayed.
