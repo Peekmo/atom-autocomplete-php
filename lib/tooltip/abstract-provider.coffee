@@ -79,6 +79,15 @@ class AbstractProvider
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
                 @removePopover()
 
+            # Ticket #107 - Mouseout isn't generated until the mouse moves, even when scrolling (with the keyboard or
+            # mouse). If the element goes out of the view in the meantime, its HTML element disappears, never removing
+            # it.
+            @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
+                @removePopover()
+
+            @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
+                @removePopover()
+
     ###*
      * Shows a popover containing the documentation of the specified element located at the specified location.
      *
