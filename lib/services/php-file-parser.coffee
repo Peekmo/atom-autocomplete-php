@@ -538,7 +538,7 @@ module.exports =
                 if null != matches
                     return @getFullClassName(editor, matches[1])
 
-            # We've reached the function definition, check for type hints and/or the docblock.
+            # We've reached the function definition, other variables don't apply to this scope.
             if chain.indexOf("function") != -1
                 break
 
