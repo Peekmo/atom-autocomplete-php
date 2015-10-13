@@ -1,7 +1,5 @@
 {TextEditor} = require 'atom'
 
-SubAtom = require 'sub-atom'
-
 module.exports =
 
 class AbstractProvider
