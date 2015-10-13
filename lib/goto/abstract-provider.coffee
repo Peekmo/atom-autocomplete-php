@@ -201,24 +201,6 @@ class AbstractProvider
     getJumpToRegex: (term) ->
 
     ###*
-     * Jumps to a word within the editor.
-     *
-     * @param {TextEditor} editor The editor that has the function in.
-     * @param {string} word       The word to find and then jump to.
-     *
-     * @example Invoking it on MyMethod::foo()->bar() will ask what class 'bar' is invoked on, which will whatever type
-     *          foo returns.
-    ###
-    getCalledClass: (editor, term, bufferPosition) ->
-        proxy = require '../services/php-proxy.coffee'
-        fullCall = @parser.getStackClasses(editor, bufferPosition)
-
-        if fullCall?.length == 0 or !term
-          return
-
-        return @parser.parseElements(editor, bufferPosition, fullCall)
-
-    ###*
      * Jumps to a word within the editor
      * @param  {TextEditor} editor The editor that has the function in.
      * @param  {string} word       The word to find and then jump to.

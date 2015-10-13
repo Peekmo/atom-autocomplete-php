@@ -42,7 +42,7 @@ class AbstractProvider
                         @registerEvents paneItem
 
     ###*
-     * Deactives the goto feature.
+     * Deactives the provider.
     ###
     deactivate: () ->
         document.removeChild(@popover)
@@ -82,6 +82,12 @@ class AbstractProvider
             # Ticket #107 - Mouseout isn't generated until the mouse moves, even when scrolling (with the keyboard or
             # mouse). If the element goes out of the view in the meantime, its HTML element disappears, never removing
             # it.
+            editor.onDidDestroy () =>
+                @removePopover()
+
+            editor.onDidStopChanging () =>
+                @removePopover()
+
             @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
                 @removePopover()
 
