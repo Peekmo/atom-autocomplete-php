@@ -12,7 +12,7 @@ class AbstractProvider
 
         atom.workspace.observeTextEditors (editor) =>
             editor.onDidSave (event) =>
-                @rescanAnnotations(editor)
+                @rescan(editor)
 
             @registerAnnotations editor
             @registerEvents editor
