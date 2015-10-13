@@ -42,7 +42,7 @@ class AbstractProvider
                         @registerEvents paneItem
 
     ###*
-     * Deactives the goto feature.
+     * Deactives the provider.
     ###
     deactivate: () ->
         document.removeChild(@popover)

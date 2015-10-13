@@ -6,6 +6,7 @@ VariableProvider = require "./providers/variable-provider.coffee"
 
 GotoManager = require "./goto/goto-manager.coffee"
 TooltipManager = require "./tooltip/tooltip-manager.coffee"
+AnnotationManager = require "./annotation/annotation-manager.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
@@ -59,6 +60,9 @@ module.exports =
         @tooltipManager = new TooltipManager()
         @tooltipManager.init()
 
+        @annotationManager = new AnnotationManager()
+        @annotationManager.init()
+
         proxy.init()
 
     deactivate: ->
@@ -66,6 +70,7 @@ module.exports =
 
         @gotoManager.deactivate()
         @tooltipManager.deactivate()
+        @annotationManager.deactivate()
 
     registerProviders: ->
         @providers.push new ConstantProvider()
