@@ -1,5 +1,4 @@
 fuzzaldrin = require 'fuzzaldrin'
-minimatch = require 'minimatch'
 exec = require "child_process"
 
 proxy = require "../services/php-proxy.coffee"

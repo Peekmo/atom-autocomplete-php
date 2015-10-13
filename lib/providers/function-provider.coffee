@@ -1,5 +1,4 @@
 fuzzaldrin = require 'fuzzaldrin'
-minimatch = require 'minimatch'
 
 proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
