@@ -455,7 +455,7 @@ module.exports =
         lineNumber = bufferPosition.row - 1
 
         while lineNumber > 0
-            line = editor.getTextInBufferRange([[lineNumber, 0], bufferPosition])
+            line = editor.lineTextForBufferRow(lineNumber)
 
             if not bestMatch
                 # Check for $x = new XXXXX()
@@ -491,6 +491,26 @@ module.exports =
                     bestMatchRow = lineNumber
                     bestMatch = @parseElements(editor, newPosition, elements)
 
+            if not bestMatch
+                # Check for function or closure parameter type hints and the docblock.
+                regexFunction = new RegExp("function(?:[\\s]+([a-zA-Z]+))?[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$\\\\,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
+                matches = regexFunction.exec(line)
+
+                if null != matches
+                    typeHint = matches[2]
+
+                    if typeHint.length > 0
+                        return @getFullClassName(editor, typeHint)
+
+                    funcName = matches[1]
+
+                    # Can be empty for closures.
+                    if funcName.length > 0
+                        params = proxy.docParams(@getFullClassName(editor), func)
+
+                        if params.params? and params.params[element]?
+                            return @getFullClassName(editor, params.params[element])
+
             chain = editor.scopeDescriptorForBufferPosition([lineNumber, line.length]).getScopeChain()
 
             # Annotations in comments can optionally override the variable type.
@@ -519,25 +539,7 @@ module.exports =
                     return @getFullClassName(editor, matches[1])
 
             # We've reached the function definition, check for type hints and/or the docblock.
-            if not bestMatch and chain.indexOf("function") != -1
-                regexFunction = new RegExp("function[\\s]+([a-zA-Z]+)[\\s]*[\\(](?:(?![a-zA-Z\\_\\\\]*[\\s]*\\#{element}).)*[,\\s]?([a-zA-Z\\_\\\\]*)[\\s]*\\#{element}[a-zA-Z0-9\\s\\$,=\\\"\\\'\(\)]*[\\s]*[\\)]", "g")
-                matches = regexFunction.exec(line)
-
-                if null == matches
-                    return null
-
-                func = matches[1]
-                value = matches[2]
-
-                # If we have a type hint
-                if value != ""
-                    return @getFullClassName(editor, value)
-
-                # otherwise, we are parsing PHPdoc (@param)
-                params = proxy.docParams(@getFullClassName(editor), func)
-                if params.params? and params.params[element]?
-                    return @getFullClassName(editor, params.params[element])
-
+            if chain.indexOf("function") != -1
                 break
 
             --lineNumber
