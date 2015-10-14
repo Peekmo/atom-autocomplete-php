@@ -1,125 +1,54 @@
-# atom-autocomplete-php package
+# atom-autocomplete-php
 
 [![Join the chat at https://gitter.im/Peekmo/atom-autocomplete-php](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Peekmo/atom-autocomplete-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-# What is done ?
+atom-autocomplete-php provides autocompletion for the PHP language for projects that use Composer for dependency management. What cool things can you expect?
+  * Autocompletion of class members, built-in constants, built-in PHP functions, ...
+  * Autocompletion of class names and automatic adding of `use` statements where needed.
+  * Alt-clicking class members, class names, etc. to navigate to their definition.
+  * Annotations in the gutter for methods that are overrides or interface implementations.
+  * Tooltips for methods, classes, etc. that display information about the item itself.
+  * IntellJ-style variable annotations `/** @var MyType $var */` as well as `/** @var $var MyType */`.
+  * Shortcut variable annotations (must appear right above the respective variable) `/** @var MyType */`.
+  * ...
 
-This plugin provide those amazing features :
-- Autocompletion on class names with use auto added
-- Autocompletion on class properties and methods. If your PHP doc is right, you should have autocompletion on X levels (e.g : $this->doctrine->getRepo...)
-- Autocompletion on variable in function (not work always, see **autocompletion** section for more informations)
-- Local function variables autocompletion
-- Writing namespace in top of the file (ctrl - alt - n)
-- Autocompletion on PHP internal functions
-- Autocompletion on ```self::``` and ```Class::``` (statics)
-- Goto with ```ctrl-alt-g``` on the method. Get back with ```ctrl-shift-z```. ```alt-click``` should work on Linux at least
+## What do I need to do to make it work?
+Currently the following limitations or restrictions are present:
+  * You must use [Composer](https://getcomposer.org/) for dependency management.
+  * You must follow the PSR standards (for the names of classes, methods, namespacing, etc.).
+  * You must write proper docblocks for your methods. There currently is no standard around this, but we try to follow the draft PSR-5 standard (which, in turn, is mostly inspired by phpDocumentor's implementation). Minimum requirements for proper autocompletion:
+    * `@return` statements for functions and methods.
+    * `@param` statements for functions and methods.
+    * `@var` statements for properties in classes.
+    * (Type hints in functions and methods will also be checked.)
+  
+Some features may or may not work outside these restrictions. Composer is primarily used for its classmap, to fetch a list of classes that are present in your codebase. Reflection is used to fetch information about classes.
 
-# How to make it works ?
+The package also requires a one time setup, To configure the plugin, click on "package" in your preferences, and select "settings" on atom-autocomplete-php plugin.
 
-Secondly, only the PHP projects that use [composer](https://getcomposer.org/) to manage their autoload and dependencies are fully supported. In fact, to give you the autocompletion, the plugin use composer's classmap. So only a project with composer will have all the features. (Some are available without, but not the most interesting ;)
-
-Finally, your project must follow the PSR norm, some weird things could happen otherwise.
-
-# Settings
-
-(note : For windows example check the section "Windows settings")
-To configure the plugin, click on "package" in your preferences, and select "settings" on atom-autocomplete-php plugin.
-
-![Configuration](http://i.imgur.com/LYBcaHE.png)
-
-# Options :
-- **Command to use composer** : it's highly recommended to write here the full path to your composer.phar bin. E.G on unix systems, it could be /usr/local/bin/composer. Using an alias is not recommended at all !
+- **Command to use composer** : it's highly recommended to write here the full path to your composer.phar bin. E.G on unix systems, it could be /usr/local/bin/composer. Using an alias is not recommended at all!
 - **Command php** : Command to execute PHP cli in your console. (php by default on unix systems). If it doesn't work, put here the full path to your PHP bin.
 - **Autoload file** : Write here, a coma separated list of all the different path to the autoload files. By default, it's "vendor/autoload.php" for composer projects ;)
 - **Classmap files** : All paths to PHP files that returns an array of "className" => "fullPath to the file where the class is located". The default one for composer is vendor/composer/autoload_classmap.php
 
 You can test your configuration by using a command (cmd - shift - p) : ```Atom Autocomplete Php : Configuration```
 
-# Autocompletion
+### Linux
+![Configuration](http://i.imgur.com/LYBcaHE.png)
+&nbsp;
 
-### The rules
-To have a nice autocompletion, the plugin parse the PHPDoc of your files. So, nicer is your doc, nicer will be the completion.
-
-The rules :
-- On class properties, the **@var** is parsed
-```php
-/**
- * @var ReportPdf
- */
-private $reportPdf;
-```
-
-- On methods, the **@param** and **@return** is parsed
-```php
-/**
- * MyDoc
- *
- * @param  Report $report
- *
- * @return Report
- */
-public function generate(Report $report)
-```
-
-- In the code, if you don't have autocompletion, you can had a comment **just before the line** with a **@var** definition
-```php
-/** @var Report */
-$report = parent::getReport();
-$report->{autocompletion}
-```
-
-Note : For all those patterns, you'll have to add the use to the class on top of the file, or you can put the full namespace instead of just the class name
-
-### On what does it works ?
-
-- variables with hint in function parameters (eg : $report below)
-```
-public function generate(Report $report)
-```
-- on **$this->**
-- on variables that are documented with @var in the code or @param in function declaration
-- if you assigned the value of a variable with one of the previous things, it will work too :
-- on variables setted with "new X()"
-
-```php
-$x = $this->getRequest();
-$x->{autocompletion}
-
-$x = new DateTime();
-$x->{autocompletion}
-```
-
-### So, what will not work ?
-
-For the moment, everything else does not work e.g :
-```php
-$x = self::getId();
-$x->{fail}
-```
-
-The solution ? If you really need it, use the annotation **var**
-```php
-/** @var MyIdClass */
-$x = self::getId();
-$x->{YEAAAAH}
-```
-
-Note : The multiline autocompletion **works**
-```php
-$this
-    ->getRequest()
-    ->session
-    ->{yeaaaah}
-;
-```
-
-# Windows settings
-An example of settings for windows with PHP installed with WAMP and Composer installed with ComposerSetup
+### Windows (WAMP and ComposerSetup)
 ![Settings](http://i.imgur.com/hY5ypG2.png)
+&nbsp;
 
-# Next
+## What Does Not Work?
+  * Most of the issue reports indicate things that are missing, but autocompletion should be working fairly well in general.
+  
+### Won't Fix (For Now)
+  * "Go to definition" will take you to the incorrect location if a class is using a method with the exact same name as one in its own direct traits. You will be taken to the trait method instead of the class method (the latter should take precedence). See also issue #177.
+  * `static` and `self` behave mostly like `$this` and can access non-static methods when used in non-static contexts. See also issue #101.
 
-Keep in mind that this plugin is under active development. If you find a bug, please, open an issue with the more possible informations on how to produce the bug.
-Feel free to contribute ;)
+## What's Next & Contributing
+Keep in mind that this plugin is under active development. If you find a bug, please, open an issue with more information on how to reproduce. Feel free to contribute ;)
 
 ![A screenshot of your spankin' package](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
