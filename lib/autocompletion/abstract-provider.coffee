@@ -11,8 +11,15 @@ class AbstractProvider
 
     disableForSelector: '.source.php .comment, .source.php .string'
 
-    # Only in function scope
-    functionOnly: false
+    ###*
+     * Initializes this provider.
+    ###
+    init: () ->
+
+    ###*
+     * Deactives the provider.
+    ###
+    deactivate: () ->
 
     ###*
      * Entry point of all request from autocomplete-plus
@@ -20,8 +27,6 @@ class AbstractProvider
      * @return array Suggestions
     ###
     getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
-        return if @functionOnly == true and not parser.isInFunction(editor, bufferPosition)
-
         return @fetchSuggestions({editor, bufferPosition, scopeDescriptor, prefix})
 
     ###*

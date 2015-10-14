@@ -1,12 +1,7 @@
-ClassProvider = require "./providers/class-provider.coffee"
-MemberProvider = require "./providers/member-provider.coffee"
-ConstantProvider = require "./providers/constant-provider.coffee"
-FunctionProvider = require "./providers/function-provider.coffee"
-VariableProvider = require "./providers/variable-provider.coffee"
-
 GotoManager = require "./goto/goto-manager.coffee"
 TooltipManager = require "./tooltip/tooltip-manager.coffee"
 AnnotationManager = require "./annotation/annotation-manager.coffee"
+AutocompletionManager = require "./autocompletion/autocompletion-manager.coffee"
 
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
@@ -46,13 +41,13 @@ module.exports =
             default: ['vendor/composer/autoload_classmap.php', 'autoload/ezp_kernel.php']
             order: 4
 
-    providers: []
-
     activate: ->
-        # if not config.testConfig()
-        #   return
+        return unless config.testConfig()
+
         config.init()
-        @registerProviders()
+
+        @autocompletionManager = new AutocompletionManager()
+        @autocompletionManager.init()
 
         @gotoManager = new GotoManager()
         @gotoManager.init()
@@ -66,27 +61,10 @@ module.exports =
         proxy.init()
 
     deactivate: ->
-        @providers = []
-
         @gotoManager.deactivate()
         @tooltipManager.deactivate()
         @annotationManager.deactivate()
-
-    registerProviders: ->
-        @providers.push new ConstantProvider()
-        @providers.push new VariableProvider()
-        @providers.push new FunctionProvider()
-
-        try
-            proxy.composer()
-        catch err
-            console.log "No composer"
-            #return false
-
-        @providers.push new ClassProvider()
-        @providers.push new MemberProvider()
-
-        #return true
+        @autocompletionManager.deactivate()
 
     getProvider: ->
-        @providers
+        return @autocompletionManager.getProviders()
