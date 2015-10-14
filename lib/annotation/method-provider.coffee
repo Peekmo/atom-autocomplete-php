@@ -100,6 +100,8 @@ class FunctionProvider extends AbstractProvider
                             else
                                 tooltipText += 'Implements method for ' + value.implementation.declaringClass.name
 
+                            @removePopover()
+                            
                             @attachedPopover = new AttachedPopover(event.target)
                             @attachedPopover.setText(tooltipText)
                             @attachedPopover.show()
