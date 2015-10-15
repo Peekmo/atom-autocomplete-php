@@ -42,7 +42,8 @@ module.exports =
             order: 4
 
     activate: ->
-        return unless config.testConfig()
+        # See also pull request #197 - Disabled for now because it does not allow the user to reactivate or try again.
+        # return unless config.testConfig()
 
         config.init()
 
