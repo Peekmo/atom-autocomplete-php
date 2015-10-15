@@ -68,11 +68,15 @@ module.exports =
         testResult = exec.spawnSync(@config.php, [@config.composer, "--version"])
 
         if testResult.status = null or testResult.status != 0
-            atom.notifications.addError(errorTitle, {'detail': errorMessage})
-            return false
-        else if interactive
+            testResult = exec.spawnSync(@config.composer, ["--version"])
+
+            # Try executing Composer directly.
+            if testResult.status = null or testResult.status != 0
+                atom.notifications.addError(errorTitle, {'detail': errorMessage})
+                return false
+
+        if interactive
             atom.notifications.addSuccess('atom-autocomplete-php - Success', {'detail': 'Configuration OK !'})
-            return false
 
         return true
 

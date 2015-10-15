@@ -109,23 +109,24 @@ class ClassProvider extends AbstractProvider
         return unless suggestion.data?.kind
 
         if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
-            added = parser.addUseClass(editor, suggestion.text)
+            editor.transact () =>
+                added = parser.addUseClass(editor, suggestion.text)
 
-            # Removes namespace from classname
-            if added?
-                name = suggestion.text
-                splits = name.split('\\')
+                # Removes namespace from classname
+                if added?
+                    name = suggestion.text
+                    splits = name.split('\\')
 
-                nameLength = splits[splits.length-1].length
-                wordStart = triggerPosition.column - suggestion.data.prefix.length
-                lineStart = if added == "added" then triggerPosition.row + 1 else triggerPosition.row
+                    nameLength = splits[splits.length-1].length
+                    wordStart = triggerPosition.column - suggestion.data.prefix.length
+                    lineStart = if added == "added" then triggerPosition.row + 1 else triggerPosition.row
 
-                if suggestion.data.kind == 'instantiation'
-                    lineEnd = wordStart + name.length - nameLength - splits.length + 1
-                else
-                    lineEnd = wordStart + name.length - nameLength
+                    if suggestion.data.kind == 'instantiation'
+                        lineEnd = wordStart + name.length - nameLength - splits.length + 1
+                    else
+                        lineEnd = wordStart + name.length - nameLength
 
-                editor.setTextInBufferRange([
-                    [lineStart, wordStart],
-                    [lineStart, lineEnd] # Because when selected there's not \ (why?)
-                ], "")
+                    editor.setTextInBufferRange([
+                        [lineStart, wordStart],
+                        [lineStart, lineEnd] # Because when selected there's not \ (why?)
+                    ], "")

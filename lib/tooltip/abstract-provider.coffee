@@ -74,6 +74,7 @@ class AbstractProvider
                 if editorViewComponent
                     cursorPosition = editorViewComponent.screenPositionForMouseEvent(event)
 
+                    @removePopover()
                     @showPopoverFor(editor, selector, cursorPosition)
 
             @subAtom.add scrollViewElement, 'mouseout', @hoverEventSelectors, (event) =>
