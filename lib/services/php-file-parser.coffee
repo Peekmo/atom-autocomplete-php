@@ -209,21 +209,22 @@ module.exports =
                     #if lastUse and score < @scoreClassName(lastUse, matches[1])
                     #    bestScore = 0 # Don't try to squeeze in between good pairs.
 
-                    if score >= bestScore and (not lastUse or score > @scoreClassName(lastUse, matches[1]))
-                        bestUse = i
-                        bestScore = score
-                        placeBelow = if className.length >= matches[1].length then true else false
+                    if score >= bestScore
+                        #if not lastUse or score > @scoreClassName(lastUse, matches[1])
+                        if true
+                            bestUse = i
+                            bestScore = score
 
+                            if @shareCommonNamespacePrefix(className, matches[1])
+                                doNewLine = false
+                                placeBelow = if className.length >= matches[1].length then true else false
 
+                            else
+                                doNewLine = true
+                                placeBelow = true
 
+                        #else
 
-                        firstClassNameParts = className.split('\\')
-                        secondClassNameParts = matches[1].split('\\')
-
-                        firstClassNameParts.pop()
-                        secondClassNameParts.pop()
-
-                        doNewLine = if firstClassNameParts.join('\\') == secondClassNameParts.join('\\') then false else true
 
                     lastUse = matches[1]
 
@@ -232,6 +233,16 @@ module.exports =
 
         return null
 
+
+
+    shareCommonNamespacePrefix: (firstClassName, secondClassName) ->
+        firstClassNameParts = firstClassName.split('\\')
+        secondClassNameParts = secondClassName.split('\\')
+
+        firstClassNameParts.pop()
+        secondClassNameParts.pop()
+
+        return if firstClassNameParts.join('\\') == secondClassNameParts.join('\\') then true else false
 
 
 
@@ -256,16 +267,13 @@ module.exports =
             if firstClassNameParts[i] == secondClassNameParts[i]
                 totalScore += 2
 
-        firstClassNameParts.pop()
-        secondClassNameParts.pop()
-
-        if firstClassNameParts.length == secondClassNameParts.length
+        if @shareCommonNamespacePrefix(firstClassName, secondClassName)
             if firstClassName.length == secondClassName.length
                 totalScore += 2
 
             else
                 # Stick closer to items that are smaller in length than items that are larger in length.
-                totalScore -= 0.001 * (secondClassName.length - firstClassName.length)
+                totalScore -= 0.001 * Math.abs(secondClassName.length - firstClassName.length)
 
         return totalScore
 
