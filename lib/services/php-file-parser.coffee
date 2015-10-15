@@ -506,7 +506,7 @@ module.exports =
 
                     # Can be empty for closures.
                     if funcName.length > 0
-                        params = proxy.docParams(@getFullClassName(editor), func)
+                        params = proxy.docParams(@getFullClassName(editor), funcName)
 
                         if params.params? and params.params[element]?
                             return @getFullClassName(editor, params.params[element])
