@@ -2,6 +2,7 @@ proxy = require "../services/php-proxy.coffee"
 
 module.exports =
     structureStartRegex: /(?:abstract class|class|trait|interface)\s+(\w+)/
+    useStatementRegex: /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/
 
     # Simple cache to avoid duplicate computation for each providers
     cache: []
@@ -147,17 +148,15 @@ module.exports =
      * @param {TextEditor} editor    Atom text editor.
      * @param {string}     className Name of the class to add.
      *
-     * @return {int|null}  Null if nothing was done, otherwise the amount of lines added (including newlines), so you
-     *                     can reliably and easily offset your rows.
+     * @return {int}       The amount of lines added (including newlines), so you can reliably and easily offset your
+     *                     rows. This could be zero if a use statement was already present.
     ###
     addUseClass: (editor, className) ->
-        if className.split('\\').length == 1 || className.indexOf('\\') == 0
+        if className.split('\\').length == 1 or className.indexOf('\\') == 0
             return null
 
-        i = 0
         bestUse = 0
         bestScore = 0
-        lastUse = null
         placeBelow = true
         doNewLine = true
         lineCount = editor.getLineCount()
@@ -166,82 +165,76 @@ module.exports =
         # TODO: There should be a config option that passes a flag to this method to NEVER add extra newlines
         # (doNewLine) as some people like it concise. For others, the new heuristic won't matter mutch as they are used
         # to having it dumped at the end. At least now it will end up in a slightly more related location.
-        # TODO: Needs a load of refactoring, but commit and push first so we can revert if we break things.
-        # TODO: Seems like I broke replacing the full class name with its short name somehow.
 
+
+        # Determine an appropriate location to place the use statement.
         for i in [0 .. lineCount - 1]
             line = editor.lineTextForBufferRow(i).trim()
 
-            if line.length = 0
+            if line.length == 0
                 continue
 
-            else if editor.scopeDescriptorForBufferPosition([i, line.length]).getScopeChain().indexOf('.comment') >= 0
+            scopeDescriptor = editor.scopeDescriptorForBufferPosition([i, line.length]).getScopeChain()
+
+            if scopeDescriptor.indexOf('.comment') >= 0
                 continue
 
             if line.match(@structureStartRegex)
-                lineToInsertAt = bestUse + (if placeBelow then 1 else 0)
+                break
 
-                newLineCount = 1
-                textToInsert = ''
-
-                if doNewLine and placeBelow
-                    textToInsert += "\n"
-                    ++newLineCount
-
-                textToInsert += "use #{className};\n"
-
-                if doNewLine and not placeBelow
-                    textToInsert += "\n"
-                    ++newLineCount
-
-                editor.setTextInBufferRange([[lineToInsertAt, 0], [lineToInsertAt, 0]], textToInsert)
-                return newLineCount
-
-            if line.indexOf('namespace ') == 0
+            if line.indexOf('namespace ') >= 0
                 bestUse = i
 
-            # Use keyword
-            if line.indexOf('use ') == 0
-                useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
-                matches = useRegex.exec(line)
+            matches = @useStatementRegex.exec(line)
 
-                # just one use
-                if matches? and matches[1]?
-                    if matches[1] == className
-                        return null
+            if matches? and matches[1]?
+                if matches[1] == className
+                    return 0
 
-                    score = @scoreClassName(className, matches[1])
+                score = @scoreClassName(className, matches[1])
 
-                    #if lastUse and score < @scoreClassName(lastUse, matches[1])
-                    #    bestScore = 0 # Don't try to squeeze in between good pairs.
+                if score >= bestScore
+                    bestUse = i
+                    bestScore = score
 
-                    if score >= bestScore
-                        #if not lastUse or score > @scoreClassName(lastUse, matches[1])
-                        if true
-                            bestUse = i
-                            bestScore = score
+                    if @doShareCommonNamespacePrefix(className, matches[1])
+                        doNewLine = false
+                        placeBelow = if className.length >= matches[1].length then true else false
 
-                            if @shareCommonNamespacePrefix(className, matches[1])
-                                doNewLine = false
-                                placeBelow = if className.length >= matches[1].length then true else false
+                    else
+                        doNewLine = true
+                        placeBelow = true
 
-                            else
-                                doNewLine = true
-                                placeBelow = true
+        # Insert the use statement itself.
+        lineEnding = editor.getBuffer().lineEndingForRow(0)
 
-                        #else
+        if not lineEnding
+            lineEnding = "\n"
 
+        textToInsert = ''
 
-                    lastUse = matches[1]
+        if doNewLine and placeBelow
+            textToInsert += lineEnding
 
-            else
-                lastUse = null
+        textToInsert += "use #{className};" + lineEnding
 
-        return null
+        if doNewLine and not placeBelow
+            textToInsert += lineEnding
 
+        lineToInsertAt = bestUse + (if placeBelow then 1 else 0)
+        editor.setTextInBufferRange([[lineToInsertAt, 0], [lineToInsertAt, 0]], textToInsert)
 
+        return (1 + (if doNewLine then 1 else 0))
 
-    shareCommonNamespacePrefix: (firstClassName, secondClassName) ->
+    ###*
+     * Returns a boolean indicating if the specified class names share a common namespace prefix.
+     *
+     * @param {string} firstClassName
+     * @param {string} secondClassName
+     *
+     * @return {boolean}
+    ###
+    doShareCommonNamespacePrefix: (firstClassName, secondClassName) ->
         firstClassNameParts = firstClassName.split('\\')
         secondClassNameParts = secondClassName.split('\\')
 
@@ -251,10 +244,16 @@ module.exports =
         return if firstClassNameParts.join('\\') == secondClassNameParts.join('\\') then true else false
 
 
-
+    ###*
+     * Scores the first class name against the second, indicating how much they 'match' each other. This can be used
+     * to e.g. find an appropriate location to place a class in an existing list of classes.
+     *
+     * @param {string} firstClassName
+     * @param {string} secondClassName
+     *
+     * @return {float}
+    ###
     scoreClassName: (firstClassName, secondClassName) ->
-        #fuzzaldrin = require 'fuzzaldrin'
-
         firstClassNameParts = firstClassName.split('\\')
         secondClassNameParts = secondClassName.split('\\')
 
@@ -273,7 +272,7 @@ module.exports =
             if firstClassNameParts[i] == secondClassNameParts[i]
                 totalScore += 2
 
-        if @shareCommonNamespacePrefix(firstClassName, secondClassName)
+        if @doShareCommonNamespacePrefix(firstClassName, secondClassName)
             if firstClassName.length == secondClassName.length
                 totalScore += 2
 
@@ -282,10 +281,6 @@ module.exports =
                 totalScore -= 0.001 * Math.abs(secondClassName.length - firstClassName.length)
 
         return totalScore
-
-
-
-
 
     ###*
      * Checks if the given name is a class or not
