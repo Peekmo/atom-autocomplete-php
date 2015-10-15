@@ -166,13 +166,21 @@ module.exports =
         lineCount = editor.getLineCount()
 
 
-        # TODO: This should probably skip comments.
+        # TODO: There should be a config option that passes a flag to this method to NEVER add extra newlines
+        # (doNewLine) as some people like it concise. For others, the new heuristic won't matter mutch as they are used
+        # to having it dumped at the end. At least now it will end up in a slightly more related location.
         # TODO: This should probably also stop on trait, interface, ...
         # TODO: Needs a load of refactoring, but commit and push first so we can revert if we break things.
 
 
         for i in [0 .. lineCount - 1]
             line = editor.lineTextForBufferRow(i).trim()
+
+            if line.length = 0
+                continue
+
+            else if editor.scopeDescriptorForBufferPosition([i, line.length]).getScopeChain().indexOf('.comment') >= 0
+                continue
 
             # If we found class keyword, we are not in namespace space, so return
             if line.indexOf('class ') != -1
