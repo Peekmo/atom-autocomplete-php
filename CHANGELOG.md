@@ -1,3 +1,10 @@
+## 0.14.0
+* Support configuration checking on Windows
+* Lot of code refactoring (many bug resolved, but perhaps some new :()
+* Tooltips on classes, interfaces
+* Constants provider
+* Autocomplete from type hints in closures
+
 ## 0.13.0
 * Custom tooltip management (does not rely on atom's one anymore)
 
