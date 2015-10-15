@@ -154,28 +154,48 @@ module.exports =
      * @param {string}     className Name of the class to add
     ###
     addUseClass: (editor, className) ->
-        text = editor.getText()
-        lastUse = 0
-        index = 0
-
-        splits = className.split('\\')
-        if splits.length == 1 || className.indexOf('\\') == 0
+        if className.split('\\').length == 1 || className.indexOf('\\') == 0
             return null
 
-        lines = text.split('\n')
-        for line in lines
-            line = line.trim()
+        i = 0
+        bestUse = 0
+        bestScore = 0
+        lastUse = null
+        placeBelow = true
+        doNewLine = true
+        lineCount = editor.getLineCount()
+
+
+        # TODO: This should probably skip comments.
+        # TODO: This should probably also stop on trait, interface, ...
+        # TODO: Needs a load of refactoring, but commit and push first so we can revert if we break things.
+
+
+        for i in [0 .. lineCount - 1]
+            line = editor.lineTextForBufferRow(i).trim()
 
             # If we found class keyword, we are not in namespace space, so return
             if line.indexOf('class ') != -1
-                editor.setTextInBufferRange([[lastUse+1,0], [lastUse+1, 0]], "use #{className};\n")
+                lineToInsertAt = bestUse + (if placeBelow then 1 else 0)
+
+                textToInsert = ''
+
+                if doNewLine and placeBelow
+                    textToInsert += "\n"
+
+                textToInsert += "use #{className};\n"
+
+                if doNewLine and not placeBelow
+                    textToInsert += "\n"
+
+                editor.setTextInBufferRange([[lineToInsertAt, 0], [lineToInsertAt, 0]], textToInsert)
                 return 'added'
 
             if line.indexOf('namespace ') == 0
-                lastUse = index
+                bestUse = i
 
             # Use keyword
-            if line.indexOf('use') == 0
+            if line.indexOf('use ') == 0
                 useRegex = /(?:use)(?:[^\w\\])([\w\\]+)(?![\w\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/g
                 matches = useRegex.exec(line)
 
@@ -183,12 +203,75 @@ module.exports =
                 if matches? and matches[1]?
                     if matches[1] == className
                         return 'exists'
-                    else
-                        lastUse = index
 
-            index += 1
+                    score = @scoreClassName(className, matches[1])
+
+                    #if lastUse and score < @scoreClassName(lastUse, matches[1])
+                    #    bestScore = 0 # Don't try to squeeze in between good pairs.
+
+                    if score >= bestScore and (not lastUse or score > @scoreClassName(lastUse, matches[1]))
+                        bestUse = i
+                        bestScore = score
+                        placeBelow = if className.length >= matches[1].length then true else false
+
+
+
+
+                        firstClassNameParts = className.split('\\')
+                        secondClassNameParts = matches[1].split('\\')
+
+                        firstClassNameParts.pop()
+                        secondClassNameParts.pop()
+
+                        doNewLine = if firstClassNameParts.join('\\') == secondClassNameParts.join('\\') then false else true
+
+                    lastUse = matches[1]
+
+            else
+                lastUse = null
 
         return null
+
+
+
+
+    scoreClassName: (firstClassName, secondClassName) ->
+        #fuzzaldrin = require 'fuzzaldrin'
+
+        firstClassNameParts = firstClassName.split('\\')
+        secondClassNameParts = secondClassName.split('\\')
+
+        maxLength = 0
+
+        if firstClassNameParts.length > secondClassNameParts.length
+            maxLength = secondClassNameParts.length
+
+        else
+            maxLength = firstClassNameParts.length
+
+        totalScore = 0
+
+        # NOTE: We don't score the last part.
+        for i in [0 .. maxLength - 1]
+            if firstClassNameParts[i] == secondClassNameParts[i]
+                totalScore += 2
+
+        firstClassNameParts.pop()
+        secondClassNameParts.pop()
+
+        if firstClassNameParts.length == secondClassNameParts.length
+            if firstClassName.length == secondClassName.length
+                totalScore += 2
+
+            else
+                # Stick closer to items that are smaller in length than items that are larger in length.
+                totalScore -= 0.001 * (secondClassName.length - firstClassName.length)
+
+        return totalScore
+
+
+
+
 
     ###*
      * Checks if the given name is a class or not
