@@ -110,23 +110,24 @@ class ClassProvider extends AbstractProvider
 
         if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
             editor.transact () =>
-                added = parser.addUseClass(editor, suggestion.text)
+                linesAdded = parser.addUseClass(editor, suggestion.text)
 
                 # Removes namespace from classname
-                if added?
+                if linesAdded != null
                     name = suggestion.text
                     splits = name.split('\\')
 
                     nameLength = splits[splits.length-1].length
-                    wordStart = triggerPosition.column - suggestion.data.prefix.length
-                    lineStart = if added == "added" then triggerPosition.row + 1 else triggerPosition.row
+                    startColumn = triggerPosition.column - suggestion.data.prefix.length
+                    row = triggerPosition.row + linesAdded
 
                     if suggestion.data.kind == 'instantiation'
-                        lineEnd = wordStart + name.length - nameLength - splits.length + 1
+                        endColumn = startColumn + name.length - nameLength - splits.length + 1
+
                     else
-                        lineEnd = wordStart + name.length - nameLength
+                        endColumn = startColumn + name.length - nameLength
 
                     editor.setTextInBufferRange([
-                        [lineStart, wordStart],
-                        [lineStart, lineEnd] # Because when selected there's not \ (why?)
+                        [row, startColumn],
+                        [row, endColumn] # Because when selected there's not \ (why?)
                     ], "")

@@ -1,14 +1,7 @@
 proxy = require "../services/php-proxy.coffee"
 
-# PHP classes/traits declaration
-classDeclarations = [
-  'class ',
-  'abstract class ',
-  'trait '
-]
-
-namespaceDeclaration = 'namespace '
 module.exports =
+    structureStartRegex: /(?:abstract class|class|trait|interface)\s+(\w+)/
 
     # Simple cache to avoid duplicate computation for each providers
     cache: []
@@ -149,9 +142,13 @@ module.exports =
         return fullClass
 
     ###*
-     * Add the use for the given class if not already added
-     * @param {TextEditor} editor    Atom text editor
-     * @param {string}     className Name of the class to add
+     * Add the use for the given class if not already added.
+     *
+     * @param {TextEditor} editor    Atom text editor.
+     * @param {string}     className Name of the class to add.
+     *
+     * @return {int|null}  Null if nothing was done, otherwise the amount of lines added (including newlines), so you
+     *                     can reliably and easily offset your rows.
     ###
     addUseClass: (editor, className) ->
         if className.split('\\').length == 1 || className.indexOf('\\') == 0
@@ -169,9 +166,8 @@ module.exports =
         # TODO: There should be a config option that passes a flag to this method to NEVER add extra newlines
         # (doNewLine) as some people like it concise. For others, the new heuristic won't matter mutch as they are used
         # to having it dumped at the end. At least now it will end up in a slightly more related location.
-        # TODO: This should probably also stop on trait, interface, ...
         # TODO: Needs a load of refactoring, but commit and push first so we can revert if we break things.
-
+        # TODO: Seems like I broke replacing the full class name with its short name somehow.
 
         for i in [0 .. lineCount - 1]
             line = editor.lineTextForBufferRow(i).trim()
@@ -182,22 +178,24 @@ module.exports =
             else if editor.scopeDescriptorForBufferPosition([i, line.length]).getScopeChain().indexOf('.comment') >= 0
                 continue
 
-            # If we found class keyword, we are not in namespace space, so return
-            if line.indexOf('class ') != -1
+            if line.match(@structureStartRegex)
                 lineToInsertAt = bestUse + (if placeBelow then 1 else 0)
 
+                newLineCount = 1
                 textToInsert = ''
 
                 if doNewLine and placeBelow
                     textToInsert += "\n"
+                    ++newLineCount
 
                 textToInsert += "use #{className};\n"
 
                 if doNewLine and not placeBelow
                     textToInsert += "\n"
+                    ++newLineCount
 
                 editor.setTextInBufferRange([[lineToInsertAt, 0], [lineToInsertAt, 0]], textToInsert)
-                return 'added'
+                return newLineCount
 
             if line.indexOf('namespace ') == 0
                 bestUse = i
@@ -210,7 +208,7 @@ module.exports =
                 # just one use
                 if matches? and matches[1]?
                     if matches[1] == className
-                        return 'exists'
+                        return null
 
                     score = @scoreClassName(className, matches[1])
 
