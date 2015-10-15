@@ -1,6 +1,7 @@
 fuzzaldrin = require 'fuzzaldrin'
 exec = require "child_process"
 
+config = require "../config.coffee"
 proxy = require "../services/php-proxy.coffee"
 parser = require "../services/php-file-parser.coffee"
 AbstractProvider = require "./abstract-provider"
@@ -110,7 +111,7 @@ class ClassProvider extends AbstractProvider
 
         if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
             editor.transact () =>
-                linesAdded = parser.addUseClass(editor, suggestion.text)
+                linesAdded = parser.addUseClass(editor, suggestion.text, config.config.insertNewlinesForUseStatements)
 
                 # Removes namespace from classname
                 if linesAdded != null

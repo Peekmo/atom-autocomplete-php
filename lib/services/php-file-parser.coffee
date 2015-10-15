@@ -145,13 +145,15 @@ module.exports =
     ###*
      * Add the use for the given class if not already added.
      *
-     * @param {TextEditor} editor    Atom text editor.
-     * @param {string}     className Name of the class to add.
+     * @param {TextEditor} editor                  Atom text editor.
+     * @param {string}     className               Name of the class to add.
+     * @param {boolean}    allowAdditionalNewlines Whether to allow adding additional newlines to attempt to group use
+     *                                             statements.
      *
      * @return {int}       The amount of lines added (including newlines), so you can reliably and easily offset your
      *                     rows. This could be zero if a use statement was already present.
     ###
-    addUseClass: (editor, className) ->
+    addUseClass: (editor, className, allowAdditionalNewlines) ->
         if className.split('\\').length == 1 or className.indexOf('\\') == 0
             return null
 
@@ -160,12 +162,6 @@ module.exports =
         placeBelow = true
         doNewLine = true
         lineCount = editor.getLineCount()
-
-
-        # TODO: There should be a config option that passes a flag to this method to NEVER add extra newlines
-        # (doNewLine) as some people like it concise. For others, the new heuristic won't matter mutch as they are used
-        # to having it dumped at the end. At least now it will end up in a slightly more related location.
-
 
         # Determine an appropriate location to place the use statement.
         for i in [0 .. lineCount - 1]
@@ -207,6 +203,9 @@ module.exports =
 
         # Insert the use statement itself.
         lineEnding = editor.getBuffer().lineEndingForRow(0)
+
+        if not allowAdditionalNewlines
+            doNewLine = false
 
         if not lineEnding
             lineEnding = "\n"
