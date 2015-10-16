@@ -207,18 +207,7 @@ abstract class Tools
             'throws'        => $docParseResult['throws'],
             'return'        => $docParseResult['return'],
             'descriptions'  => $docParseResult['descriptions'],
-            'deprecated'    => $function->isDeprecated() || $docParseResult['deprecated'],
-
-
-
-
-
-
-
-
-
-
-            'tmp' => $docParseResult['tmp']
+            'deprecated'    => $function->isDeprecated() || $docParseResult['deprecated']
         );
     }
 
