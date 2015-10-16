@@ -87,13 +87,7 @@ class DocParser
             $tagValue = $this->normalizeNewlines($tagValue);
 
             // Remove the delimiters of the docblock itself at the start of each line, if any.
-            // $tagValue = preg_replace("/\n\\s+\\*\\s*/g", ' ', $tagValue);
-            // TODO: Reenable this regex and test multiline descriptions.
-
-
-
-            // TODO: Update docblocks.
-
+            $tagValue = preg_replace('/\n\s+\*\s*/', ' ', $tagValue);
 
             // Collapse multiple spaces, just like HTML does.
             $tagValue = preg_replace('/\s\s+/', ' ', $tagValue);
@@ -121,22 +115,18 @@ class DocParser
             );
         }
 
-
-
-
-        // TODO: Remove me.
-        $result['tmp'] = array(
-            'tags'    => $tags,
-            'matches' => $matches
-        );
-
-
-
-        
-
         return $result;
     }
 
+    /**
+     * Returns an array of three values, the first value will go up until the first space, the second value will go up
+     * until the second space, and the third value will contain the rest of the string. Convenience method for tags that
+     * consist of three parameters.
+     *
+     * @param string $value
+     *
+     * @return string[]
+     */
     protected function filterThreeParameterTag($value)
     {
         $parts = explode(' ', $value);
@@ -153,6 +143,14 @@ class DocParser
         return array($firstPart ?: null, $secondPart ?: null, $thirdPart);
     }
 
+    /**
+     * Returns an array of two values, the first value will go up until the first space and the second value will
+     * contain the rest of the string. Convenience method for tags that consist of two parameters.
+     *
+     * @param string $value
+     *
+     * @return string[]
+     */
     protected function filterTwoParameterTag($value)
     {
         list($firstPart, $secondPart, $thirdPart) = $this->filterThreeParameterTag($value);
@@ -160,6 +158,15 @@ class DocParser
         return array($firstPart, trim($secondPart . ' ' . $thirdPart));
     }
 
+    /**
+     * Filters out information about the return value of the function or method.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
     protected function filterReturn($docblock, $methodName, array $tags)
     {
         if (isset($tags[static::RETURN_VALUE])) {
@@ -180,6 +187,15 @@ class DocParser
         );
     }
 
+    /**
+     * Filters out information about the parameters of the function or method.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
     protected function filterParams($docblock, $methodName, array $tags)
     {
         $params = array();
@@ -200,6 +216,15 @@ class DocParser
         );
     }
 
+    /**
+     * Filters out information about the variable.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
     protected function filterVar($docblock, $methodName, array $tags)
     {
         if (isset($tags[static::VAR_TYPE])) {
@@ -213,6 +238,15 @@ class DocParser
         );
     }
 
+    /**
+     * Filters out deprecation information.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
     protected function filterDeprecated($docblock, $methodName, array $tags)
     {
         return array(
@@ -220,6 +254,15 @@ class DocParser
         );
     }
 
+    /**
+     * Filters out information about what exceptions the method can throw.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
     protected function filterThrows($docblock, $methodName, array $tags)
     {
         $throws = array();
@@ -237,6 +280,15 @@ class DocParser
         );
     }
 
+    /**
+     * Filters out information about the description.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
     protected function filterDescription($docblock, $methodName, array $tags)
     {
         $summary = '';
