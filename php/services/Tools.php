@@ -117,6 +117,7 @@ abstract class Tools
 
         $docParseResult = $parser->parse($docComment, array(
             DocParser::THROWS,
+            DocParser::PARAM_TYPE,
             DocParser::DEPRECATED,
             DocParser::DESCRIPTION,
             DocParser::RETURN_VALUE
@@ -200,12 +201,24 @@ abstract class Tools
         }
 
         return array(
-            'parameters'   => $parameters,
-            'optionals'    => $optionals,
-            'throws'       => $docParseResult['throws'],
-            'return'       => $docParseResult['return'],
-            'descriptions' => $docParseResult['descriptions'],
-            'deprecated'   => $function->isDeprecated() || $docParseResult['deprecated']
+            'parameters'    => $parameters,
+            'optionals'     => $optionals,
+            'docParameters' => $docParseResult['params'],
+            'throws'        => $docParseResult['throws'],
+            'return'        => $docParseResult['return'],
+            'descriptions'  => $docParseResult['descriptions'],
+            'deprecated'    => $function->isDeprecated() || $docParseResult['deprecated'],
+
+
+
+
+
+
+
+
+
+
+            'tmp' => $docParseResult['tmp']
         );
     }
 
