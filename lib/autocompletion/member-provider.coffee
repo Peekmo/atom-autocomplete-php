@@ -98,7 +98,7 @@ class MemberProvider extends AbstractProvider
                 # Ensure we don't get very long return types by just showing the last part.
                 snippet = null
                 displayText = word
-                returnValueParts = if ele.args.return then ele.args.return.split('\\') else []
+                returnValueParts = if ele.args.return.type then ele.args.return.type.split('\\') else []
                 returnValue = returnValueParts[returnValueParts.length - 1]
 
                 if ele.isMethod

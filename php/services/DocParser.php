@@ -65,34 +65,31 @@ class DocParser
             return array();
         }
 
-        $result = array_combine($filters, array_fill(0, count($filters), null));
+        $tags = array();
+        $result = array();
+        $matches = array();
 
         $docblock = is_string($docblock) ? $docblock : null;
 
-        if (!$docblock) {
-            return $result;
-        }
+        if ($docblock) {
+            preg_match_all('/\*\s+(@[a-z-]+)([^@]*)\n/', $docblock, $matches, PREG_SET_ORDER);
 
-        $tags = array();
-        $matches = array();
+            foreach ($matches as $match) {
+                if (!isset($tags[$match[1]])) {
+                    $tags[$match[1]] = array();
+                }
 
-        preg_match_all('/\*\s+(@[a-z-]+)([^@]*)\n/', $docblock, $matches, PREG_SET_ORDER);
+                $tagValue = $match[2];
+                $tagValue = $this->normalizeNewlines($tagValue);
 
-        foreach ($matches as $match) {
-            if (!isset($tags[$match[1]])) {
-                $tags[$match[1]] = array();
+                // Remove the delimiters of the docblock itself at the start of each line, if any.
+                $tagValue = preg_replace('/\n\s+\*\s*/', ' ', $tagValue);
+
+                // Collapse multiple spaces, just like HTML does.
+                $tagValue = preg_replace('/\s\s+/', ' ', $tagValue);
+
+                $tags[$match[1]][] = trim($tagValue);
             }
-
-            $tagValue = $match[2];
-            $tagValue = $this->normalizeNewlines($tagValue);
-
-            // Remove the delimiters of the docblock itself at the start of each line, if any.
-            $tagValue = preg_replace('/\n\s+\*\s*/', ' ', $tagValue);
-
-            // Collapse multiple spaces, just like HTML does.
-            $tagValue = preg_replace('/\s\s+/', ' ', $tagValue);
-
-            $tags[$match[1]][] = trim($tagValue);
         }
 
         $filterMethodMap = array(
@@ -234,7 +231,10 @@ class DocParser
         }
 
         return array(
-            'var' => $type
+            'var' => array(
+                'type'        => $type,
+                'description' => $description
+            )
         );
     }
 
