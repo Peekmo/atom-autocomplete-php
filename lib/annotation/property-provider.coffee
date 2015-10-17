@@ -8,7 +8,7 @@ AttachedPopover = require '../services/attached-popover'
 
 module.exports =
 
-# Provides annotations for overriding methods and implementations of interface methods.
+# Provides annotations for overriding property.
 class FunctionProvider extends AbstractProvider
     annotationMarkers: []
     annotationSubAtoms: []
@@ -48,22 +48,22 @@ class FunctionProvider extends AbstractProvider
         @annotationSubAtoms[editor.getLongTitle()] = new SubAtom
 
         for rowNum,row of rows
-            regex = /(\s*(?:public|protected|private)\s+function\s+)(\w+)\s*\(/g
+            regex = /(\s*(?:public|protected|private)\s+\$)(\w+)\s+/g
 
             while (match = regex.exec(row))
                 currentClass = @parser.getFullClassName(editor)
 
-                methodName = match[2]
+                propertyName = match[2]
 
-                value = @parser.getMethodContext(editor, methodName, null, currentClass)
+                value = @parser.getPropertyContext(editor, propertyName, null, currentClass)
 
                 if not value
                     continue
 
-                if value.override or value.implementation
+                if value.override
                     range = new Range(
                         new Point(parseInt(rowNum), match[1].length),
-                        new Point(parseInt(rowNum), match[1].length + methodName.length)
+                        new Point(parseInt(rowNum), match[1].length + propertyName.length)
                     )
 
                     marker = editor.markBufferRange(range, {
@@ -71,7 +71,7 @@ class FunctionProvider extends AbstractProvider
                         invalidate: 'touch'
                     })
 
-                    annotationClass = if value.override then 'override' else 'implementation'
+                    annotationClass = 'override'
 
                     decoration = editor.decorateMarker(marker, {
                         type: 'line-number',
@@ -87,7 +87,7 @@ class FunctionProvider extends AbstractProvider
                     textEditorElement = atom.views.getView(editor)
                     gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
 
-                    do (gutterContainerElement, methodName, value, editor) =>
+                    do (gutterContainerElement, propertyName, value, editor) =>
                         selector = '.line-number' + '.' + annotationClass + '[data-buffer-row=' + rowNum + '] .icon-right'
 
                         @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
@@ -95,11 +95,7 @@ class FunctionProvider extends AbstractProvider
 
                             # NOTE: We explicitly show the declaring class here, not the structure (which could be a
                             # trait).
-                            if value.override
-                                tooltipText += 'Overrides method from ' + value.override.declaringClass.name
-
-                            else
-                                tooltipText += 'Implements method for ' + value.implementation.declaringClass.name
+                            tooltipText += 'Overrides property from ' + value.override.declaringClass.name
 
                             @removePopover()
 

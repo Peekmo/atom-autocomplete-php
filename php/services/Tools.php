@@ -313,13 +313,15 @@ abstract class Tools
     protected function getOverrideInfo($reflectionMember)
     {
         $overriddenMember = null;
-        $methodName = $reflectionMember->getName();
+        $memberName = $reflectionMember->getName();
 
         $baseClass = $reflectionMember->getDeclaringClass();
 
+        $type = ($reflectionMember instanceof ReflectionProperty) ? 'Property' : 'Method';
+
         while ($baseClass = $baseClass->getParentClass()) {
-            if ($baseClass->hasMethod($methodName)) {
-                $overriddenMember = $baseClass->getMethod($methodName);
+            if ($baseClass->{'has' . $type}($memberName)) {
+                $overriddenMember = $baseClass->{'get' . $type}($memberName);
                 break;
             }
         }
@@ -329,8 +331,8 @@ abstract class Tools
             // a trait the class it is in is using.
             if ($reflectionMember instanceof ReflectionFunctionAbstract) {
                 foreach ($reflectionMember->getDeclaringClass()->getTraits() as $trait) {
-                    if ($trait->hasMethod($methodName)) {
-                        $traitMethod = $trait->getMethod($methodName);
+                    if ($trait->hasMethod($memberName)) {
+                        $traitMethod = $trait->getMethod($memberName);
 
                         if ($traitMethod->isAbstract()) {
                             $overriddenMember = $traitMethod;
