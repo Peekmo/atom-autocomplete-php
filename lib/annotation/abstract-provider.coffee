@@ -138,16 +138,6 @@ class AbstractProvider
      * @param {Array}      match
     ###
     extractAnnotationInfo: (editor, row, rowText, match) ->
-        currentClass = @parser.getFullClassName(editor)
-
-        propertyName = match[2]
-
-        context = @parser.getPropertyContext(editor, propertyName, null, currentClass)
-
-        if not context or not context.override
-            return null
-
-        return context
 
     ###*
      * Registers annotation event handlers for the specified row.

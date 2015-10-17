@@ -14,7 +14,7 @@ class FunctionProvider extends AbstractProvider
 
         propertyName = match[2]
 
-        context = @parser.getPropertyContext(editor, propertyName, null, currentClass)
+        context = @parser.getMemberContext(editor, propertyName, null, currentClass)
 
         if not context or not context.override
             return null

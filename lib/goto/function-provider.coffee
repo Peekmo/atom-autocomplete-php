@@ -29,7 +29,7 @@ class FunctionProvider extends AbstractProvider
             @manager.addBackTrack(editor.getPath(), bufferPosition)
             return
 
-        value = @parser.getMethodContext(editor, term, bufferPosition, calledClass)
+        value = @parser.getMemberContext(editor, term, bufferPosition, calledClass)
 
         if not value
             return

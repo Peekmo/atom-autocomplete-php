@@ -638,14 +638,14 @@ module.exports =
         return bestMatch
 
     ###*
-     * Retrieves contextual information about the property at the specified location in the editor.
+     * Retrieves contextual information about the class member at the specified location in the editor.
      *
      * @param {TextEditor} editor         TextEditor to search for namespace of term.
      * @param {string}     term           Term to search for.
      * @param {Point}      bufferPosition The cursor location the term is at.
      * @param {Object}     calledClass    Information about the called class (optional).
     ###
-    getMethodContext: (editor, term, bufferPosition, calledClass) ->
+    getMemberContext: (editor, term, bufferPosition, calledClass) ->
         if not calledClass
             calledClass = @getCalledClass(editor, term, bufferPosition)
 
@@ -674,40 +674,6 @@ module.exports =
         if value instanceof Array
             for val in value
                 if val.isMethod
-                    value = val
-                    break
-
-        return value
-
-    ###*
-     * Retrieves contextual information about the property at the specified location in the editor.
-     #
-     * @param {TextEditor} editor         TextEditor to search for namespace of term.
-     * @param {string}     name           The name of the property to search for.
-     * @param {Point}      bufferPosition The cursor location the term is at.
-     * @param {Object}     calledClass    Information about the called class (optional).
-    ###
-    getPropertyContext: (editor, name, bufferPosition, calledClass) ->
-        if not calledClass
-            calledClass = @getCalledClass(editor, name, bufferPosition)
-
-        if not calledClass
-            return
-
-        proxy = require '../services/php-proxy.coffee'
-        methodsAndProperties = proxy.methods(calledClass)
-
-        if not methodsAndProperties.names?
-            return
-
-        if methodsAndProperties.names.indexOf(name) == -1
-            return
-
-        value = methodsAndProperties.values[name]
-
-        if value instanceof Array
-            for val in value
-                if !val.isMethod
                     value = val
                     break
 
