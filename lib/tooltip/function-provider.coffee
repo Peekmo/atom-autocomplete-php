@@ -72,32 +72,27 @@ class FunctionProvider extends AbstractProvider
         parametersDescription = ""
 
         for param,info of value.args.docParameters
-            parametersDescription += "<div>"
+            parametersDescription += "<tr>"
 
-
-
-            # TODO: Use a HTML table for the parameters to get a consistent lay-out.
-
-
+            parametersDescription += "<td>•&nbsp;<strong>"
 
             if param in value.args.optionals
-                parametersDescription += "• <strong>[" + param + "]</strong>"
+                parametersDescription += "[" + param + "]"
 
             else
-                parametersDescription += "• <strong>" + param + "</strong>"
+                parametersDescription += param
 
-            if info.type
-                parametersDescription += " &mdash; " + info.type
+            parametersDescription += "</strong></td>"
 
-            if info.description
-                parametersDescription += " &mdash; " + info.description
+            parametersDescription += "<td>" + (if info.type then info.type else '&nbsp;') + '</td>'
+            parametersDescription += "<td>" + (if info.description then info.description else '&nbsp;') + '</td>'
 
-            parametersDescription += "</div>"
+            parametersDescription += "</tr>"
 
         if parametersDescription.length > 0
             description += '<div class="section">'
             description +=     "<h4>Parameters</h4>"
-            description +=     "<div>" + parametersDescription + "</div>"
+            description +=     "<div><table>" + parametersDescription + "</table></div>"
             description += "</div>"
 
         if value.args.return?.type

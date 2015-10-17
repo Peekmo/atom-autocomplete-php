@@ -17,22 +17,37 @@
     margin-left: -50%;
 }
 
-.php-atom-autocomplete-popover-wrapper {
-    margin: 0em 0em 0em 0em;
-    text-align: left;
+.php-atom-autocomplete-popover {
+    max-width: 50%;
 
-    .section {
-        > h4 {
-            margin-top: 1em;
-            font-size: larger;
-            font-weight: bold;
+    .php-atom-autocomplete-popover-wrapper {
+        margin: 0em 0em 0em 0em;
+        text-align: left;
+
+        div {
+            white-space: normal;
         }
 
-        > div {
-            padding-left: 1em;
+        .section {
+            > h4 {
+                margin-top: 1em;
+                font-size: larger;
+                font-weight: bold;
+            }
+
+            > div {
+                padding-left: 1em;
+            }
+
+            td {
+                vertical-align: top;
+            }
+
+            td:not(:last-child) {
+                padding-right: 1em;
+            }
         }
     }
-
 }
 
 atom-text-editor, atom-text-editor::shadow {
