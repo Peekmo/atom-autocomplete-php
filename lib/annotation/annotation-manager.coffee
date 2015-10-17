@@ -1,4 +1,5 @@
 MethodProvider = require './method-provider.coffee'
+PropertyProvider = require './property-provider.coffee'
 
 module.exports =
 
@@ -10,6 +11,7 @@ class AnnotationManager
     ###
     init: () ->
         @providers.push new MethodProvider()
+        @providers.push new PropertyProvider()
 
         for provider in @providers
             provider.init(@)

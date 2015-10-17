@@ -29,7 +29,7 @@ class PropertyProvider extends AbstractProvider
             @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
             return
 
-        value = @parser.getPropertyContext(editor, term, bufferPosition, calledClass)
+        value = @parser.getMemberContext(editor, term, bufferPosition, calledClass)
 
         if not value
             return

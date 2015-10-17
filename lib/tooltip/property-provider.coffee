@@ -14,7 +14,7 @@ class PropertyProvider extends AbstractProvider
      * @param  {Point}      bufferPosition The cursor location the term is at.
     ###
     getTooltipForWord: (editor, term, bufferPosition) ->
-        value = @parser.getPropertyContext(editor, term, bufferPosition)
+        value = @parser.getMemberContext(editor, term, bufferPosition)
 
         if not value
             return
