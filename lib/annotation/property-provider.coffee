@@ -1,135 +1,36 @@
-{Range} = require 'atom'
-{Point} = require 'atom'
-{TextEditor} = require 'atom'
-
-SubAtom = require 'sub-atom'
 AbstractProvider = require './abstract-provider'
-AttachedPopover = require '../services/attached-popover'
 
 module.exports =
 
 # Provides annotations for overriding property.
 class FunctionProvider extends AbstractProvider
-    annotationMarkers: []
-    annotationSubAtoms: []
+    regex: /(\s*(?:public|protected|private)\s+\$)(\w+)\s+/g
 
     ###*
-     * Registers event handlers.
-     *
-     * @param {TextEditor} editor TextEditor to register events to.
+     * @inheritdoc
     ###
-    registerEvents: (editor) ->
-        if editor.getGrammar().scopeName.match /text.html.php$/
-            # Ticket #107 - Mouseout isn't generated until the mouse moves, even when scrolling (with the keyboard or
-            # mouse). If the element goes out of the view in the meantime, its HTML element disappears, never removing
-            # it.
-            editor.onDidDestroy () =>
-                @removePopover()
+    extractAnnotationInfo: (editor, row, rowText, match) ->
+        currentClass = @parser.getFullClassName(editor)
 
-            editor.onDidStopChanging () =>
-                @removePopover()
+        propertyName = match[2]
 
-            textEditorElement = atom.views.getView(editor)
+        context = @parser.getPropertyContext(editor, propertyName, null, currentClass)
 
-            @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
-                @removePopover()
+        if not context or not context.override
+            return null
 
-            @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
-                @removePopover()
+        # NOTE: We deliberately show the declaring class here, not the structure (which could be a trait).
+        return {
+            lineNumberClass : 'override'
+            tooltipText     : 'Overrides property from ' + context.override.declaringClass.name
+            extraData       : context.override
+        }
 
     ###*
-     * Registers the annotations.
-     *
-     * @param {TextEditor} editor The editor to search through
+     * @inheritdoc
     ###
-    registerAnnotations: (editor) ->
-        text = editor.getText()
-        rows = text.split('\n')
-        @annotationSubAtoms[editor.getLongTitle()] = new SubAtom
-
-        for rowNum,row of rows
-            regex = /(\s*(?:public|protected|private)\s+\$)(\w+)\s+/g
-
-            while (match = regex.exec(row))
-                currentClass = @parser.getFullClassName(editor)
-
-                propertyName = match[2]
-
-                value = @parser.getPropertyContext(editor, propertyName, null, currentClass)
-
-                if not value
-                    continue
-
-                if value.override
-                    range = new Range(
-                        new Point(parseInt(rowNum), match[1].length),
-                        new Point(parseInt(rowNum), match[1].length + propertyName.length)
-                    )
-
-                    marker = editor.markBufferRange(range, {
-                        maintainHistory: true,
-                        invalidate: 'touch'
-                    })
-
-                    annotationClass = 'override'
-
-                    decoration = editor.decorateMarker(marker, {
-                        type: 'line-number',
-                        class: annotationClass
-                    })
-
-                    if @annotationMarkers[editor.getLongTitle()] == undefined
-                        @annotationMarkers[editor.getLongTitle()] = []
-
-                    @annotationMarkers[editor.getLongTitle()].push(marker)
-
-                    # Add tooltips and click handlers to the annotations.
-                    textEditorElement = atom.views.getView(editor)
-                    gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
-
-                    do (gutterContainerElement, propertyName, value, editor) =>
-                        selector = '.line-number' + '.' + annotationClass + '[data-buffer-row=' + rowNum + '] .icon-right'
-
-                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseover', selector, (event) =>
-                            tooltipText = ''
-
-                            # NOTE: We explicitly show the declaring class here, not the structure (which could be a
-                            # trait).
-                            tooltipText += 'Overrides property from ' + value.override.declaringClass.name
-
-                            @removePopover()
-
-                            @attachedPopover = new AttachedPopover(event.target)
-                            @attachedPopover.setText(tooltipText)
-                            @attachedPopover.show()
-
-                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'mouseout', selector, (event) =>
-                            @removePopover()
-
-                        @annotationSubAtoms[editor.getLongTitle()].add gutterContainerElement, 'click', selector, (event) =>
-                            referencedObject = if value.override then value.override else value.implementation
-
-                            atom.workspace.open(referencedObject.declaringStructure.filename, {
-                                initialLine    : referencedObject.startLine - 1,
-                                searchAllPanes : true
-                            })
-
-    ###*
-     * Removes any annotations that were created.
-     *
-     * @param {TextEditor} editor The editor to search through
-    ###
-    removeAnnotations: (editor) ->
-        for i,marker of @annotationMarkers[editor.getLongTitle()]
-            marker.destroy()
-
-        @annotationMarkers[editor.getLongTitle()] = []
-        @annotationSubAtoms[editor.getLongTitle()]?.dispose()
-
-    ###*
-     * Removes the popover, if it is displayed.
-    ###
-    removePopover: () ->
-        if @attachedPopover
-            @attachedPopover.dispose()
-            @attachedPopover = null
+    handleMouseClick: (event, editor, annotationInfo) ->
+        atom.workspace.open(annotationInfo.extraData.declaringStructure.filename, {
+            # initialLine    : annotationInfo.startLine - 1,
+            searchAllPanes : true
+        })
