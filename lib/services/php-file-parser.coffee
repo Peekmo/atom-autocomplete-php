@@ -267,7 +267,7 @@ module.exports =
         totalScore = 0
 
         # NOTE: We don't score the last part.
-        for i in [0 .. maxLength - 1]
+        for i in [0 .. maxLength - 2]
             if firstClassNameParts[i] == secondClassNameParts[i]
                 totalScore += 2
 
