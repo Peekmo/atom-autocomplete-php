@@ -50,6 +50,13 @@ module.exports =
             default: false
             order: 5
 
+        verboseErrors:
+            title: 'Errors on file saving showed'
+            description: 'When enabled, you\'ll have a notification once an error occured on autocomplete. Otherwise, the message will just be logged in developer console'
+            type: 'boolean'
+            default: false
+            order: 6
+
     activate: ->
         # See also pull request #197 - Disabled for now because it does not allow the user to reactivate or try again.
         # return unless config.testConfig()

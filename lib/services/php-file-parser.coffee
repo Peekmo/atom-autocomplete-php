@@ -1,4 +1,5 @@
 proxy = require "../services/php-proxy.coffee"
+config = require "../config.coffee"
 
 module.exports =
     structureStartRegex: /(?:abstract class|class|trait|interface)\s+(\w+)/
@@ -659,9 +660,12 @@ module.exports =
             return
 
         if methods.error? and methods.error != ''
-            atom.notifications.addError('Failed to get methods for ' + calledClass, {
-                'detail': methods.error.message
-            })
+            if config.config.verboseErrors
+                atom.notifications.addError('Failed to get methods for ' + calledClass, {
+                    'detail': methods.error.message
+                })
+            else
+                console.log 'Failed to get methods for ' + calledClass + ' : ' + methods.error.message
 
             return
 

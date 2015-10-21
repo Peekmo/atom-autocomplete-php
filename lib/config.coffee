@@ -19,6 +19,7 @@ module.exports =
         @config['autoload'] = atom.config.get('atom-autocomplete-php.autoloadPaths')
         @config['classmap'] = atom.config.get('atom-autocomplete-php.classMapFiles')
         @config['packagePath'] = atom.packages.resolvePackagePath('atom-autocomplete-php')
+        @config['verboseErrors'] = atom.config.get('atom-autocomplete-php.verboseErrors')
         @config['insertNewlinesForUseStatements'] = atom.config.get('atom-autocomplete-php.insertNewlinesForUseStatements')
 
     ###*
@@ -106,6 +107,9 @@ module.exports =
             @writeConfig()
 
         atom.config.onDidChange 'atom-autocomplete-php.classMapFiles', () =>
+            @writeConfig()
+
+        atom.config.onDidChange 'atom-autocomplete-php.verboseErrors', () =>
             @writeConfig()
 
         atom.config.onDidChange 'atom-autocomplete-php.insertNewlinesForUseStatements', () =>
