@@ -20,7 +20,7 @@ class PropertyProvider extends AbstractProvider
             return
 
         accessModifier = ''
-        returnType = if value.args.return then value.args.return else 'mixed'
+        returnType = if value.args.return?.type then value.args.return.type else 'mixed'
 
         if value.isPublic
             accessModifier = 'public'
@@ -50,10 +50,15 @@ class PropertyProvider extends AbstractProvider
             description +=     "<div>" + value.args.descriptions.long + "</div>"
             description += "</div>"
 
-        if value.args.return
+        if value.args.return?.type
+            returnValue = '<strong>' + value.args.return.type + '</strong>'
+
+            if value.args.return.description
+                returnValue += ' ' + value.args.return.description
+
             description += '<div class="section">'
             description +=     "<h4>Type</h4>"
-            description +=     "<div>" + value.args.return + "</div>"
+            description +=     "<div>" + returnValue + "</div>"
             description += "</div>"
 
         return description

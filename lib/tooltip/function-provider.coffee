@@ -24,7 +24,10 @@ class FunctionProvider extends AbstractProvider
 
         # Show the method's signature.
         accessModifier = ''
-        returnType = (if value.args.return then value.args.return else '')
+        returnType = ''
+
+        if value.args.return?.type
+            returnType = value.args.return.type
 
         if value.isPublic
             accessModifier = 'public'
@@ -68,26 +71,39 @@ class FunctionProvider extends AbstractProvider
         # Show the parameters the method has.
         parametersDescription = ""
 
-        for param in value.args.parameters
-            parametersDescription += "<div>"
-            parametersDescription += "• <strong>" + param + "</strong>"
-            parametersDescription += "</div>"
+        for param,info of value.args.docParameters
+            parametersDescription += "<tr>"
 
-        for param in value.args.optionals
-            parametersDescription += "<div>"
-            parametersDescription += "• <strong>[" + param + "]</strong>"
-            parametersDescription += "</div>"
+            parametersDescription += "<td>•&nbsp;<strong>"
 
-        if value.args.parameters.length > 0 or value.args.optionals.length > 0
+            if param in value.args.optionals
+                parametersDescription += "[" + param + "]"
+
+            else
+                parametersDescription += param
+
+            parametersDescription += "</strong></td>"
+
+            parametersDescription += "<td>" + (if info.type then info.type else '&nbsp;') + '</td>'
+            parametersDescription += "<td>" + (if info.description then info.description else '&nbsp;') + '</td>'
+
+            parametersDescription += "</tr>"
+
+        if parametersDescription.length > 0
             description += '<div class="section">'
             description +=     "<h4>Parameters</h4>"
-            description +=     "<div>" + parametersDescription + "</div>"
+            description +=     "<div><table>" + parametersDescription + "</table></div>"
             description += "</div>"
 
-        if value.args.return
+        if value.args.return?.type
+            returnValue = '<strong>' + value.args.return.type + '</strong>'
+
+            if value.args.return.description
+                returnValue += ' ' + value.args.return.description
+
             description += '<div class="section">'
             description +=     "<h4>Returns</h4>"
-            description +=     "<div>" + value.args.return + "</div>"
+            description +=     "<div>" + returnValue + "</div>"
             description += "</div>"
 
         # Show an overview of the exceptions the method can throw.

@@ -38,7 +38,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
                         }
 
                         if ($value = $this->buildIndexClass($class)) {
-                            $index['mapping'][$class] = array('methods' => $value);
+                            $index['mapping'][$class] = $value;
                             $index['autocomplete'][] = $class;
                         }
                     }
