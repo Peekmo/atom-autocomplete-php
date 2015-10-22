@@ -1,3 +1,9 @@
+## 0.15.0
+* Fail message when saving are now just in developer console by default (you can change this in settings)
+* A progress bar appears in status bar when there's a classes' indexing in progress
+* Uses are now ordered. You can even have new line between them (see plugin settings)
+* Annotations on class properties
+
 ## 0.14.0
 * Support configuration checking on Windows
 * Lot of code refactoring (many bug resolved, but perhaps some new :()
