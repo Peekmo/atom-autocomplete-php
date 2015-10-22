@@ -1,9 +1,11 @@
 fs = require 'fs'
 namespace = require './services/namespace.coffee'
+StatusInProgress = require "./services/status-in-progress.coffee"
 
 module.exports =
 
     config: {}
+    statusInProgress: null
 
     ###*
      * Get plugin configuration
@@ -87,6 +89,9 @@ module.exports =
      * Register config events and write the first config
     ###
     init: () ->
+        @statusInProgress = new StatusInProgress
+        @statusInProgress.hide()
+
         # Command for namespaces
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:namespace': =>
             namespace.createNamespace(atom.workspace.getActivePaneItem())

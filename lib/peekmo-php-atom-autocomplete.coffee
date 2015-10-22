@@ -2,7 +2,7 @@ GotoManager = require "./goto/goto-manager.coffee"
 TooltipManager = require "./tooltip/tooltip-manager.coffee"
 AnnotationManager = require "./annotation/annotation-manager.coffee"
 AutocompletionManager = require "./autocompletion/autocompletion-manager.coffee"
-
+StatusInProgress = require "./services/status-in-progress.coffee"
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
 
@@ -60,7 +60,6 @@ module.exports =
     activate: ->
         # See also pull request #197 - Disabled for now because it does not allow the user to reactivate or try again.
         # return unless config.testConfig()
-
         config.init()
 
         @autocompletionManager = new AutocompletionManager()
@@ -82,6 +81,10 @@ module.exports =
         @tooltipManager.deactivate()
         @annotationManager.deactivate()
         @autocompletionManager.deactivate()
+
+    consumeStatusBar: (statusBar) ->
+        config.statusInProgress.initialize(statusBar)
+        config.statusInProgress.attach()
 
     getProvider: ->
         return @autocompletionManager.getProviders()

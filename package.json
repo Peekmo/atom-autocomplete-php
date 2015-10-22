@@ -25,6 +25,13 @@
     "jquery": "~2.1.4",
     "atom-space-pen-views": "~2.0.5"
   },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
   "keywords": [
     "php",
     "composer",

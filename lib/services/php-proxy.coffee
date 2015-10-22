@@ -48,10 +48,15 @@ execute = (command, async) ->
             command.replace(/\\/g, '\\\\')
 
             if not currentProcesses[command]?
-                console.log 'Building index'
+
+                if command.indexOf("--refresh") != -1
+                    config.statusInProgress.update("Indexing...", true)
+
                 currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) ->
                     delete currentProcesses[command]
-                    console.log 'Build done'
+
+                    if command.indexOf("--refresh") != -1
+                        config.statusInProgress.update("Indexing...", false)
                     return []
                 )
 
