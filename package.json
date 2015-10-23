@@ -16,6 +16,11 @@
       "versions": {
         "2.0.0": "getProvider"
       }
+    },
+    "php.autocomplete.tools": {
+      "versions": {
+        "0.15.0": "provideAutocompleteTools"
+      }
     }
   },
   "dependencies": {

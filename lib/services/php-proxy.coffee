@@ -4,121 +4,119 @@ config = require "../config.coffee"
 md5 = require 'md5'
 fs = require 'fs'
 
-data =
-    methods: [],
-    autocomplete: [],
-    composer: null
+module.exports =
+    data:
+        methods: [],
+        autocomplete: [],
+        composer: null
 
-currentProcesses = []
+    currentProcesses: []
 
-###*
- * Executes a command to PHP proxy
- * @param  {string}  command Command to exectue
- * @param  {boolean} async   Must be async or not
- * @return {array}           Json of the response
-###
-execute = (command, async) ->
-    for directory in atom.project.getDirectories()
-        if not async
-            for c in command
-                c.replace(/\\/g, '\\\\')
+    ###*
+     * Executes a command to PHP proxy
+     * @param  {string}  command Command to exectue
+     * @param  {boolean} async   Must be async or not
+     * @return {array}           Json of the response
+    ###
+    execute: (command, async) ->
+        for directory in atom.project.getDirectories()
+            if not async
+                for c in command
+                    c.replace(/\\/g, '\\\\')
 
+                try
+                    # avoid multiple processes of the same command
+                    if not @currentProcesses[command]?
+                        @currentProcesses[command] = true
+
+                        stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php",  directory.path].concat(command)).output[1].toString('ascii')
+
+                        delete @currentProcesses[command]
+                        res = JSON.parse(stdout)
+                catch err
+                    console.log err
+                    res =
+                        error: err
+
+                if !res
+                    return []
+
+                if res.error?
+                    @printError(res.error)
+
+                return res
+            else
+                command.replace(/\\/g, '\\\\')
+
+                if not @currentProcesses[command]?
+                    if command.indexOf("--refresh") != -1
+                        config.statusInProgress.update("Indexing...", true)
+
+                    @currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) =>
+                        delete @currentProcesses[command]
+
+                        if command.indexOf("--refresh") != -1
+                            config.statusInProgress.update("Indexing...", false)
+                        return []
+                    )
+
+    ###*
+     * Reads an index by its name (file in indexes/index.[name].json)
+     * @param {string} name Name of the index to read
+    ###
+    readIndex: (name) ->
+        for directory in atom.project.getDirectories()
+            crypt = md5(directory.path)
+            path = __dirname + "/../../indexes/" + crypt + "/index." + name + ".json"
             try
-                # avoid multiple processes of the same command
-                if not currentProcesses[command]?
-                    currentProcesses[command] = true
-
-                    stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php",  directory.path].concat(command)).output[1].toString('ascii')
-
-                    delete currentProcesses[command]
-                    res = JSON.parse(stdout)
+                fs.accessSync(path, fs.F_OK | fs.R_OK)
             catch err
-                console.log err
-                res =
-                    error: err
-
-            if !res
                 return []
 
-            if res.error?
-                printError(res.error)
+            options =
+                encoding: 'UTF-8'
+            return JSON.parse(fs.readFileSync(path, options))
 
-            return res
-        else
-            command.replace(/\\/g, '\\\\')
+            break
 
-            if not currentProcesses[command]?
+    ###*
+     * Open and read the composer.json file in the current folder
+    ###
+    readComposer: () ->
+        for directory in atom.project.getDirectories()
+            path = "#{directory.path}/composer.json"
 
-                if command.indexOf("--refresh") != -1
-                    config.statusInProgress.update("Indexing...", true)
+            try
+                fs.accessSync(path, fs.F_OK | fs.R_OK)
+            catch err
+                continue
 
-                currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) ->
-                    delete currentProcesses[command]
+            options =
+                encoding: 'UTF-8'
+            data.composer = JSON.parse(fs.readFileSync(path, options))
+            return @data.composer
 
-                    if command.indexOf("--refresh") != -1
-                        config.statusInProgress.update("Indexing...", false)
-                    return []
-                )
+        console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
+        throw "Error"
 
-###*
- * Reads an index by its name (file in indexes/index.[name].json)
- * @param {string} name Name of the index to read
-###
-readIndex = (name) ->
-    for directory in atom.project.getDirectories()
-        crypt = md5(directory.path)
-        path = __dirname + "/../../indexes/" + crypt + "/index." + name + ".json"
-        try
-            fs.accessSync(path, fs.F_OK | fs.R_OK)
-        catch err
-            return []
+    ###*
+     * Throw a formatted error
+     * @param {object} error Error to show
+    ###
+    printError:(error) ->
+        @data.error = true
+        message = error.message
 
-        options =
-            encoding: 'UTF-8'
-        return JSON.parse(fs.readFileSync(path, options))
+        #if error.file? and error.line?
+            #message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']'
 
-        break
-
-###*
- * Open and read the composer.json file in the current folder
-###
-readComposer = () ->
-    for directory in atom.project.getDirectories()
-        path = "#{directory.path}/composer.json"
-
-        try
-            fs.accessSync(path, fs.F_OK | fs.R_OK)
-        catch err
-            continue
-
-        options =
-            encoding: 'UTF-8'
-        data.composer = JSON.parse(fs.readFileSync(path, options))
-        return data.composer
-
-    console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
-    throw "Error"
-
-###*
- * Throw a formatted error
- * @param {object} error Error to show
-###
-printError = (error) ->
-    data.error = true
-    message = error.message
-
-    #if error.file? and error.line?
-        #message = message + ' [from file ' + error.file + ' - Line ' + error.line + ']'
-
-    #throw new Error(message)
-
-module.exports =
+        #throw new Error(message)
 
     ###*
      * Clear all cache of the plugin
     ###
     clearCache: () ->
-        data =
+        @data =
             error: false,
             autocomplete: [],
             methods: [],
@@ -129,36 +127,36 @@ module.exports =
      * @return {array}
     ###
     classes: () ->
-        return readIndex('classes')
+        return @readIndex('classes')
 
     ###*
      * Returns composer.json file
      * @return {Object}
     ###
     composer: () ->
-        return readComposer()
+        return @readComposer()
 
     ###*
      * Autocomplete for internal PHP constants
      * @return {array}
     ###
     constants: () ->
-        if not data.constants?
-            res = execute(["--constants"], false)
-            data.constants = res
+        if not @data.constants?
+            res = @execute(["--constants"], false)
+            @data.constants = res
 
-        return data.constants
+        return @data.constants
 
     ###*
      * Autocomplete for internal PHP functions
      * @return {array}
     ###
     functions: () ->
-        if not data.functions?
-            res = execute(["--functions"], false)
-            data.functions = res
+        if not @data.functions?
+            res = @execute(["--functions"], false)
+            @data.functions = res
 
-        return data.functions
+        return @data.functions
 
     ###*
      * Autocomplete for methods & properties of a class
@@ -166,11 +164,11 @@ module.exports =
      * @return {array}
     ###
     methods: (className) ->
-        if not data.methods[className]?
-            res = execute(["--methods","#{className}"], false)
-            data.methods[className] = res
+        if not @data.methods[className]?
+            res = @execute(["--methods","#{className}"], false)
+            @data.methods[className] = res
 
-        return data.methods[className]
+        return @data.methods[className]
 
     ###*
      * Autocomplete for methods & properties of a class
@@ -180,11 +178,11 @@ module.exports =
     autocomplete: (className, name) ->
         cacheKey = className + "." + name
 
-        if not data.autocomplete[cacheKey]?
-            res = execute(["--autocomplete", className, name], false)
-            data.autocomplete[cacheKey] = res
+        if not @data.autocomplete[cacheKey]?
+            res = @execute(["--autocomplete", className, name], false)
+            @data.autocomplete[cacheKey] = res
 
-        return data.autocomplete[cacheKey]
+        return @data.autocomplete[cacheKey]
 
     ###*
      * Returns params from the documentation of the given function
@@ -193,7 +191,7 @@ module.exports =
      * @param {string} functionName
     ###
     docParams: (className, functionName) ->
-        res = execute("--doc-params #{className} #{functionName}", false)
+        res = @execute("--doc-params #{className} #{functionName}", false)
         return res
 
     ###*
@@ -202,9 +200,9 @@ module.exports =
     ###
     refresh: (classPath) ->
         if not classPath?
-            execute("--refresh", true)
+            @execute("--refresh", true)
         else
-            execute("--refresh #{classPath}", true)
+            @execute("--refresh #{classPath}", true)
 
     ###*
      * Method called on plugin activation

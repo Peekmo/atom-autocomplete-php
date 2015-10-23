@@ -86,5 +86,11 @@ module.exports =
         config.statusInProgress.initialize(statusBar)
         config.statusInProgress.attach()
 
+    provideAutocompleteTools: ->
+        @services =
+            proxy: proxy
+
+        return @services
+
     getProvider: ->
         return @autocompletionManager.getProviders()
