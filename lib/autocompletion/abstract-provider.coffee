@@ -47,8 +47,8 @@ class AbstractProvider
 
         # Optional elements. One big same snippet
         if elements.optionals.length > 0
-            body += "${" + (lastIndex + 1) + ":["
-            body += "," if lastIndex != 0
+            body += " ${" + (lastIndex + 1) + ":["
+            body += ", " if lastIndex != 0
 
             lastIndex += 1
 

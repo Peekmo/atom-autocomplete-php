@@ -14,30 +14,39 @@ module.exports =
 
     ###*
      * Executes a command to PHP proxy
-     * @param  {string}  command  Command to exectue
+     * @param  {string}  command  Command to execute
      * @param  {boolean} async    Must be async or not
+     * @param  {array}   options  Options for the command
      * @param  {boolean} noparser Do not use php/parser.php
      * @return {array}           Json of the response
     ###
-    execute: (command, async, noparser) ->
-        for directory in atom.project.getDirectories()
-            if not async
-                for c in command
-                    c.replace(/\\/g, '\\\\')
+    execute: (command, async, options, noparser) ->
+        options = {} if not options
+        processKey = command.join("_")
 
+        for directory in atom.project.getDirectories()
+            for c in command
+                c.replace(/\\/g, '\\\\')
+
+            if not async
                 try
                     # avoid multiple processes of the same command
-                    if not @currentProcesses[command]?
-                        @currentProcesses[command] = true
+                    if not @currentProcesses[processKey]?
+                        @currentProcesses[processKey] = true
 
                         args =  [__dirname + "/../../php/parser.php",  directory.path].concat(command)
                         if noparser
                             args = command
 
-                        stdout = exec.spawnSync(config.config.php, args).output[1].toString('ascii')
+                        stdout = exec.spawnSync(config.config.php, args, options).output[1].toString('ascii')
 
-                        delete @currentProcesses[command]
-                        res = JSON.parse(stdout)
+                        delete @currentProcesses[processKey]
+
+                        if noparser
+                            res =
+                                result: stdout
+                        else
+                            res = JSON.parse(stdout)
                 catch err
                     console.log err
                     res =
@@ -51,22 +60,20 @@ module.exports =
 
                 return res
             else
-                command.replace(/\\/g, '\\\\')
-
-                if not @currentProcesses[command]?
-                    if command.indexOf("--refresh") != -1
+                if not @currentProcesses[processKey]?
+                    if processKey.indexOf("--refresh") != -1
                         config.statusInProgress.update("Indexing...", true)
 
-                    args = __dirname + "/../../php/parser.php " + directory.path + " " + command
+                    args =  [__dirname + "/../../php/parser.php",  directory.path].concat(command)
                     if noparser
                         args = command
 
-                    @currentProcesses[command] = exec.exec(config.config.php + " " + args, (error, stdout, stderr) =>
-                        delete @currentProcesses[command]
+                    @currentProcesses[processKey] = exec.exec(config.config.php + " " + args.join(" "), options, (error, stdout, stderr) =>
+                        delete @currentProcesses[processKey]
 
-                        if command.indexOf("--refresh") != -1
+                        if processKey.indexOf("--refresh") != -1
                             config.statusInProgress.update("Indexing...", false)
-                        return []
+                        return stdout
                     )
 
     ###*
@@ -102,7 +109,7 @@ module.exports =
 
             options =
                 encoding: 'UTF-8'
-            data.composer = JSON.parse(fs.readFileSync(path, options))
+            @data.composer = JSON.parse(fs.readFileSync(path, options))
             return @data.composer
 
         console.log 'Unable to find composer.json file or to open it. The plugin will not work as expected. It only works on composer project'
@@ -200,7 +207,7 @@ module.exports =
      * @param {string} functionName
     ###
     docParams: (className, functionName) ->
-        res = @execute("--doc-params #{className} #{functionName}", false)
+        res = @execute(["--doc-params", "#{className}", "#{functionName}"], false)
         return res
 
     ###*
@@ -209,9 +216,9 @@ module.exports =
     ###
     refresh: (classPath) ->
         if not classPath?
-            @execute("--refresh", true)
+            @execute(["--refresh"], true)
         else
-            @execute("--refresh #{classPath}", true)
+            @execute(["--refresh", "#{classPath}"], true)
 
     ###*
      * Method called on plugin activation
