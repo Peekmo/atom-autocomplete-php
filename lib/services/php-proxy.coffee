@@ -214,7 +214,7 @@ module.exports =
         atom.workspace.observeTextEditors (editor) =>
             editor.onDidSave((event) =>
               # Only .php file
-              if event.path.substr(event.path.length - 4) == ".php"
+              if editor.getGrammar().scopeName.match /text.html.php$/
                   @clearCache()
 
                   # For Windows - Replace \ in class namespace to / because
