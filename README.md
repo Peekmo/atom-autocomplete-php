@@ -21,7 +21,7 @@ Currently the following limitations or restrictions are present:
     * `@param` statements for functions and methods.
     * `@var` statements for properties in classes.
     * (Type hints in functions and methods will also be checked.)
-  
+
 Some features may or may not work outside these restrictions. Composer is primarily used for its classmap, to fetch a list of classes that are present in your codebase. Reflection is used to fetch information about classes.
 
 The package also requires a one time setup, To configure the plugin, click on "package" in your preferences, and select "settings" on atom-autocomplete-php plugin.
@@ -41,9 +41,12 @@ You can test your configuration by using a command (cmd - shift - p) : ```Atom A
 ![Settings](http://i.imgur.com/hY5ypG2.png)
 &nbsp;
 
+## Framework integration
+  * [Symfony2 plugin](https://github.com/Peekmo/atom-symfony2)
+
 ## What Does Not Work?
   * Most of the issue reports indicate things that are missing, but autocompletion should be working fairly well in general.
-  
+
 ### Won't Fix (For Now)
   * "Go to definition" will take you to the incorrect location if a class is using a method with the exact same name as one in its own direct traits. You will be taken to the trait method instead of the class method (the latter should take precedence). See also issue #177.
   * `static` and `self` behave mostly like `$this` and can access non-static methods when used in non-static contexts. See also issue #101.

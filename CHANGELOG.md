@@ -1,3 +1,7 @@
+## 0.16.0
+* Support for external services (see atom-symfony2) package
+* Doc refactoring
+
 ## 0.15.0
 * Fail message when saving are now just in developer console by default (you can change this in settings)
 * A progress bar appears in status bar when there's a classes' indexing in progress
