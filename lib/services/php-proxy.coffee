@@ -14,11 +14,12 @@ module.exports =
 
     ###*
      * Executes a command to PHP proxy
-     * @param  {string}  command Command to exectue
-     * @param  {boolean} async   Must be async or not
+     * @param  {string}  command  Command to exectue
+     * @param  {boolean} async    Must be async or not
+     * @param  {boolean} noparser Do not use php/parser.php
      * @return {array}           Json of the response
     ###
-    execute: (command, async) ->
+    execute: (command, async, noparser) ->
         for directory in atom.project.getDirectories()
             if not async
                 for c in command
@@ -29,7 +30,11 @@ module.exports =
                     if not @currentProcesses[command]?
                         @currentProcesses[command] = true
 
-                        stdout = exec.spawnSync(config.config.php, [__dirname + "/../../php/parser.php",  directory.path].concat(command)).output[1].toString('ascii')
+                        args =  [__dirname + "/../../php/parser.php",  directory.path].concat(command)
+                        if noparser
+                            args = command
+
+                        stdout = exec.spawnSync(config.config.php, args).output[1].toString('ascii')
 
                         delete @currentProcesses[command]
                         res = JSON.parse(stdout)
@@ -52,7 +57,11 @@ module.exports =
                     if command.indexOf("--refresh") != -1
                         config.statusInProgress.update("Indexing...", true)
 
-                    @currentProcesses[command] = exec.exec(config.config.php + " " + __dirname + "/../../php/parser.php " + directory.path + " " +   command, (error, stdout, stderr) =>
+                    args = __dirname + "/../../php/parser.php " + directory.path + " " + command
+                    if noparser
+                        args = command
+
+                    @currentProcesses[command] = exec.exec(config.config.php + " " + args, (error, stdout, stderr) =>
                         delete @currentProcesses[command]
 
                         if command.indexOf("--refresh") != -1
