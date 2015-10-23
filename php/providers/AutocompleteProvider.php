@@ -43,7 +43,7 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                 }
             }
 
-            $returnValue = $memberInfo['args']['return'];
+            $returnValue = $memberInfo['args']['return']['type'];
 
             if ($returnValue == '$this' || $returnValue == 'static') {
                 $relevantClass = $class;
