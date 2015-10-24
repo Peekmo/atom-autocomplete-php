@@ -19,7 +19,7 @@
     },
     "php.autocomplete.tools": {
       "versions": {
-        "0.15.0": "provideAutocompleteTools"
+        "0.16.0": "provideAutocompleteTools"
       }
     }
   },
