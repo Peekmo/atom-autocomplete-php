@@ -386,6 +386,7 @@ module.exports =
 
         while line > 0
             lineText = editor.lineTextForBufferRow(line)
+            return unless lineText
 
             if line != position.row
                 i = (lineText.length - 1)
