@@ -1,3 +1,6 @@
+## 0.18.0
+* Plugin configuration is now more interactive. If there's an error, you'll know it without doing the command
+
 ## 0.17.0
 * [internal] String parameters are keep in autocomplete in order to be able to change the function return (needed for symfony2 support)
 

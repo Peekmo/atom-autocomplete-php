@@ -9,7 +9,6 @@ parser = require './services/php-file-parser.coffee'
 plugins = require './services/plugin-manager.coffee'
 
 module.exports =
-
     config:
         binComposer:
             title: 'Command to use composer'
@@ -60,8 +59,7 @@ module.exports =
             order: 6
 
     activate: ->
-        # See also pull request #197 - Disabled for now because it does not allow the user to reactivate or try again.
-        # return unless config.testConfig()
+        config.testConfig()
         config.init()
 
         @autocompletionManager = new AutocompletionManager()

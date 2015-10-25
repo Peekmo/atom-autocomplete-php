@@ -62,7 +62,8 @@ module.exports =
         errorTitle = 'atom-autocomplete-php - Incorrect setup!'
         errorMessage = 'Either PHP or Composer is not correctly set up and as a result PHP autocompletion will not work. ' +
           'Please visit the settings screen to correct this error. If you are not specifying an absolute path for PHP or ' +
-          'Composer, make sure they are in your PATH.'
+          'Composer, make sure they are in your PATH.
+          Feel free to look package\'s README for configuration examples'
 
         if testResult.status = null or testResult.status != 0
             atom.notifications.addError(errorTitle, {'detail': errorMessage})
@@ -104,9 +105,11 @@ module.exports =
 
         atom.config.onDidChange 'atom-autocomplete-php.binPhp', () =>
             @writeConfig()
+            @testConfig(true)
 
         atom.config.onDidChange 'atom-autocomplete-php.binComposer', () =>
             @writeConfig()
+            @testConfig(true)
 
         atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
             @writeConfig()
