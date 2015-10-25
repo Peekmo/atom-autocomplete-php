@@ -1,5 +1,6 @@
 proxy = require "../services/php-proxy.coffee"
 config = require "../config.coffee"
+plugins = require "../services/plugin-manager.coffee"
 
 module.exports =
     structureStartRegex: /(?:abstract class|class|trait|interface)\s+(\w+)/
@@ -453,10 +454,11 @@ module.exports =
 
     ###*
      * Removes content inside parantheses (including nested parantheses).
-     * @param {string} text String to analyze.
+     * @param {string}  text String to analyze.
+     * @param {boolean} keep string inside parenthesis
      * @return String
     ###
-    stripParanthesesContent: (text) ->
+    stripParanthesesContent: (text, keepString) ->
         i = 0
         openCount = 0
         closeCount = 0
@@ -474,6 +476,13 @@ module.exports =
 
                 if closeCount == openCount
                     originalLength = text.length
+
+                    content = text.substring(startIndex, i+1)
+                    reg = /["(][\s]*[\'\"][\s]*([^\"\']+)[\s]*[\"\'][\s]*[")]/g
+
+                    if openCount == 1 and reg.exec(content)
+                        continue
+
                     text = text.substr(0, startIndex + 1) + text.substr(i, text.length);
 
                     i -= (originalLength - text.length)
@@ -502,7 +511,7 @@ module.exports =
             return ''
 
         # Remove content inside parantheses (including nested parantheses).
-        text = @stripParanthesesContent(text)
+        text = @stripParanthesesContent(text, true)
 
         # Get the full text
         return [] if not text
@@ -513,7 +522,7 @@ module.exports =
         # Remove parenthesis and whitespaces
         for key, element of elements
             element = element.replace /^\s+|\s+$/g, ""
-            if element[0] == '{' or element[0] == '(' or element[0] == '['
+            if element[0] == '{' or element[0] == '['
                 element = element.substring(1)
             else if element.indexOf('return ') == 0
                 element = element.substring('return '.length)
@@ -729,14 +738,25 @@ module.exports =
             if className == null
                 break
 
-            methods = proxy.autocomplete(className, element)
+            # Check autocomplete from plugins
+            found = null
+            for plugin in plugins.plugins
+                continue unless plugin.autocomplete?
+                found = plugin.autocomplete(className, element)
+                break if found
 
-            # Element not found or no return value
-            if not methods.class? or not @isClass(methods.class)
-                className = null
-                break
+            if found
+                className = found
+            else
+                methods = proxy.autocomplete(className, element)
 
-            className = methods.class
+                # Element not found or no return value
+                if not methods.class? or not @isClass(methods.class)
+                    className = null
+                    break
+
+                className = methods.class
+
             loop_index++
 
         # If no data or a valid end of line, OK

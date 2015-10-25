@@ -22,9 +22,9 @@ class AutocompleteProvider extends Tools implements ProviderInterface
 
         $isMethod = false;
 
-        if (strpos($name, '()') !== false) {
+        if (strpos($name, '(') !== false) {
             $isMethod = true;
-            $name = str_replace('()', '', $name);
+            $name = substr($name, 0, strpos($name, '('));
         }
 
         $relevantClass = null;

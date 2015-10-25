@@ -1,3 +1,6 @@
+## 0.17.0
+* [internal] String parameters are keep in autocomplete in order to be able to change the function return (needed for symfony2 support)
+
 ## 0.16.0
 * Support for external services (see atom-symfony2) package
 * Doc refactoring

@@ -5,6 +5,8 @@ AutocompletionManager = require "./autocompletion/autocompletion-manager.coffee"
 StatusInProgress = require "./services/status-in-progress.coffee"
 config = require './config.coffee'
 proxy = require './services/php-proxy.coffee'
+parser = require './services/php-file-parser.coffee'
+plugins = require './services/plugin-manager.coffee'
 
 module.exports =
 
@@ -86,9 +88,13 @@ module.exports =
         config.statusInProgress.initialize(statusBar)
         config.statusInProgress.attach()
 
+    consumePlugin: (plugin) ->
+        plugins.plugins.push(plugin)
+
     provideAutocompleteTools: ->
         @services =
             proxy: proxy
+            parser: parser
 
         return @services
 

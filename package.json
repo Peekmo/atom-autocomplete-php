@@ -35,6 +35,11 @@
       "versions": {
         "^1.0.0": "consumeStatusBar"
       }
+    },
+    "autocomplete.php.plugin": {
+      "versions": {
+        "1.0.0": "consumePlugin"
+      }
     }
   },
   "keywords": [
