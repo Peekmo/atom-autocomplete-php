@@ -9,4 +9,4 @@ Here is a list of every people to thank, because without them, the package would
 
 And **you** who are using the plugin and reporting issues ;)
 
-Thanks yo everyone.
+Thanks to everyone.
