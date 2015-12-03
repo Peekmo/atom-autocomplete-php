@@ -110,7 +110,16 @@ class AbstractProvider
             new Point(parseInt(row), rowText.length)
         )
 
-        marker = editor.markBufferRange(range, {
+        # For Atom 1.3 or greater, maintainHistory can only be applied to entire
+        # marker layers. Layers don't exist in earlier versions, hence the
+        # conditional logic.
+        if typeof editor.addMarkerLayer is 'function'
+            @markerLayers ?= new WeakMap
+            unless markerLayer = @markerLayers.get(editor)
+                markerLayer = editor.addMarkerLayer(maintainHistory: true)
+                @markerLayers.set(editor, markerLayer)
+
+        marker = (markerLayer ? editor).markBufferRange(range, {
             maintainHistory : true,
             invalidate      : 'touch'
         })
