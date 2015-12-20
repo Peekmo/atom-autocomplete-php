@@ -22,7 +22,7 @@ class ClassProvider extends AbstractProvider
         proxy = require '../services/php-proxy.coffee'
         classesResponse = proxy.classes()
 
-        return unless classesResponse
+        return unless classesResponse.autocomplete
 
         @manager.addBackTrack(editor.getPath(), editor.getCursorBufferPosition())
 
