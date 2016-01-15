@@ -64,12 +64,19 @@ module.exports =
      * @param {TextEditor}  editor    Text editor instance.
      * @param {string|null} className Name of the class to retrieve the full name of. If null, the current class will
      *                                be returned (if any).
+     * @param {boolean}     noCurrent Do not use the current class if className is empty
      *
      * @return string
     ###
-    getFullClassName: (editor, className = null) ->
+    getFullClassName: (editor, className = null, noCurrent = false) ->
         if className == null
             className = ''
+
+            if noCurrent
+                return null
+
+        else if className.charAt(0).toUpperCase() != className.charAt(0)
+            return null
 
         if className and className[0] == "\\"
             return className.substr(1) # FQCN, not subject to any further context.
@@ -93,7 +100,6 @@ module.exports =
 
             else if className
                 matches = line.match(usePattern)
-
                 if matches
                     classNameParts = className.split('\\')
                     importNameParts = matches[1].split('\\')
@@ -109,7 +115,6 @@ module.exports =
                         found = true
 
                         fullClass = matches[1]
-
                         classNameParts = classNameParts[1 .. classNameParts.length]
 
                         if (classNameParts.length > 0)
@@ -611,7 +616,7 @@ module.exports =
                         params = proxy.docParams(@getFullClassName(editor), funcName)
 
                         if params.params? and params.params[element]?
-                            return @getFullClassName(editor, params.params[element])
+                            return @getFullClassName(editor, params.params[element].type, true)
 
             chain = editor.scopeDescriptorForBufferPosition([lineNumber, line.length]).getScopeChain()
 
