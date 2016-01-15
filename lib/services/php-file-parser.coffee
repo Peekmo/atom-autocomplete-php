@@ -684,7 +684,7 @@ module.exports =
 
             return
 
-        if methods.names?.indexOf(term) == -1
+        if methods.values?.indexOf(term) == -1
             return
 
         value = methods.values[term]
