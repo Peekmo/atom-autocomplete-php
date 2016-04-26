@@ -75,9 +75,6 @@ module.exports =
             if noCurrent
                 return null
 
-        else if className.charAt(0).toUpperCase() != className.charAt(0)
-            return null
-
         if className and className[0] == "\\"
             return className.substr(1) # FQCN, not subject to any further context.
 
@@ -556,7 +553,7 @@ module.exports =
 
         # Regex variable definition
         regexElement = new RegExp("\\#{element}[\\s]*=[\\s]*([^;]+);", "g")
-        regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([A-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
+        regexNewInstance = new RegExp("\\#{element}[\\s]*=[\\s]*new[\\s]*\\\\?([a-zA-Z][a-zA-Z_\\\\]*)+(?:(.+)?);", "g")
         regexCatch = new RegExp("catch[\\s]*\\([\\s]*([A-Za-z0-9_\\\\]+)[\\s]+\\#{element}[\\s]*\\)", "g")
 
         lineNumber = bufferPosition.row - 1
