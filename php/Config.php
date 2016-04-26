@@ -34,5 +34,3 @@ class Config
         self::$config[$key] = $value;
     }
 }
-
-?>

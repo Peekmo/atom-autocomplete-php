@@ -22,5 +22,3 @@ class DocParamProvider extends Tools implements ProviderInterface
         return $parser->get($class, 'method', $name, array(DocParser::PARAM_TYPE));
     }
 }
-
-?>
