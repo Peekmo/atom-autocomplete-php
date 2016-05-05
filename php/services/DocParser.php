@@ -108,7 +108,7 @@ class DocParser
 
             $result = array_merge(
                 $result,
-                $this->{$filterMethodMap[$filter]}($docblock, $methodName, $tags)
+                $this->{$filterMethodMap[$filter]}($docblock, $itemName, $tags)
             );
         }
 
@@ -228,6 +228,7 @@ class DocParser
             list($type, $description) = $this->filterTwoParameterTag($tags[static::VAR_TYPE][0]);
         } else {
             $type = null;
+            $description = null;
         }
 
         return array(
