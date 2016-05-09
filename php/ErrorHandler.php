@@ -24,9 +24,9 @@ class ErrorHandler
         ini_set('log_errors', false);
 
         // Register our handlers
-        register_shutdown_function('ErrorHandler::onShutdown');
-        set_error_handler('ErrorHandler::onError');
-        set_exception_handler('ErrorHandler::onException');
+        register_shutdown_function('Peekmo\AtomAutocompletePhp\ErrorHandler::onShutdown');
+        set_error_handler('Peekmo\AtomAutocompletePhp\ErrorHandler::onError');
+        set_exception_handler('Peekmo\AtomAutocompletePhp\ErrorHandler::onException');
     }
 
     /**
