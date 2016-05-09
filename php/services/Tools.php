@@ -510,7 +510,7 @@ abstract class Tools
         // Retrieve information about constants.
         $constants  = $reflection->getConstants();
 
-        foreach ($constants as $constant => $value) {
+        foreach (array_keys($constants) as $constant) {
             if (!in_array($constant, $data['names'])) {
                 $data['names'][] = $constant;
                 $data['values'][$constant] = null;

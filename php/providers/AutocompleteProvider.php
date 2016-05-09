@@ -68,11 +68,10 @@ class AutocompleteProvider extends Tools implements ProviderInterface
                         if ($useStatementFound) {
                             $relevantClass = $completedClassName;
                         } else {
-                            $isRelativeClass = true;
-
                             // Try instantiating the class, e.g. My\Foo\Bar.
                             try {
-                                $reflection = new \ReflectionClass($completedClassName);
+                                // We don't care about the result.
+                                new \ReflectionClass($completedClassName);
 
                                 $relevantClass = $completedClassName;
                             } catch (\Exception $e) {

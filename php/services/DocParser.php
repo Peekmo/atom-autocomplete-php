@@ -59,7 +59,7 @@ class DocParser
      *
      * @return array
      */
-    public function parse($docblock, array $filters, $itemName)
+    public function parse($docblock, array $filters, $methodName)
     {
         if (empty($filters)) {
             return array();
@@ -298,7 +298,7 @@ class DocParser
 
         $isReadingSummary = true;
 
-        foreach ($lines as $i => $line) {
+        foreach ($lines as $line) {
             if (preg_match(self::TAG_START_REGEX, $line) === 1) {
                 break; // Found the start of a tag, the summary and description are finished.
             }

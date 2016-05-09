@@ -28,7 +28,7 @@ class ConstantsProvider extends Tools implements ProviderInterface
 
             // NOTE: Be very careful if you want to pass back the value, there are also escaped paths, newlines
             // (PHP_EOL), etc. in there.
-            foreach ($constantList as $constantName => $value) {
+            foreach (array_keys($constantList) as $constantName) {
                 $constants['names'][] = $constantName;
                 $constants['values'][$constantName] = array(
                     array(
