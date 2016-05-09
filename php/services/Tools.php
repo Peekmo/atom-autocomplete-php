@@ -545,5 +545,3 @@ abstract class Tools
         return $data;
     }
 }
-
-?>

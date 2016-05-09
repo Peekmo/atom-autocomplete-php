@@ -41,5 +41,3 @@ class ConstantsProvider extends Tools implements ProviderInterface
         return $constants;
     }
 }
-
-?>

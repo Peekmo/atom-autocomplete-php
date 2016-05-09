@@ -42,5 +42,3 @@ class ClassProvider extends Tools implements ProviderInterface
         );
     }
 }
-
-?>

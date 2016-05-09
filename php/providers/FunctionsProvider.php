@@ -40,5 +40,3 @@ class FunctionsProvider extends Tools implements ProviderInterface
         return $functions;
     }
 }
-
-?>

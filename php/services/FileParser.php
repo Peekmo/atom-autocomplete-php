@@ -101,5 +101,3 @@ class FileParser
         return $fullClass;
     }
 }
-
-?>
