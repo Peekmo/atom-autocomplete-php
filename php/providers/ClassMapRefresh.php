@@ -49,7 +49,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
         // Otherwise, full index
         if (!$fileExists) {
             // Autoload classes
-            foreach ($this->getClassMap(true) as $class => $filePath) {
+            foreach (array_keys($this->getClassMap(true)) as $class) {
                 if ($value = $this->buildIndexClass($class)) {
                     $index['mapping'][$class] = $value;
                     $index['autocomplete'][] = $class;
