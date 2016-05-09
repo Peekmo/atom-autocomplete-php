@@ -680,7 +680,7 @@ module.exports =
                 console.log 'Failed to get methods for ' + calledClass + ' : ' + methods.error.message
 
             return
-        if methods.values?.hasOwnProperty(term) == -1
+        if methods.values?.hasOwnProperty(term) == false 
             return
 
         value = methods.values[term]

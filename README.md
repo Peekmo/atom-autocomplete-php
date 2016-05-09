@@ -1,7 +1,5 @@
 # atom-autocomplete-php
 
-**/!\ This package has a bug with atom 1.3.*(freeze on split pane) Please, use 1.2 or 1.4(beta) in order to avoid that bug**
-
 [![Join the chat at https://gitter.im/Peekmo/atom-autocomplete-php](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Peekmo/atom-autocomplete-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 atom-autocomplete-php provides autocompletion for the PHP language for projects that use Composer for dependency management. What cool things can you expect?
