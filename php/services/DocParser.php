@@ -59,7 +59,7 @@ class DocParser
      *
      * @return array
      */
-    public function parse($docblock, array $filters, $itemName)
+    public function parse($docblock, array $filters, $methodName)
     {
         if (empty($filters)) {
             return array();
