@@ -114,7 +114,8 @@ class ClassProvider extends AbstractProvider
                         type: 'highlight'
                         class: 'comment-clickable comment'
 
-                    editor.decorateMarker marker, options
+                    if !marker.isDestroyed()
+                        editor.decorateMarker marker, options
 
                     if @allMarkers[editor.getLongTitle()] == undefined
                         @allMarkers[editor.getLongTitle()] = []
