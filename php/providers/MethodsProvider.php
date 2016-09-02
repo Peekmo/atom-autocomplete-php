@@ -12,7 +12,7 @@ class MethodsProvider extends Tools implements ProviderInterface
     public function execute($args = array())
     {
         $class = $args[0];
-
+        
         return $this->getClassMetadata($class);
     }
 }

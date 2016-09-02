@@ -4,6 +4,10 @@ namespace Peekmo\AtomAutocompletePhp;
 
 class FileParser
 {
+    private $keywords = [
+        'string', 'int', 'bool', 'float', 'array'
+    ];
+
     const USE_PATTERN = '/(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/';
     const NAMESPACE_PATTERN = '/(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/';
     const DEFINITION_PATTERN = '/(?:abstract class|class|trait|interface)\s+(\w+)/';
@@ -48,6 +52,11 @@ class FileParser
     {
         if (!empty($className) && $className[0] == "\\") {
             return substr($className, 1); // FQCN, not subject to any further context.
+        }
+
+        // Reserved keyword
+        if (in_array($className, $this->keywords)) {
+            return $className;
         }
 
         $line = '';

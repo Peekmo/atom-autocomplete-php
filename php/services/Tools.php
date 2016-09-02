@@ -16,6 +16,13 @@ abstract class Tools
     private $classMap = array();
 
     /**
+     * Parser that parse the current PHP file
+     *
+     * @var FileParser
+     */
+    private $parser = null;
+
+    /**
      * Returns the classMap from composer.
      * Fetch it from the command dump-autoload if needed
      * @param bool $force Force to fetch it from the command
@@ -200,7 +207,8 @@ abstract class Tools
             }
         }
 
-        return array(
+
+        $result = array(
             'parameters'    => $parameters,
             'optionals'     => $optionals,
             'docParameters' => $docParseResult['params'],
@@ -209,6 +217,13 @@ abstract class Tools
             'descriptions'  => $docParseResult['descriptions'],
             'deprecated'    => $function->isDeprecated() || $docParseResult['deprecated']
         );
+
+        $result['return']['type'] = method_exists($function, 'getReturnType') && $function->hasReturnType() // PHP7
+            ? $function->getReturnType()->__toString()
+            : $result['return']['type']
+        ;
+
+        return $result;
     }
 
      /**
@@ -440,6 +455,8 @@ abstract class Tools
         } catch (\Exception $e) {
             return $data;
         }
+
+        $this->parser = new FileParser($reflection->getFileName());
 
         $data = array_merge($data, array(
             'wasFound'     => true,
