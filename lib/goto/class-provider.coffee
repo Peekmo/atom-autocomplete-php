@@ -96,7 +96,7 @@ class ClassProvider extends AbstractProvider
             regex = /^\\?([A-Za-z0-9_]+)\\?([A-Za-zA-Z_\\]*)?/g
             keywordRegex = /^(array|object|bool|string|static|null|boolean|void|int|integer|mixed|callable)$/gi
 
-            if regex.test(value) && keywordRegex.test(value) == false
+            if value && regex.test(value) && keywordRegex.test(value) == false
                 if value.includes('|')
                     @addMarkerToCommentLine value.split('|'), rowIndex, editor, false, currentIndex, parseInt(key)
 
