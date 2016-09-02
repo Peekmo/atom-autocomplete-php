@@ -1,3 +1,7 @@
+## 0.19.0
+* Multiple bug fixes
+* Function's return value type hint parsed (PHP7)
+
 ## 0.18.0
 * Plugin configuration is now more interactive. If there's an error, you'll know it without doing the command
 
