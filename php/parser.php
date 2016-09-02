@@ -1,5 +1,9 @@
 <?php
 
+if (extension_loaded('xdebug')) {
+    xdebug_disable();
+}
+
 /**
  * @author Axel Anceau <Peekmo>
  *

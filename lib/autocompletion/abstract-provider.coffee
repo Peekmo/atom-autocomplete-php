@@ -7,7 +7,7 @@ class AbstractProvider
     regex: ''
     selector: '.source.php'
 
-    inclusionPriority: 1
+    inclusionPriority: 10
 
     disableForSelector: '.source.php .comment, .source.php .string'
 
