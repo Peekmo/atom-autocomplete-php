@@ -668,7 +668,7 @@ module.exports =
         proxy = require '../services/php-proxy.coffee'
         methods = proxy.methods(calledClass)
 
-        if not methods
+        if not methods || not methods?
             return
 
         if methods.error? and methods.error != ''
@@ -680,7 +680,7 @@ module.exports =
                 console.log 'Failed to get methods for ' + calledClass + ' : ' + methods.error.message
 
             return
-        if methods.values?.hasOwnProperty(term) == false 
+        if methods.values?.hasOwnProperty(term) == false
             return
 
         value = methods.values[term]
