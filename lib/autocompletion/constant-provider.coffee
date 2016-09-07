@@ -24,7 +24,7 @@ class ConstantProvider extends AbstractProvider
         return unless prefix.length
 
         @constants = proxy.constants()
-        return unless @constants.names?
+        return unless @constants?.names?
 
         suggestions = @findSuggestionsForPrefix(prefix.trim())
         return unless suggestions.length

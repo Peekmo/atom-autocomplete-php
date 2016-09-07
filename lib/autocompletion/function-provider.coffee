@@ -24,7 +24,7 @@ class FunctionProvider extends AbstractProvider
         return unless prefix.length
 
         @functions = proxy.functions()
-        return unless @functions.names?
+        return unless @functions?.names?
 
         characterAfterPrefix = editor.getTextInRange([bufferPosition, [bufferPosition.row, bufferPosition.column + 1]])
         insertParameterList = if characterAfterPrefix == '(' then false else true
