@@ -16,13 +16,6 @@ abstract class Tools
     private $classMap = array();
 
     /**
-     * Parser that parse the current PHP file
-     *
-     * @var FileParser
-     */
-    private $parser = null;
-
-    /**
      * Returns the classMap from composer.
      * Fetch it from the command dump-autoload if needed
      * @param bool $force Force to fetch it from the command
@@ -455,8 +448,6 @@ abstract class Tools
         } catch (\Exception $e) {
             return $data;
         }
-
-        $this->parser = new FileParser($reflection->getFileName());
 
         $data = array_merge($data, array(
             'wasFound'     => true,
