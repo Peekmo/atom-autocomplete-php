@@ -552,4 +552,19 @@ abstract class Tools
 
         return $data;
     }
+
+
+    /**
+     * Check if the project is Drupal 6/7 and include the necessary files to get the maximum functions as possible
+     */
+    public function includeOldDrupal()
+    {
+        $project = Config::get('projectPath');
+
+        if (file_exists($project . '/misc') && file_exists($project . '/modules') && file_exists($project . '/sites')) {
+            define('DRUPAL_ROOT', $project);
+            include_once DRUPAL_ROOT . '/includes/bootstrap.inc';
+            drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+        }
+    }
 }

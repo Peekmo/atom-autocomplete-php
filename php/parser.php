@@ -80,7 +80,6 @@ foreach ($config['autoload'] as $conf) {
     $path = sprintf('%s/%s', $project, trim($conf, '/'));
     if (file_exists($path)) {
         require_once($path);
-        break;
     }
 }
 

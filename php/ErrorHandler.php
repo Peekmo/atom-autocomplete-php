@@ -63,11 +63,6 @@ class ErrorHandler
      */
     public static function onShutdown()
     {
-        self::$reserve = null;
-
-        $error = error_get_last();
-        if ($error !== null) {
-            die(json_encode(array('error' => $error)));
-        }
+        // Do nothing
     }
 }

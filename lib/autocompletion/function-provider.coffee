@@ -18,7 +18,7 @@ class FunctionProvider extends AbstractProvider
     ###
     fetchSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
         # not preceded by a > (arrow operator), a $ (variable start), ...
-        @regex = /(?:(?:^|[^\w\$_\>]))([a-z_]+)(?![\w\$_\>])/g
+        @regex = /(?:(?:^|[^\w\$_\>]))([a-zA-Z_]+)(?![\w\$_\>])/g
 
         prefix = @getPrefix(editor, bufferPosition)
         return unless prefix.length
@@ -49,14 +49,23 @@ class FunctionProvider extends AbstractProvider
         suggestions = []
         for word in words
             for element in @functions.values[word]
-                suggestions.push
+                returnValueParts = if element.args.return?.type then element.args.return.type.split('\\') else []
+                returnValue = returnValueParts[returnValueParts.length - 1]
+
+                suggestion =
                     text: word,
                     type: 'function',
-                    description: 'Built-in PHP function.' # Needed or the 'More' button won't show up.
-                    descriptionMoreURL: config.config.php_documentation_base_url.functions + word
+                    description: if element.isInternal then 'Built-in PHP function.' else (if element.args.descriptions.short? then element.args.descriptions.short else '')
                     className: if element.args.deprecated then 'php-atom-autocomplete-strike' else ''
                     snippet: if insertParameterList then @getFunctionSnippet(word, element.args) else null
                     displayText: @getFunctionSignature(word, element.args)
                     replacementPrefix: prefix
+                    leftLabel: returnValue
+
+                if element.isInternal
+                  suggestion.descriptionMoreURL = config.config.php_documentation_base_url.functions + word
+
+                suggestions.push suggestion
+
 
         return suggestions

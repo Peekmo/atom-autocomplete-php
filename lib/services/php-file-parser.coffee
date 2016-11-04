@@ -9,6 +9,9 @@ module.exports =
     # Simple cache to avoid duplicate computation for each providers
     cache: []
 
+    # is a method or a simple function
+    isFunction: false
+
     ###*
      * Retrieves the class the specified term (method or property) is being invoked on.
      *
@@ -522,6 +525,11 @@ module.exports =
         elements = text.split(/(?:\-\>|::)/)
         # elements = text.split("->")
 
+        if elements.length == 1
+          @isFunction = true
+        else
+          @isFunction = false
+
         # Remove parenthesis and whitespaces
         for key, element of elements
             element = element.replace /^\s+|\s+$/g, ""
@@ -662,11 +670,14 @@ module.exports =
         if not calledClass
             calledClass = @getCalledClass(editor, term, bufferPosition)
 
-        if not calledClass
+        if not calledClass && not @isFunction
             return
 
         proxy = require '../services/php-proxy.coffee'
-        methods = proxy.methods(calledClass)
+        if @isFunction
+          methods = proxy.functions()
+        else
+          methods = proxy.methods(calledClass)
 
         if not methods || not methods?
             return

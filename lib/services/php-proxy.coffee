@@ -37,7 +37,7 @@ module.exports =
                         args =  [__dirname + "/../../php/parser.php",  directory.path].concat(command)
                         if noparser
                             args = command
-
+                        console.log args
                         stdout = exec.spawnSync(config.config.php, args, options).output[1].toString('ascii')
 
                         delete @currentProcesses[processKey]
@@ -138,6 +138,9 @@ module.exports =
             methods: [],
             composer: null
 
+        # Fill the functions array because it can take times
+        @functions()
+
     ###*
      * Autocomplete for classes name
      * @return {array}
@@ -165,6 +168,7 @@ module.exports =
 
     ###*
      * Autocomplete for internal PHP functions
+     *
      * @return {array}
     ###
     functions: () ->

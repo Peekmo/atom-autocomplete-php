@@ -11,30 +11,40 @@ class FunctionsProvider extends Tools implements ProviderInterface
      */
     public function execute($args = array())
     {
+        $this->includeOldDrupal();
+
         $functions = array(
             'names'  => array(),
             'values' => array()
         );
 
-        $functions = get_defined_functions();
+        $allFunctions = get_defined_functions();
 
-        foreach ($functions['internal'] as $functionName) {
-            try {
-                $function = new \ReflectionFunction($functionName);
-            } catch (\Exception $e) {
-                continue;
+        foreach ($allFunctions as $type => $currentFunctions) {
+            foreach ($currentFunctions as $functionName) {
+                try {
+                    $function = new \ReflectionFunction($functionName);
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                $functions['names'][] = $function->getName();
+
+                $args = $this->getMethodArguments($function);
+
+                $functions['values'][$function->getName()] = array(
+                    array(
+                        'isInternal' => $type == 'internal',
+                        'isMethod'   => true,
+                        'isFunction' => true,
+                        'args'       => $args,
+                        'declaringStructure' => [
+                            'filename' => $function->getFileName(),
+                        ],
+                        'startLine' => $function->getStartLine()
+                    )
+                );
             }
-
-            $functions['names'][] = $function->getName();
-
-            $args = $this->getMethodArguments($function);
-
-            $functions['values'][$function->getName()] = array(
-                array(
-                    'isMethod' => true,
-                    'args'     => $args
-                )
-            );
         }
 
         return $functions;
