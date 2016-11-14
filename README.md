@@ -41,6 +41,9 @@ You can test your configuration by using a command (cmd - shift - p) : ```Atom A
 ![Settings](http://i.imgur.com/hY5ypG2.png)
 &nbsp;
 
+## CMS integration
+  * Built-in support for Drupal 6/7 functions
+
 ## Framework integration
   * [Symfony2 plugin](https://github.com/Peekmo/atom-symfony2)
 
