@@ -57,7 +57,7 @@ class ClassMapRefresh extends Tools implements ProviderInterface
             }
 
             $this->includeOldDrupal();
-            
+
             // Internal classes
             foreach (get_declared_classes() as $class) {
                 $provider = new ClassProvider();

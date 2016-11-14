@@ -68,12 +68,22 @@ module.exports =
                     if noparser
                         args = command
 
-                    @currentProcesses[processKey] = exec.exec(config.config.php + " " + args.join(" "), options, (error, stdout, stderr) =>
+                    @currentProcesses[processKey] = exec.spawn(config.config.php, args, options)
+                    @currentProcesses[processKey].on("exit", (exitCode) =>
                         delete @currentProcesses[processKey]
+                    )
+
+                    commandData = ''
+                    @currentProcesses[processKey].stdout.on("data", (data) =>
+                        commandData += data.toString()
+                    )
+
+                    @currentProcesses[processKey].on("close", () =>
+                        if processKey.indexOf("--functions") != -1
+                            @data.functions = JSON.parse(commandData)
 
                         if processKey.indexOf("--refresh") != -1
                             config.statusInProgress.update("Indexing...", false)
-                        return stdout
                     )
 
     ###*
@@ -173,8 +183,7 @@ module.exports =
     ###
     functions: () ->
         if not @data.functions?
-            res = @execute(["--functions"], false)
-            @data.functions = res
+            @execute(["--functions"], true)
 
         return @data.functions
 
