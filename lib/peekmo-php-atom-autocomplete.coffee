@@ -86,6 +86,9 @@ module.exports =
         config.statusInProgress.initialize(statusBar)
         config.statusInProgress.attach()
 
+        config.statusErrorAutocomplete.initialize(statusBar)
+        config.statusErrorAutocomplete.attach()
+
     consumePlugin: (plugin) ->
         plugins.plugins.push(plugin)
 

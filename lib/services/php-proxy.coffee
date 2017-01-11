@@ -61,6 +61,8 @@ module.exports =
                 return res
             else
                 if not @currentProcesses[processKey]?
+                    config.statusErrorAutocomplete.update("Autocomplete failure", false)
+                    
                     if processKey.indexOf("--refresh") != -1
                         config.statusInProgress.update("Indexing...", true)
 
@@ -80,7 +82,10 @@ module.exports =
 
                     @currentProcesses[processKey].on("close", () =>
                         if processKey.indexOf("--functions") != -1
-                            @data.functions = JSON.parse(commandData)
+                            try
+                                @data.functions = JSON.parse(commandData)
+                            catch err
+                                config.statusErrorAutocomplete.update("Autocomplete failure", true)
 
                         if processKey.indexOf("--refresh") != -1
                             config.statusInProgress.update("Indexing...", false)

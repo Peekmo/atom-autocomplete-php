@@ -1,11 +1,13 @@
 fs = require 'fs'
 namespace = require './services/namespace.coffee'
 StatusInProgress = require "./services/status-in-progress.coffee"
+StatusErrorAutocomplete = require "./services/status-error-autocomplete.coffee"
 
 module.exports =
 
     config: {}
     statusInProgress: null
+    statusErrorAutocomplete: null
 
     ###*
      * Get plugin configuration
@@ -92,6 +94,9 @@ module.exports =
     init: () ->
         @statusInProgress = new StatusInProgress
         @statusInProgress.hide()
+
+        @statusErrorAutocomplete = new StatusErrorAutocomplete
+        @statusErrorAutocomplete.hide()
 
         # Command for namespaces
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:namespace': =>
