@@ -97,7 +97,7 @@ class AbstractProvider
     registerEvents: (editor) ->
         if editor.getGrammar().scopeName.match /text.html.php$/
             textEditorElement = atom.views.getView(editor)
-            scrollViewElement = @$(textEditorElement.shadowRoot).find('.scroll-view')
+            scrollViewElement = @$(textEditorElement).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mousemove', @hoverEventSelectors, (event) =>
                 return unless event.altKey

@@ -6,7 +6,7 @@ AbstractProvider = require './abstract-provider'
 module.exports =
 
 class ClassProvider extends AbstractProvider
-    hoverEventSelectors: '.entity.inherited-class, .support.namespace, .support.class, .comment-clickable .region'
+    hoverEventSelectors: '.syntax--entity.syntax--inherited-class, .syntax--support.syntax--namespace, .syntax--support.syntax--class, .syntax--comment-clickable .syntax--region'
 
     ###*
      * Retrieves a tooltip for the word given.

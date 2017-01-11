@@ -5,8 +5,8 @@ AbstractProvider = require './abstract-provider'
 module.exports =
 
 class FunctionProvider extends AbstractProvider
-    hoverEventSelectors: '.function-call'
-    clickEventSelectors: '.function-call'
+    hoverEventSelectors: '.syntax--function-call'
+    clickEventSelectors: '.syntax--function-call'
     gotoRegex: /^(\w+\()+/
 
     ###*

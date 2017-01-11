@@ -5,7 +5,7 @@ AbstractProvider = require './abstract-provider'
 module.exports =
 
 class PropertyProvider extends AbstractProvider
-    hoverEventSelectors: '.property'
+    hoverEventSelectors: '.syntax--property'
 
     ###*
      * Retrieves a tooltip for the word given.

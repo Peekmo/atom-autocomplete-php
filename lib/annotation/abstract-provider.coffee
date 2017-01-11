@@ -71,10 +71,10 @@ class AbstractProvider
 
             textEditorElement = atom.views.getView(editor)
 
-            @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
+            @$(textEditorElement).find('.horizontal-scrollbar').on 'scroll', () =>
                 @removePopover()
 
-            @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
+            @$(textEditorElement).find('.vertical-scrollbar').on 'scroll', () =>
                 @removePopover()
 
     ###*
@@ -157,7 +157,7 @@ class AbstractProvider
     ###
     registerAnnotationEventHandlers: (editor, row, annotationInfo) ->
         textEditorElement = atom.views.getView(editor)
-        gutterContainerElement = @$(textEditorElement.shadowRoot).find('.gutter-container')
+        gutterContainerElement = @$(textEditorElement).find('.gutter-container')
 
         do (editor, gutterContainerElement, annotationInfo) =>
             longTitle = editor.getLongTitle()

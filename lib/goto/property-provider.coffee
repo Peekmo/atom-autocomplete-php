@@ -5,8 +5,8 @@ AbstractProvider = require './abstract-provider'
 module.exports =
 
 class PropertyProvider extends AbstractProvider
-    hoverEventSelectors: '.property'
-    clickEventSelectors: '.property'
+    hoverEventSelectors: '.syntax--property'
+    clickEventSelectors: '.syntax--property'
     gotoRegex: /^(\$\w+)?((->|::)\w+)+/
 
     ###*

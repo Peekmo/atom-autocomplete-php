@@ -37,7 +37,6 @@ module.exports =
                         args =  [__dirname + "/../../php/parser.php",  directory.path].concat(command)
                         if noparser
                             args = command
-                        console.log args
                         stdout = exec.spawnSync(config.config.php, args, options).output[1].toString('ascii')
 
                         delete @currentProcesses[processKey]
@@ -62,7 +61,7 @@ module.exports =
             else
                 if not @currentProcesses[processKey]?
                     config.statusErrorAutocomplete.update("Autocomplete failure", false)
-                    
+
                     if processKey.indexOf("--refresh") != -1
                         config.statusInProgress.update("Indexing...", true)
 

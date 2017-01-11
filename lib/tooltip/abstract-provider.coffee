@@ -57,7 +57,7 @@ class AbstractProvider
     registerEvents: (editor) ->
         if editor.getGrammar().scopeName.match /text.html.php$/
             textEditorElement = atom.views.getView(editor)
-            scrollViewElement = @$(textEditorElement.shadowRoot).find('.scroll-view')
+            scrollViewElement = @$(textEditorElement).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mouseover', @hoverEventSelectors, (event) =>
                 if @timeout
@@ -89,10 +89,10 @@ class AbstractProvider
             editor.onDidStopChanging () =>
                 @removePopover()
 
-            @$(textEditorElement.shadowRoot).find('.horizontal-scrollbar').on 'scroll', () =>
+            @$(textEditorElement).find('.horizontal-scrollbar').on 'scroll', () =>
                 @removePopover()
 
-            @$(textEditorElement.shadowRoot).find('.vertical-scrollbar').on 'scroll', () =>
+            @$(textEditorElement).find('.vertical-scrollbar').on 'scroll', () =>
                 @removePopover()
 
     ###*
