@@ -550,9 +550,102 @@ abstract class Tools
             );
         }
 
+        $data = $this->getClassMetadataFromDocBlock($reflection, $data);
+
         return $data;
     }
 
+    /**
+     * Returns methods and properties from docblock
+     *
+     * @param ReflectionClass $reflection
+     * @param array $data generated result by getClassMetadata
+     *
+     * @return array
+     */
+    protected function getClassMetadataFromDocBlock(ReflectionClass $reflection, array $data)
+    {
+        $parser = new DocParser();
+        $filters = array(
+            DocParser::PROPERTY,
+            DocParser::METHOD
+        );
+        $docParseResult = $parser->parse($reflection->getDocComment(), $filters, $reflection->getShortName());
+
+        // Retrieve method information from docblock.
+        foreach ($docParseResult['methods'] as $methodName => $method) {
+            if (isset($data['values'][$methodName]['args']['return']['type'])) {
+                $data['values'][$methodName]['args']['return']['type'] = $method['type'];
+            }
+        }
+
+        // Retrieve property information from docblock.
+        foreach ($docParseResult['properties'] as $propertyName => $property) {
+            if ($propertyName[0] == '$') {
+                $propertyName = substr($propertyName, 1);
+            }
+            if (!in_array($propertyName, $data['names'])) {
+                $data['names'][] = $propertyName;
+                $data['values'][$propertyName] = null;
+            }
+
+            try {
+                $propertyReflection = new ReflectionClass($property['type']);
+                $propertyDocParseResult = $parser->parse(
+                    $propertyReflection->getDocComment(),
+                    [DocParser::DESCRIPTION],
+                    $propertyReflection->getShortName()
+                );
+                $args = array(
+                    'return' => array(
+                        'description' => '',
+                        'type' => $propertyReflection->name,
+                    ),
+                    'descriptions' => $propertyDocParseResult['descriptions'],
+                    'deprecated'   => false
+                );
+            } catch (\ReflectionException $e) {
+                $args = array(
+                    'return' => array(
+                        'description' => '',
+                        'type' => $property['type'],
+                    ),
+                    'descriptions' => array(),
+                    'deprecated'   => false
+                );
+            }
+            
+            $propertyClass = array(
+                'name' => $reflection->name,
+                'filename' => $reflection->getFileName(),
+            );
+            $attributesValues = array(
+                'isMethod'           => false,
+                'isProperty'         => true,
+                'isPublic'           => true,
+                'isProtected'        => false,
+                'isPrivate'          => false,
+                'isStatic'           => false,
+
+                'override'           => null,
+
+                'args'               => $args,
+                'declaringClass'     => $propertyClass,
+                'declaringStructure' => $propertyClass
+            );
+
+            if (is_array($data['values'][$propertyName])) {
+                $attributesValues = array(
+                    $attributesValues,
+                    $data['values'][$propertyName]
+                );
+            }
+
+            $data['values'][$propertyName] = $attributesValues;
+        }
+        
+        return $data;
+    }
 
     /**
      * Check if the project is Drupal 6/7 and include the necessary files to get the maximum functions as possible

@@ -10,6 +10,8 @@ class DocParser
     const RETURN_VALUE = '@return';
     const PARAM_TYPE = '@param';
     const VAR_TYPE = '@var';
+    const PROPERTY = '@property';
+    const METHOD = '@method';
     const DEPRECATED = '@deprecated';
     const THROWS = '@throws';
     const DESCRIPTION = 'description';
@@ -96,6 +98,8 @@ class DocParser
             static::RETURN_VALUE => 'filterReturn',
             static::PARAM_TYPE   => 'filterParams',
             static::VAR_TYPE     => 'filterVar',
+            static::PROPERTY     => 'filterProperty',
+            static::METHOD       => 'filterMethod',
             static::DEPRECATED   => 'filterDeprecated',
             static::THROWS       => 'filterThrows',
             static::DESCRIPTION  => 'filterDescription'
@@ -236,6 +240,65 @@ class DocParser
                 'type'        => $type,
                 'description' => $description
             )
+        );
+    }
+
+    /**
+     * Filters out information about the property.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
+    protected function filterProperty($docblock, $methodName, array $tags)
+    {
+        $properties = array();
+
+        if (isset($tags[static::PROPERTY])) {
+            foreach ($tags[static::PROPERTY] as $tag) {
+                list($type, $variableName) = $this->filterTwoParameterTag($tag);
+
+                $properties[$variableName] = array(
+                    'type'        => $type,
+                    'description' => null
+                );
+            }
+        }
+
+        return array(
+            'properties' => $properties
+        );
+    }
+
+    /**
+     * Filters out information about the return value of the method.
+     *
+     * @param string $docblock
+     * @param string $methodName
+     * @param array  $tags
+     *
+     * @return array
+     */
+    protected function filterMethod($docblock, $methodName, array $tags)
+    {
+        $methods = array();
+        
+        if (isset($tags[static::METHOD])) {
+            foreach ($tags[static::METHOD] as $tag) {
+                list($type, $description) = $this->filterTwoParameterTag($tag);
+                list($methodName, $args) = explode('(', $description);
+                
+                $methods[$methodName] = array(
+                    'type'        => $type,
+                    'description' => null
+                );
+            }
+        }
+
+        return array(
+            'methods' => $methods,
         );
     }
 
