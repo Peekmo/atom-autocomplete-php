@@ -69,7 +69,7 @@ module.exports =
                     if noparser
                         args = command
 
-                    @currentProcesses[processKey] = exec.spawn(config.config.php, args, options)
+                    @currentProcesses[processKey] = exec.spawn(config.config.php, args, options)    
                     @currentProcesses[processKey].on("exit", (exitCode) =>
                         delete @currentProcesses[processKey]
                     )

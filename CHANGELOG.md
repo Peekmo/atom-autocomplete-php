@@ -1,3 +1,6 @@
+## 0.22.0
+* Support for `@property` and `@method` annotations (#318)
+
 ## 0.21.0
 * Support for atom 1.13 (fix deprecations)
 
