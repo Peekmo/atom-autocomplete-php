@@ -183,7 +183,7 @@ class DocParser
         return array(
             'return' => array(
                 'type'        => $type,
-                'description' => $description
+                'description' => utf8_encode($description)
             )
         );
     }
@@ -207,7 +207,7 @@ class DocParser
 
                 $params[$variableName] = array(
                     'type'        => $type,
-                    'description' => $description
+                    'description' => utf8_encode($description)
                 );
             }
         }
@@ -238,7 +238,7 @@ class DocParser
         return array(
             'var' => array(
                 'type'        => $type,
-                'description' => $description
+                'description' => utf8_encode($description)
             )
         );
     }
@@ -284,12 +284,12 @@ class DocParser
     protected function filterMethod($docblock, $methodName, array $tags)
     {
         $methods = array();
-        
+
         if (isset($tags[static::METHOD])) {
             foreach ($tags[static::METHOD] as $tag) {
                 list($type, $description) = $this->filterTwoParameterTag($tag);
-                list($methodName, $args) = explode('(', $description);
-                
+                list($methodName, $args) = explode('(', utf8_encode($description));
+
                 $methods[$methodName] = array(
                     'type'        => $type,
                     'description' => null
@@ -335,7 +335,7 @@ class DocParser
             foreach ($tags[static::THROWS] as $tag) {
                 list($type, $description) = $this->filterTwoParameterTag($tag);
 
-                $throws[$type] = $description;
+                $throws[$type] = utf8_encode($description);
             }
         }
 
@@ -384,8 +384,8 @@ class DocParser
 
         return array(
             'descriptions' => array(
-                'short' => trim($summary),
-                'long'  => trim($description)
+                'short' => trim(utf8_encode($summary)),
+                'long'  => trim(utf8_encode($description))
             )
         );
     }
