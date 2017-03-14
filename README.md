@@ -54,6 +54,9 @@ You can test your configuration by using a command (cmd - shift - p) : ```Atom A
   * "Go to definition" will take you to the incorrect location if a class is using a method with the exact same name as one in its own direct traits. You will be taken to the trait method instead of the class method (the latter should take precedence). See also issue #177.
   * `static` and `self` behave mostly like `$this` and can access non-static methods when used in non-static contexts. See also issue #101.
 
+### Conflicts
+  * This package has known conflicts with other PHP autocomplete packages. Disable this one or the other one to avoid some errors.
+
 ## What's Next & Contributing
 Keep in mind that this plugin is under active development. If you find a bug, please, open an issue with more information on how to reproduce. Feel free to contribute ;)
 
