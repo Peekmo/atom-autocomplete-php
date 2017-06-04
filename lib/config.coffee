@@ -27,6 +27,7 @@ module.exports =
         @config['packagePath'] = atom.packages.resolvePackagePath('atom-autocomplete-php')
         @config['verboseErrors'] = atom.config.get('atom-autocomplete-php.verboseErrors')
         @config['insertNewlinesForUseStatements'] = atom.config.get('atom-autocomplete-php.insertNewlinesForUseStatements')
+        @config['ensureNewLineAfterNamespace'] = atom.config.get('atom-autocomplete-php.ensureNewLineAfterNamespace')
 
     ###*
      * Writes configuration in "php lib" folder
@@ -140,4 +141,7 @@ module.exports =
             @writeConfig()
 
         atom.config.onDidChange 'atom-autocomplete-php.insertNewlinesForUseStatements', () =>
+            @writeConfig()
+
+        atom.config.onDidChange 'atom-autocomplete-php.ensureNewLineAfterNamespace', () =>
             @writeConfig()

@@ -128,7 +128,7 @@ class ClassProvider extends AbstractProvider
 
         if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
             editor.transact () =>
-                linesAdded = parser.addUseClass(editor, suggestion.text, config.config.insertNewlinesForUseStatements)
+                linesAdded = parser.addUseClass(editor, suggestion.text, config.config.insertNewlinesForUseStatements, config.config.ensureNewLineAfterNamespace)
 
                 # Removes namespace from classname
                 if linesAdded != null
@@ -160,4 +160,4 @@ class ClassProvider extends AbstractProvider
 
         if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
             editor.transact () =>
-                linesAdded = parser.addUseClass(editor, suggestion.text, config.config.insertNewlinesForUseStatements)
+                linesAdded = parser.addUseClass(editor, suggestion.text, config.config.insertNewlinesForUseStatements, config.config.ensureNewLineAfterNamespace)
