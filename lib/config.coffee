@@ -1,5 +1,6 @@
 fs = require 'fs'
 namespace = require './services/namespace.coffee'
+useStatement = require './services/use-statement.coffee'
 StatusInProgress = require "./services/status-in-progress.coffee"
 StatusErrorAutocomplete = require "./services/status-error-autocomplete.coffee"
 
@@ -101,6 +102,10 @@ module.exports =
         # Command for namespaces
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:namespace': =>
             namespace.createNamespace(atom.workspace.getActivePaneItem())
+
+        # Command for importing use statement
+        atom.commands.add 'atom-workspace', 'atom-autocomplete-php:import-use-statement': =>
+            useStatement.importUseStatement(atom.workspace.getActivePaneItem())
 
         # Command to test configuration
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:configuration': =>

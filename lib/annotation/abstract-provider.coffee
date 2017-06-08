@@ -220,11 +220,19 @@ class AbstractProvider
      * @param {TextEditor} editor The editor to search through.
     ###
     removeAnnotations: (editor) ->
-        for i,marker of @markers[editor.getLongTitle()]
-            marker.destroy()
-
-        @markers[editor.getLongTitle()] = []
-        @subAtoms[editor.getLongTitle()]?.dispose()
+        if editor?
+            for i,marker of @markers[editor.getLongTitle()]
+                marker.destroy()
+            @markers[editor.getLongTitle()] = []
+            @subAtoms[editor.getLongTitle()]?.dispose()
+        else
+            for i,name of @markers
+                for i,marker of @markers[name]
+                    marker.destroy()
+            @markers = []
+            for i, subAtom of @subAtoms
+                subAtom.dispose()
+            @subAtoms = []
 
     ###*
      * Rescans the editor, updating all annotations.
