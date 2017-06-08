@@ -35,6 +35,18 @@ class ClassProvider extends AbstractProvider
         return suggestions
 
     ###*
+     * Get suggestions from the provider for a single word (@see provider-api)
+     * @return array
+    ###
+    fetchSuggestionsFromWord: (word) ->
+        @classes = proxy.classes()
+        return unless @classes?.autocomplete?
+
+        suggestions = @findSuggestionsForPrefix(word)
+        return unless suggestions.length
+        return suggestions
+
+    ###*
      * Returns suggestions available matching the given prefix
      * @param {string} prefix              Prefix to match.
      * @param {bool}   insertParameterList Whether to insert a list of parameters for methods.
@@ -137,3 +149,15 @@ class ClassProvider extends AbstractProvider
                         [row, startColumn],
                         [row, endColumn] # Because when selected there's not \ (why?)
                     ], "")
+
+    ###*
+     * Adds the missing use if needed without removing text from editor
+     * @param {TextEditor} editor
+     * @param {object}     suggestion
+    ###
+    onSelectedClassSuggestion: ({editor, suggestion}) ->
+        return unless suggestion.data?.kind
+
+        if suggestion.data.kind == 'instantiation' or suggestion.data.kind == 'static'
+            editor.transact () =>
+                linesAdded = parser.addUseClass(editor, suggestion.text, config.config.insertNewlinesForUseStatements)
