@@ -10,6 +10,7 @@ atom-autocomplete-php provides autocompletion for the PHP language for projects 
   * Tooltips for methods, classes, etc. that display information about the item itself.
   * IntellJ-style variable annotations `/** @var MyType $var */` as well as `/** @var $var MyType */`.
   * Shortcut variable annotations (must appear right above the respective variable) `/** @var MyType */`.
+  * Add use statement of class under cursor (ctrl-alt-u)
   * ...
 
 ## What do I need to do to make it work?

@@ -1,3 +1,7 @@
+## 0.23.0
+* Multiple bug fixes
+* Import use of a selected class outside completion by @fuelingtheweb (see #338) (shortcut : ctrl-alt-u)
+
 ## 0.22.0
 * Support for `@property` and `@method` annotations (#318)
 
