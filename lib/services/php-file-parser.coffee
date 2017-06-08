@@ -81,9 +81,9 @@ module.exports =
         if className and className[0] == "\\"
             return className.substr(1) # FQCN, not subject to any further context.
 
-        usePattern = /(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/
-        namespacePattern = /(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/
-        definitionPattern = /(?:abstract class|class|trait|interface)\s+(\w+)/
+        usePattern = /^[ \t]*(?:use)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:(?:[ ]+as[ ]+)(\w+))?(?:;)/
+        namespacePattern = /^[ \t]*(?:namespace)(?:[^\w\\\\])([\w\\\\]+)(?![\w\\\\])(?:;)/
+        definitionPattern = /^[ \t]*(?:abstract class|class|trait|interface)\s+(\w+)/
 
         text = editor.getText()
 
