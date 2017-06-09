@@ -3,7 +3,6 @@ namespace = require './services/namespace.coffee'
 useStatement = require './services/use-statement.coffee'
 StatusInProgress = require "./services/status-in-progress.coffee"
 StatusErrorAutocomplete = require "./services/status-error-autocomplete.coffee"
-proxy = require './services/php-proxy.coffee'
 
 module.exports =
 
