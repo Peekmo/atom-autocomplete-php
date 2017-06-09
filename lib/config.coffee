@@ -3,6 +3,7 @@ namespace = require './services/namespace.coffee'
 useStatement = require './services/use-statement.coffee'
 StatusInProgress = require "./services/status-in-progress.coffee"
 StatusErrorAutocomplete = require "./services/status-error-autocomplete.coffee"
+proxy = require './services/php-proxy.coffee'
 
 module.exports =
 
@@ -22,6 +23,7 @@ module.exports =
         @config['composer'] = atom.config.get('atom-autocomplete-php.binComposer')
         @config['php'] = atom.config.get('atom-autocomplete-php.binPhp')
         @config['autoload'] = atom.config.get('atom-autocomplete-php.autoloadPaths')
+        @config['gotoKey'] = atom.config.get('atom-autocomplete-php.gotoKey')
         @config['classmap'] = atom.config.get('atom-autocomplete-php.classMapFiles')
         @config['packagePath'] = atom.packages.resolvePackagePath('atom-autocomplete-php')
         @config['verboseErrors'] = atom.config.get('atom-autocomplete-php.verboseErrors')
@@ -122,6 +124,9 @@ module.exports =
             @testConfig(true)
 
         atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
+            @writeConfig()
+
+        atom.config.onDidChange 'atom-autocomplete-php.gotoKey', () =>
             @writeConfig()
 
         atom.config.onDidChange 'atom-autocomplete-php.classMapFiles', () =>

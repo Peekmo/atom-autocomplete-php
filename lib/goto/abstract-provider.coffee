@@ -1,6 +1,7 @@
 {TextEditor} = require 'atom'
 
 SubAtom = require 'sub-atom'
+config = require '../config.coffee'
 
 module.exports =
 
@@ -100,7 +101,7 @@ class AbstractProvider
             scrollViewElement = @$(textEditorElement).find('.scroll-view')
 
             @subAtom.add scrollViewElement, 'mousemove', @hoverEventSelectors, (event) =>
-                return unless event.altKey
+                return unless @isGotoKeyPressed(event)
 
                 selector = @getSelectorFromEvent(event)
 
@@ -126,7 +127,7 @@ class AbstractProvider
             @subAtom.add scrollViewElement, 'click', @clickEventSelectors, (event) =>
                 selector = @getSelectorFromEvent(event)
 
-                if selector == null || event.altKey == false
+                if selector == null || @isGotoKeyPressed(event) == false
                     return
 
                 if event.handled != true
@@ -147,6 +148,20 @@ class AbstractProvider
                         if marker.id == allMarker.id
                             @gotoFromWord(event.cursor.editor, marker.getProperties().term)
                             break
+
+    ###*
+     * Check if the key binded to the goto with click is pressed or not (according to the settings)
+     *
+     * @param  {Object}  event JS event
+     *
+     * @return {Boolean}
+    ###
+    isGotoKeyPressed: (event) ->
+        switch config.config.gotoKey
+            when 'ctrl'then return event.ctrlKey
+            when 'alt' then return event.altKey
+            when 'cmd' then return event.metaKey
+            else return false
 
     ###*
      * Register any markers that you need.
