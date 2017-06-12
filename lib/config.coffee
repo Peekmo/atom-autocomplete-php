@@ -108,6 +108,11 @@ module.exports =
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:import-use-statement': =>
             useStatement.importUseStatement(atom.workspace.getActivePaneItem())
 
+        # Command to reindex the current project
+        atom.commands.add 'atom-workspace', 'atom-autocomplete-php:reindex-project': ->
+            proxy = require './services/php-proxy.coffee'
+            proxy.refresh()
+
         # Command to test configuration
         atom.commands.add 'atom-workspace', 'atom-autocomplete-php:configuration': =>
             @testConfig(true)
