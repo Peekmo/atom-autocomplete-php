@@ -45,13 +45,13 @@ class FunctionProvider extends AbstractProvider
         else
           description += accessModifier + ' ' + returnType + ' <strong>' + term + '</strong>' + '('
 
-        if value.args.parameters.length > 0
+        if value.args.parameters?.length > 0
             description += value.args.parameters.join(', ');
 
-        if value.args.optionals.length > 0
+        if value.args.optionals?.length > 0
             description += '['
 
-            if value.args.parameters.length > 0
+            if value.args.parameters?.length > 0
                 description += ', '
 
             description += value.args.optionals.join(', ')
