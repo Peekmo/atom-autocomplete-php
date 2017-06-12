@@ -119,10 +119,7 @@ class AbstractProvider
                 markerLayer = editor.addMarkerLayer(maintainHistory: true)
                 @markerLayers.set(editor, markerLayer)
 
-        marker = (markerLayer ? editor).markBufferRange(range, {
-            maintainHistory : true,
-            invalidate      : 'touch'
-        })
+        marker = (markerLayer ? editor).markBufferRange(range)
 
         decoration = editor.decorateMarker(marker, {
             type: 'line-number',
