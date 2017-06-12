@@ -69,7 +69,7 @@ module.exports =
                     if noparser
                         args = command
 
-                    @currentProcesses[processKey] = exec.spawn(config.config.php, args, options)    
+                    @currentProcesses[processKey] = exec.spawn(config.config.php, args, options)
                     @currentProcesses[processKey].on("exit", (exitCode) =>
                         delete @currentProcesses[processKey]
                     )
@@ -268,3 +268,11 @@ module.exports =
 
         atom.config.onDidChange 'atom-autocomplete-php.autoloadPaths', () =>
             @clearCache()
+
+    ###*
+     * Function called when plugin is deactivate
+     * Cleanup every request in progress (#330)
+    ###
+    deactivate: () ->
+        for key, process of @currentProcesses
+            process.kill()

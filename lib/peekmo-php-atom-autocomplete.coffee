@@ -89,6 +89,7 @@ module.exports =
         @tooltipManager.deactivate()
         @annotationManager.deactivate()
         @autocompletionManager.deactivate()
+        proxy.deactivate()
 
     consumeStatusBar: (statusBar) ->
         config.statusInProgress.initialize(statusBar)
