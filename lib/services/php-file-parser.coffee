@@ -522,8 +522,7 @@ module.exports =
         # Get the full text
         return [] if not text
 
-        elements = text.split(/(?:\-\>|::)/)
-        # elements = text.split("->")
+        elements = text.replace(/\([^\)]*\)/g, '').split(/(?:\-\>|::)/)
 
         if elements.length == 1
           @isFunction = true
