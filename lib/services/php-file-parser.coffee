@@ -522,7 +522,16 @@ module.exports =
         # Get the full text
         return [] if not text
 
-        elements = text.replace(/\([^\)]*\)/g, '').split(/(?:\-\>|::)/)
+        # Keep the content of the parenthesis, then erase it to split
+        matches = text.match(/\(([^()]*|\(([^()]*|\([^()]*\))*\))*\)/g)
+        elements = text.replace(/\(([^()]*|\(([^()]*|\([^()]*\))*\))*\)/g, '()').split(/(?:\-\>|::)/)
+
+        # Then, put the content again
+        idx = 0
+        for key, element of elements
+            if element.indexOf('()') != -1
+                elements[key] = element.replace /\(\)/g, matches[idx]
+                idx += 1
 
         if elements.length == 1
           @isFunction = true
