@@ -59,6 +59,13 @@ module.exports =
             default: false
             order: 6
 
+        ensureNewLineAfterNamespace:
+            title: 'Ensure new line after namespace.'
+            description: 'When enabled, the plugin will add a new line before the use statement when it comes directly after the namespace.'
+            type: 'boolean'
+            default: false
+            order: 6
+
         verboseErrors:
             title: 'Errors on file saving showed'
             description: 'When enabled, you\'ll have a notification once an error occured on autocomplete. Otherwise, the message will just be logged in developer console'

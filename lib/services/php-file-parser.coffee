@@ -160,7 +160,7 @@ module.exports =
      * @return {int}       The amount of lines added (including newlines), so you can reliably and easily offset your
      *                     rows. This could be zero if a use statement was already present.
     ###
-    addUseClass: (editor, className, allowAdditionalNewlines) ->
+    addUseClass: (editor, className, allowAdditionalNewlines, ensureNewLineAfterNamespace) ->
         if className.split('\\').length == 1 or className.indexOf('\\') == 0
             return null
 
@@ -168,6 +168,7 @@ module.exports =
         bestScore = 0
         placeBelow = true
         doNewLine = true
+        namespaceLine = 0
         lineCount = editor.getLineCount()
 
         # Determine an appropriate location to place the use statement.
@@ -186,6 +187,7 @@ module.exports =
                 break
 
             if line.indexOf('namespace ') >= 0
+                namespaceLine = i
                 bestUse = i
 
             matches = @useStatementRegex.exec(line)
@@ -219,7 +221,7 @@ module.exports =
 
         textToInsert = ''
 
-        if doNewLine and placeBelow
+        if (doNewLine and placeBelow) || (ensureNewLineAfterNamespace and bestUse == namespaceLine)
             textToInsert += lineEnding
 
         textToInsert += "use #{className};" + lineEnding
